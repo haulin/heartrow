@@ -12,5 +12,6 @@ export default defineConfig({
   test: {
     root: '.',
     include: ['tests/**/*.test.ts'],
+    exclude: ['**/node_modules/**', '**/*.slow.test.ts'],
   },
 })

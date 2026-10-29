@@ -1,2 +1,8 @@
-// Placeholder: the pure rules engine lives here. No DOM, no Node APIs, no ambient randomness or time.
-export {}
+export * from './types'
+export * from './modes'
+export * from './rng'
+export { newGame, legalMoves, applyMove } from './moves'
+export { cardCost, canAfford, cloneState } from './state'
+export { makeCard } from './generator/make'
+export { EFFECTS, EFFECT_BY_ID, effectPrice } from './effects'
+export type { EffectDef, EffectContext } from './effects'

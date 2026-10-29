@@ -1,0 +1,16 @@
+import type { EffectDef } from './types'
+
+export const swap: EffectDef = {
+  id: 'swap',
+  price: 1.5,
+  text: 'Swap your ● and ⚔',
+  enemies: true,
+  lean: ['moss', 'ember'],
+  retainable: true,
+  apply({ state, events }) {
+    const gold = state.gold
+    state.gold = state.power
+    state.power = gold
+    events.push({ type: 'swapped' })
+  },
+}

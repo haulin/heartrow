@@ -19,6 +19,7 @@
     "dev": "vp dev",
     "build": "vp build",
     "test": "vp test run",
+    "baseline": "vp test run --config vite.baseline.config.ts",
     "typecheck": "tsc -b",
     "check:portability": "node scripts/check-portability.mjs",
     "verify": "npm run typecheck && npm run check:portability && npm run test && npm run build"

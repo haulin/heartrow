@@ -56,6 +56,7 @@ export interface RunStats {
 
 export interface GameState {
   mode: string
+  config: ModeConfig
   seed: number
   turn: number
   maxTurns: number
@@ -96,12 +97,14 @@ export interface Gains {
   hearts: number
 }
 
+export type DrawCause = 'effect' | 'cycle' | 'turnStart' | 'setup'
+
 export type RejectReason = 'gameOver' | 'pendingExile' | 'alreadyPlayed' | 'cannotAfford' | 'noRedraws' | 'noSuchCard' | 'noExilePending'
 
 export type GameEvent =
   | { type: 'rejected'; reason: RejectReason; short?: number; currency?: Currency }
   | { type: 'played'; card: Card; gains: Gains }
-  | { type: 'drew'; cardIds: number[] }
+  | { type: 'drew'; cardIds: number[]; requested: number; cause: DrawCause }
   | { type: 'reshuffled' }
   | { type: 'coinFlipped'; gold: number }
   | { type: 'swapped' }
@@ -111,7 +114,7 @@ export type GameEvent =
   | { type: 'recruited'; card: Card; paid: number }
   | { type: 'defeated'; card: Card; paid: number; gains: Gains }
   | { type: 'rowRefilled'; card: Card }
-  | { type: 'rowRedrawn'; kept: Card }
+  | { type: 'rowRedrawn'; cards: Card[]; kept: Card }
   | { type: 'escaped'; card: Card; hearts: number }
   | { type: 'reaped'; hearts: number }
   | { type: 'retained'; count: number }
