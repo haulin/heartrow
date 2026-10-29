@@ -33,10 +33,6 @@ export function saveSettings(store: AppStorage, settings: Settings): void {
     store.set(KEY, settings)
 }
 
-export function nextTheme(theme: Theme): Theme {
-    return THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length]!
-}
-
 export function applyTheme(root: HTMLElement, theme: Theme): void {
     root.dataset.theme = theme
 }

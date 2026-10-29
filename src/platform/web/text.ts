@@ -14,13 +14,15 @@ export const spoken = (s: string): string =>
         .replaceAll('⚔', 'power')
         .replaceAll('♥', 'hearts')
 
-export type RichPart = { text: string; sym: 'g' | 'p' | 'h' | null }
+export type RichSym = 'g' | 'p' | 'h' | 'r'
+export type RichPart = { text: string; sym: RichSym | null }
 
-const SYMBOL_CLASS: Record<string, 'g' | 'p' | 'h'> = { '●': 'g', '⚔': 'p', '♥': 'h' }
+/** The core writes these symbols as plain text. The web build draws each one as an icon over the text (see `.ico` in styles.css). */
+const SYMBOL_CLASS: Record<string, RichSym> = { '●': 'g', '⚔': 'p', '♥': 'h', '↺': 'r' }
 
 export function richParts(s: string): RichPart[] {
     return s
-        .split(/([●⚔♥])/)
+        .split(/([●⚔♥↺])/)
         .filter((part) => part !== '')
         .map((text) => ({ text, sym: SYMBOL_CLASS[text] ?? null }))
 }

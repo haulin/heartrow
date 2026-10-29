@@ -46,13 +46,27 @@ describe('App', () => {
         expect(store.getSession().history[0]).toMatch(/^T1 · Played/)
     })
 
-    it('shows a rejection message when a recruit is unaffordable and cycles the theme', () => {
-        const { host, storage } = mount()
+    it('shows a rejection message when a recruit is unaffordable', () => {
+        const { host } = mount()
         void act(() => host.querySelector<HTMLButtonElement>('[data-zone="row"] button.card')!.click())
         expect(host.querySelector('#msg')?.textContent).toMatch(/Need \d+ more/)
         expect(host.querySelector('[role="status"]')?.textContent).toMatch(/Need \d+ more/)
-        const theme = Array.from(host.querySelectorAll('button')).find((b) => b.textContent?.startsWith('Theme'))!
-        void act(() => theme.click())
+    })
+
+    it('changes the theme in the settings dialog, not in the button bar', () => {
+        const { host, storage } = mount()
+        const buttons = () => Array.from(host.querySelectorAll('button'))
+        expect(buttons().some((b) => b.textContent?.startsWith('Theme'))).toBe(false)
+        void act(() =>
+            buttons()
+                .find((b) => b.textContent === 'Settings')!
+                .click(),
+        )
+        const select = host.querySelector<HTMLSelectElement>('select')!
+        select.value = 'light'
+        void act(() => {
+            select.dispatchEvent(new Event('change', { bubbles: true }))
+        })
         expect(document.documentElement.dataset.theme).toBe('light')
         expect(storage.get<{ theme: string }>('settings', { theme: '' }).theme).toBe('light')
     })

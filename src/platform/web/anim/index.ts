@@ -27,10 +27,9 @@ export const DURATION_MS: Record<AnimSpeed, number> = { off: 0, fast: 90, normal
 
 const KEYFRAMES: Record<EffectKind, Keyframe[]> = {
     shake: [{ translate: '0 0' }, { translate: '-5px 0', offset: 0.25 }, { translate: '5px 0', offset: 0.75 }, { translate: '0 0' }],
-    highlight: [
-        { boxShadow: '0 0 0 3px var(--gold)', filter: 'brightness(1.35)' },
-        { boxShadow: '0 0 0 0 transparent', filter: 'brightness(1)' },
-    ],
+    // Only the start is given (offset 0): the animation ends at the element's resting style (the dimmed played look), so there is one easing curve.
+    // A lone keyframe without an offset would be the end keyframe, which plays the wrong way round.
+    highlight: [{ offset: 0, boxShadow: '0 0 10px 2px color-mix(in srgb, var(--gold) 55%, transparent)', filter: 'brightness(1.35)' }],
     enter: [
         { opacity: 0, transform: 'translateX(-35%)' },
         { opacity: 1, transform: 'none' },
@@ -90,7 +89,12 @@ function run(effect: Effect, speed: AnimSpeed): Animation | null {
         return null
     }
     if (typeof effect.el.animate !== 'function') return null
-    return effect.el.animate(KEYFRAMES[effect.kind], { duration: DURATION_MS[speed] * DURATION_FACTOR[effect.kind], easing: 'ease-out' })
+    return effect.el.animate(KEYFRAMES[effect.kind], {
+        duration: DURATION_MS[speed] * DURATION_FACTOR[effect.kind],
+        easing: 'ease-out',
+        // The shake adds to the resting translate, so a hovered (lifted) card does not drop while it shakes.
+        composite: effect.kind === 'shake' ? 'add' : 'replace',
+    })
 }
 
 const prefersReducedMotion = (): boolean => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches

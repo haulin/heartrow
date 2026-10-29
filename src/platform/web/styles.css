@@ -10,8 +10,8 @@
     --tide: #2f6fc2;
     --foe: #7a3fa8;
     --gold: #c08a0c;
-    --heart: #d62f6b;
-    --pow: #d4600a;
+    --heart: #e04a80;
+    --pow: #c2540f;
     box-sizing: border-box;
     padding-top: env(safe-area-inset-top, 0px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
@@ -27,8 +27,8 @@
     --card: #2f2342;
     --dim: #9a8bb0;
     --gold: #f0b429;
-    --heart: #ff5d93;
-    --pow: #ff8a3d;
+    --heart: #ff86ad;
+    --pow: #ec7223;
     --foe: #b07be0;
 }
 @media (prefers-color-scheme: dark) {
@@ -40,8 +40,8 @@
         --card: #2f2342;
         --dim: #9a8bb0;
         --gold: #f0b429;
-        --heart: #ff5d93;
-        --pow: #ff8a3d;
+        --heart: #ff86ad;
+        --pow: #ec7223;
         --foe: #b07be0;
     }
 }
@@ -119,6 +119,10 @@ code {
 }
 button.stat {
     cursor: pointer;
+    /* A button centres its content when the row stretches it; keep the text at the top like the plain stats. */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
 }
 .stat small {
     display: block;
@@ -136,10 +140,50 @@ button.stat {
     color: var(--gold);
 }
 .p {
-    color: var(--ember);
+    color: var(--pow);
 }
 .h {
     color: var(--heart);
+}
+.r {
+    color: var(--dim);
+}
+/*
+ * Symbol icons. The real character stays in the page as transparent text (so it copies as text and the layout has a 1em box),
+ * and the icon is the background. The text is narrower than the icon, so its selection highlight is hidden.
+ */
+.ico {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.14em;
+    overflow: hidden;
+    white-space: nowrap;
+    text-align: center;
+    line-height: 1;
+    background: center / contain no-repeat;
+}
+.ico,
+.ico.g,
+.ico.p,
+.ico.h,
+.ico.r {
+    color: transparent;
+}
+.ico::selection {
+    background: transparent;
+}
+.ico.g {
+    background-image: url('./icons/coin.svg');
+}
+.ico.p {
+    background-image: url('./icons/swords.svg');
+}
+.ico.h {
+    background-image: url('./icons/heart.svg');
+}
+.ico.r {
+    background-image: url('./icons/retain.svg');
 }
 .stat.big {
     box-shadow: inset 0 0 0 2px currentColor;
@@ -193,14 +237,34 @@ button.stat {
     margin-left: calc(var(--k, 0) * -1 * (var(--cw) + 6px));
 }
 .hand .slot:hover,
-.hand .slot:focus-within,
+.hand .slot:has(:focus-visible),
 .row .slot:hover,
-.row .slot:focus-within {
+.row .slot:has(:focus-visible) {
     z-index: 5;
 }
 .slot:hover .card,
-.slot:focus-within .card {
-    transform: translateY(-6px);
+.slot:has(:focus-visible) .card {
+    translate: 0 -6px;
+}
+/*
+ * Browsers enforce a minimum font size (Brave's setting, large system text on phones), which would inflate the tiny card text.
+ * The minimum applies before transforms, so draw each card at its design size (118 x 175) and scale it down to the slot.
+ * Typed division of lengths is not available everywhere, so other browsers keep the direct sizing above.
+ */
+@supports (scale: calc(10px / 2px)) {
+    .slot {
+        --scale: calc(var(--cw) / 118px);
+    }
+    .slot .card {
+        --cw: 118px;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 118px;
+        height: 175px;
+        transform-origin: 0 0;
+        scale: var(--scale);
+    }
 }
 .mini {
     --cw: 59px;
@@ -214,7 +278,7 @@ button.stat {
     border-radius: 8px;
 }
 .mini .slot:hover .card {
-    transform: none;
+    translate: none;
 }
 
 .msg {

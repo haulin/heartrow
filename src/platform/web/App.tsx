@@ -6,7 +6,7 @@ import { Stats } from './Stats'
 import { createAnimator } from './anim'
 import type { Animator } from './anim'
 import { randomSeed } from './mode'
-import { applyTheme, loadSettings, nextTheme, saveSettings } from './settings'
+import { applyTheme, loadSettings, saveSettings } from './settings'
 import { SKIN_IDS, getSkin } from './skins'
 import type { GameStore } from './store'
 import type { AppStorage } from './storage'
@@ -20,8 +20,6 @@ export interface AppProps {
     storage: AppStorage
     animator?: Animator
 }
-
-const THEME_LABEL = { system: 'System', light: 'Light', dark: 'Dark' } as const
 
 function useSession(store: GameStore) {
     const [, setTick] = useState(0)
@@ -99,7 +97,11 @@ export function App({ store, storage, animator: injected }: AppProps) {
                             `Long Run: ${state.maxTurns} turns`
                         ) : (
                             <>
-                                Goal: <span class="h">{state.goal} ♥</span> in {state.maxTurns} turns
+                                Goal:{' '}
+                                <span class="h">
+                                    <Rich text={`${state.goal} ♥`} />
+                                </span>{' '}
+                                in {state.maxTurns} turns
                             </>
                         )}
                     </span>
@@ -192,14 +194,6 @@ export function App({ store, storage, animator: injected }: AppProps) {
                     </button>
                     <button type="button" class="b alt" onClick={() => setDialog('new')}>
                         New game
-                    </button>
-                    <button
-                        type="button"
-                        class="b alt"
-                        title="Cycle theme: system, light, dark"
-                        onClick={() => changeSettings({ ...settings, theme: nextTheme(settings.theme) })}
-                    >
-                        Theme: {THEME_LABEL[settings.theme]}
                     </button>
                     <button type="button" class="b alt" onClick={() => setDialog('settings')}>
                         Settings

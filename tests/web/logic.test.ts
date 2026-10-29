@@ -4,7 +4,7 @@ import type { Card, GameState, Move } from '../../src/core'
 import { modeFromId, parseStartParams, shareQuery } from '../../src/platform/web/mode'
 import { startSession, stepSession, undoSession } from '../../src/platform/web/session'
 import type { Session } from '../../src/platform/web/session'
-import { DEFAULT_SETTINGS, loadSettings, nextTheme, saveSettings } from '../../src/platform/web/settings'
+import { DEFAULT_SETTINGS, loadSettings, saveSettings } from '../../src/platform/web/settings'
 import { GameStore } from '../../src/platform/web/store'
 import { createJsonStorage, createMemoryStorage } from '../../src/platform/web/storage'
 import { deckSummary, richParts, spoken, statusMessage } from '../../src/platform/web/text'
@@ -219,7 +219,5 @@ describe('storage and settings', () => {
         expect(loadSettings(s)).toEqual({ theme: 'dark', anim: 'fast', skin: 'default' })
         s.set('settings', { theme: 'neon', anim: 3, skin: 'gone' })
         expect(loadSettings(s)).toEqual(DEFAULT_SETTINGS)
-        expect(nextTheme('system')).toBe('light')
-        expect(nextTheme('dark')).toBe('system')
     })
 })

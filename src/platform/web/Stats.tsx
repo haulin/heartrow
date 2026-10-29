@@ -23,7 +23,11 @@ function Stat({ label, cls = '', title, badge, children }: StatProps) {
         <div class={`stat ${cls}`} title={title}>
             {children}
             <small>{label}</small>
-            {badge ? <span class="rb">{badge}</span> : null}
+            {badge ? (
+                <span class="rb">
+                    <Rich text={badge} />
+                </span>
+            ) : null}
         </div>
     )
 }

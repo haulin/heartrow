@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-10 -10 350 350">
+    <!-- Padlock shape from the previous inline lock icon, now with a steel gradient like the swords. -->
+    <defs>
+        <linearGradient id="steel" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#f1f4f6" />
+            <stop offset="1" stop-color="#7b8d99" />
+        </linearGradient>
+    </defs>
+    <path
+        d="M65 330h200c8.284 0 15-6.716 15-15V145c0-8.284-6.716-15-15-15h-15V85C250 38.131 211.869 0 165 0S80 38.131 80 85v45H65c-8.284 0-15 6.716-15 15v170c0 8.284 6.716 15 15 15zm115-95.014V255c0 8.284-6.716 15-15 15s-15-6.716-15-15v-20.014c-6.068-4.565-10-11.824-10-19.986 0-13.785 11.215-25 25-25s25 11.215 25 25c0 8.162-3.932 15.421-10 19.986zM120 85c0-24.853 20.147-45 45-45s45 20.147 45 45v45H120V85z"
+        fill="url(#steel)"
+        stroke="#37474f"
+        stroke-width="10"
+        stroke-linejoin="round"
+    />
+</svg>
