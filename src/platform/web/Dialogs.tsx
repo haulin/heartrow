@@ -16,8 +16,12 @@ export function Modal({ onClose, children }: { onClose: () => void; children: Co
     useEffect(() => {
         const d = ref.current
         if (!d || d.open) return
+        const opener = document.activeElement
         if (typeof d.showModal === 'function') d.showModal()
         else d.setAttribute('open', '')
+        return () => {
+            if (opener instanceof HTMLElement && opener.isConnected) opener.focus()
+        }
     }, [])
     return (
         <dialog ref={ref} onClose={onClose} onClick={(e) => e.target === e.currentTarget && onClose()}>
@@ -80,10 +84,11 @@ export function AboutDialog({ state, onClose }: { state: GameState; onClose: () 
     return (
         <Modal onClose={onClose}>
             <h2>About Heartrow</h2>
+            <p class="rules">Version {__APP_VERSION__}</p>
             <p>
-                This is the v7 rules. Click a hand card to play it, or a recruit row card to buy it. Recruits cost gold ●, go to your
-                discard and work whenever you draw them. Enemies cost power ⚔: defeating one gives its hearts ♥ and effects once, and if one
-                falls off the right edge you lose that many.
+                Click a hand card to play it, or a recruit row card to buy it. Recruits cost gold ●, go to your discard and work whenever
+                you draw them. Enemies cost power ⚔: defeating one gives its hearts ♥ and effects once, and if one falls off the right edge
+                you lose that many.
             </p>
             <p>
                 Standard levels last 24 turns. Long Run lasts 42 turns and records a high score instead of ending when you reach a heart

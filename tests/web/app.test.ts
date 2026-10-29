@@ -50,6 +50,7 @@ describe('App', () => {
         const { host, storage } = mount()
         void act(() => host.querySelector<HTMLButtonElement>('[data-zone="row"] button.card')!.click())
         expect(host.querySelector('#msg')?.textContent).toMatch(/Need \d+ more/)
+        expect(host.querySelector('[role="status"]')?.textContent).toMatch(/Need \d+ more/)
         const theme = Array.from(host.querySelectorAll('button')).find((b) => b.textContent?.startsWith('Theme'))!
         void act(() => theme.click())
         expect(document.documentElement.dataset.theme).toBe('light')

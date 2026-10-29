@@ -99,7 +99,15 @@ export interface Gains {
 
 export type DrawCause = 'effect' | 'cycle' | 'turnStart' | 'setup'
 
-export type RejectReason = 'gameOver' | 'pendingExile' | 'alreadyPlayed' | 'cannotAfford' | 'noRedraws' | 'noSuchCard' | 'noExilePending'
+export type RejectReason =
+    | 'gameOver'
+    | 'pendingExile'
+    | 'alreadyPlayed'
+    | 'cannotAfford'
+    | 'noRedraws'
+    | 'noSuchCard'
+    | 'noExilePending'
+    | 'unknownMove'
 
 export type GameEvent =
     | { type: 'rejected'; reason: RejectReason; short?: number; currency?: Currency }

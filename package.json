@@ -1,13 +1,12 @@
 {
     "name": "heartrow",
-    "version": "0.0.0",
+    "version": "0.0.8",
     "private": true,
     "type": "module",
     "scripts": {
         "dev": "vp dev",
         "build": "vp build",
         "verify": "vp check && vp test run && vp build",
-        "baseline": "vp test run --config vite.baseline.config.ts",
         "sim": "node tools/sim.mjs"
     },
     "dependencies": {

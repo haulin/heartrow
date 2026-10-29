@@ -1,7 +1,10 @@
+import { readFileSync } from 'node:fs'
 import preact from '@preact/preset-vite'
 import { defineConfig } from 'vite-plus'
 
-const IGNORED = ['prototypes/**', 'local/**', 'dist/**', 'tests/baseline.json', 'package-lock.json', '**/*.md']
+const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string }
+
+const IGNORED = ['prototypes/**', 'local/**', 'dist/**', 'tools/baseline/v7-final.json', 'package-lock.json']
 
 export default defineConfig({
     fmt: { ignorePatterns: IGNORED, semi: false, singleQuote: true, printWidth: 140, tabWidth: 4 },
@@ -12,6 +15,7 @@ export default defineConfig({
     root: 'src/platform/web',
     base: './',
     plugins: [preact()],
+    define: { __APP_VERSION__: JSON.stringify(version) },
     build: {
         outDir: '../../../dist',
         emptyOutDir: true,
@@ -19,6 +23,6 @@ export default defineConfig({
     test: {
         root: '.',
         include: ['tests/**/*.test.ts'],
-        exclude: ['**/node_modules/**', '**/*.slow.test.ts'],
+        exclude: ['**/node_modules/**'],
     },
 })

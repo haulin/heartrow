@@ -77,6 +77,9 @@ export function formatEvent(event: GameEvent, ctx: FormatContext): string | null
     switch (event.type) {
         case 'rejected':
             if (event.reason === 'alreadyPlayed') return 'That card is already played this turn.'
+            if (event.reason === 'pendingExile') return 'Choose a card to exile, or skip the exile.'
+            if (event.reason === 'gameOver') return 'The run is over. Start a new game.'
+            if (event.reason === 'noRedraws') return 'No redraws left.'
             if (event.reason === 'cannotAfford' && event.short !== undefined) {
                 return `Need ${event.short} more ${symbol(event.currency === 'power' ? 'power' : 'gold')}.`
             }

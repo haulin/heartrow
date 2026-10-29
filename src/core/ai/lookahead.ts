@@ -27,7 +27,7 @@ function rollout(start: GameState, move: Move, base: Profile, rng: Rng, futureSe
     shuffle(state.streams.shuffle, state.deck)
     state = applyMove(state, move).state
     const policy = composePolicies(base.policies)
-    for (let n = 0; state.status === 'playing' && state.turn < endTurn && n < 400; n++) {
+    for (let n = 0; state.status === 'playing' && state.turn < endTurn && n < 600; n++) {
         const next = pickMove(state, legalMoves(state), policy, rng, base.pick)
         if (!next) break
         state = applyMove(state, next).state

@@ -61,14 +61,17 @@ describe('formatEvent', () => {
             { type: 'reshuffled' },
             { type: 'rowRefilled', card: card('moss') },
             { type: 'gameOver', status: 'won' },
-            { type: 'rejected', reason: 'gameOver' },
-            { type: 'rejected', reason: 'pendingExile' },
+            { type: 'rejected', reason: 'unknownMove' },
             { type: 'retained', count: 0 },
             { type: 'drew', cardIds: [1], requested: 1, cause: 'turnStart' },
             { type: 'drew', cardIds: [1], requested: 1, cause: 'setup' },
             { type: 'drew', cardIds: [1], requested: 1, cause: 'cycle' },
         ]
         for (const event of silent) expect(formatEvent(event, ctx)).toBeNull()
+    })
+
+    it.each([['gameOver'], ['pendingExile'], ['noRedraws']] as const)('explains a rejected move (%s)', (reason) => {
+        expect(formatEvent({ type: 'rejected', reason }, ctx)).toEqual(expect.any(String))
     })
 })
 

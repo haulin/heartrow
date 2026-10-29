@@ -24,6 +24,14 @@ function check(mode: ModeConfig, turns: number): number {
             const enemy = card.kind === 'enemy'
             expect(card.fx.length).toBeLessThanOrEqual(1)
             expect(card.cost).toBeGreaterThanOrEqual(enemy ? 1 : 2)
+            const spent = spentBudget(card)
+            const budgetAt = (cost: number) => (enemy ? cost * 1.4 : cost * 0.85 + 0.3) + 1e-6
+            const minCost = enemy ? 1 : 2
+            if (card.cost > minCost) {
+                // An enemy always gets one free heart after its budget is spent, so only recruits are held to the upper bound.
+                if (!enemy) expect(spent).toBeLessThanOrEqual(budgetAt(card.cost))
+                expect(spent).toBeGreaterThan(budgetAt(card.cost - 1))
+            }
             if (enemy) {
                 expect(card.hearts).toBeGreaterThanOrEqual(1)
                 expect([card.gold, card.power, card.retain]).toEqual([0, 0, undefined])

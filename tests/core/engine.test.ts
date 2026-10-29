@@ -57,6 +57,27 @@ describe('engine', () => {
         expect(s.hand[0]!.played).toBeUndefined()
     })
 
+    it('accepts exactly the moves legalMoves lists', () => {
+        randomGame(LONG_MODE, 12, (before) => {
+            const key = (m: Move) => JSON.stringify(m)
+            const legal = new Set(legalMoves(before).map(key))
+            const candidates: Move[] = [{ type: 'endTurn' }, { type: 'redraw' }, { type: 'skipExile' }]
+            for (let i = -1; i <= before.hand.length; i++) candidates.push({ type: 'play', handIndex: i }, { type: 'exile', handIndex: i })
+            for (let i = -1; i <= before.row.length; i++) candidates.push({ type: 'take', rowIndex: i })
+            for (const move of candidates) {
+                const accepted = !applyMove(before, move).events.some((e) => e.type === 'rejected')
+                expect(accepted, key(move)).toBe(legal.has(key(move)))
+            }
+        })
+    })
+
+    it('rejects a move of an unknown type', () => {
+        const state = newGame(standardMode(0), 1).state
+        const result = applyMove(state, { type: 'nope' } as unknown as Move)
+        expect(result.events).toEqual([{ type: 'rejected', reason: 'unknownMove' }])
+        expect(result.state).toBe(state)
+    })
+
     it('starts with the documented setup', () => {
         const { state, events } = newGame(standardMode(0), 1)
         expect(state.hand).toHaveLength(5)

@@ -98,6 +98,8 @@ function validate(state: GameState, move: Move): GameEvent | null {
             return state.redraws < 1 ? reject('noRedraws') : null
         case 'endTurn':
             return state.pendingExile ? reject('pendingExile') : null
+        default:
+            return reject('unknownMove')
     }
 }
 

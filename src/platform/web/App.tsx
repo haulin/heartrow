@@ -125,8 +125,6 @@ export function App({ store, storage, animator: injected }: AppProps) {
                     role="button"
                     tabIndex={0}
                     aria-haspopup="dialog"
-                    aria-live="polite"
-                    aria-atomic="true"
                     aria-label={label}
                     onClick={() => setDialog('log')}
                     onKeyDown={(e) => {
@@ -137,6 +135,9 @@ export function App({ store, storage, animator: injected }: AppProps) {
                     }}
                 >
                     <Rich text={text} />
+                </div>
+                <div class="sr-only" role="status" aria-live="polite" aria-atomic="true">
+                    {spoken(text)}
                 </div>
 
                 <h2>Your hand</h2>
@@ -169,7 +170,7 @@ export function App({ store, storage, animator: injected }: AppProps) {
                     <button
                         type="button"
                         class="b alt"
-                        disabled={state.redraws < 1}
+                        disabled={!playing || state.pendingExile || state.redraws < 1}
                         title="Replaces the four left cards of the recruit row; the right-edge card stays."
                         onClick={() => dispatch({ type: 'redraw' })}
                     >
