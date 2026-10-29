@@ -39,7 +39,7 @@ The important baseline rules are:
 - Reaching the goal wins only when the turn ends.
 - “Play simple” plays cards without worded effects.
 - Exile is optional. The player can skip it.
-- Undo works only before a random or row-changing action.
+- Undo is permissive: any move except ending the turn can be undone, back to the start of the turn. Random outcomes replay identically, so undo cannot fish for luck (see [Rule decisions](#rule-decisions-for-the-core-port)).
 
 Cards are generated when they enter the row. Their type, resources, effects, and art come from the generator budget. There is no row deck.
 
@@ -171,10 +171,10 @@ Do not implement an open question as if it were approved. Record the decision he
 
 - v7 is a separate experimental copy; v6 remains the 24-turn reference.
 - Long Run lasts 42 turns, postpones the win check, and reports final hearts as a high score.
-- Turns 1–24 preserve the v6 cost curve. Turns 25–36 add one cost step and use 40% enemy frequency; turns 37–42 add a second cost step and use 45% enemy frequency. Occasional low-cost cards remain possible, but late pure-resource filler is now bounded and rerolled more often while utility cards remain eligible.
+- Turns 1–24 preserve the v6 cost curve. Turns 25–36 add one cost step and use 40% enemy frequency; turns 37–42 add a second cost step and use 45% enemy frequency. Occasional low-cost cards remain possible, but late pure-resource filler is now bounded and rerolled more often (from turn 21, `lateFillerFromTurn` in the mode config) while utility cards remain eligible.
 - Long Run grants one redraw every three turns. A four-turn experiment left too little row control late in the run without improving the score meaningfully.
 - The Long Run bot redraws before defeating an affordable right-edge enemy when another enemy sits to its left, preventing that left enemy from becoming the new escape threat.
-- The first 400-game bot pass with the edge-aware heuristic averaged about 87 hearts for Mixed and 65 for Smart, with roughly 53–56 hearts lost to escapes. This is a starting balance signal, not a final target.
+- The first 400-game bot pass with the edge-aware heuristic averaged about 87 hearts for Mixed and 65 for Smart in the v7 prototype. The TypeScript port, which is the reference now, measures about 67–70 for Mixed and about 55 for Smart. The earlier figures predate the port and later balance changes, so use the new ones. The experimental `lookahead` bot reaches about 82. These are starting balance signals, not final targets.
 - Recruit cost is a converted budget, not a direct value sum: a recruit with base cost `C` starts with `C × .85 + .3` budget; the row may display a lower current price when a recruit discount is active. Direct gold and power each cost `1`, hearts cost `1.5`, and effects consume their listed `FX` budget. Integer resource gains can leave a fractional remainder below `1`; this is intentional. For example, a base-cost-12 card with `+2 ● +4 ⚔ +3 ♥` uses `10.5` budget exactly, while a base-cost-11 card with `+8 ● +1 ⚔` leaves `0.65`.
 - Draw is one scalable effect rather than separate `draw1` and `draw2` effects. It costs `1.5` budget per card, allowing Draw 1, Draw 2, Draw 3, or Draw 4 when the generated card has enough budget.
 - Scaled conditional effects should use simple magnitude pricing of roughly `3` budget per level; test the exact values for discounts and per-enemy effects before resolving them.
@@ -199,6 +199,16 @@ Keep proposed ideas in this document instead of implementation comments. Mark ea
 - Reward rare runs of identical recruit cards as an achievement or bonus event, such as a small gold prize for two and a larger prize for three; define the counting window and prevent redraw farming.
 - Find a clearer fixed-edge marker if the lock icon reads as a purchase restriction.
 - Improve access to cards deep in a heavily overlapped hand.
+
+## Rule decisions for the core port
+
+The v7 prototype had some quirks. The TypeScript core keeps them unless listed here as changed. Decisions made by the designer:
+
+- **Goal undone by an escape (kept).** Win is checked when the turn ends, after enemies escape. An enemy that escapes on the last step can still undo a reached goal. A likely later feature: let the player choose to stop early, or carry on to the full turn limit once the goal is reached.
+- **Late filler reroll (kept, clarified).** In long mode, from turn 21 onward, a generated card that is only pure gold or power filler is rerolled more often. The turn-21 start was a side effect of an earlier remark ("if you are not scaling by turn 20, it will not help"), not a tuned value. It is a mode-config field, so it can be moved.
+- **Enemies can cost 0 (accepted).** After `weak` or discounts an enemy can cost 0 to defeat. Revisit a minimum cost if play data shows a problem.
+- **Cycle and purge discard order (to judge in the UI).** These effects discard after drawing. Check how it looks once animations exist.
+- **Undo (changed).** v7 blocked undo after a draw, coin flip, cycle, take or redraw to prevent cheating. The payoff of cheating is small, and being unable to undo a misplay is worse. The web session keeps a per-turn stack of snapshots: every accepted move except ending the turn can be undone. The RNG streams are part of the state, so a replayed move gives the same random result. Ending the turn clears the stack.
 
 ## Safe change process
 
