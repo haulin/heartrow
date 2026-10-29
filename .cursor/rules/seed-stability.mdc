@@ -1,0 +1,22 @@
+---
+description: Seeded randomness. One random stream per concern, stored in the game state, so a seed and a move list always give the same game.
+globs: src/core/rng.ts, src/core/generator/**/*.ts, src/core/effects/**/*.ts, src/core/moves.ts, src/core/ai/**/*.ts
+alwaysApply: false
+---
+
+# Seed stability: one stream per concern
+
+A seed plus a list of moves must give the same game every time. Undo, replay, bot comparison and saved runs all depend on it.
+
+## Rules
+
+1. Core code never calls `Math.random` or reads the clock. All randomness comes from seeded streams that live inside the game state.
+2. Use one stream per concern, so spending one concern's randomness cannot shift another's. Here the streams are `gen` (card generation), `shuffle` (deck order) and `flip` (coin flips).
+3. Because streams are part of the state, restoring a saved state restores the random future too. Undo therefore replays the same outcome, which removes any incentive to undo for luck.
+4. A bot has its own stream, separate from the game's. A bot's choices must not change what the game does next.
+5. A bot that looks ahead must not read the hidden future. Give each simulated future fresh streams and a canonical deck order that hides the real one, and keep a test that proves a change in hidden order does not change its choice.
+6. Adding a new random draw to an existing stream shifts every later result. Use an existing stream only when the extra draw is intended, or add a new stream.
+
+## When you change randomness
+
+Say whether the change alters existing seeds. If it does, say so in the commit message, and update any test that pins exact outputs for a seed.

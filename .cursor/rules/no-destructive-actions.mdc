@@ -1,0 +1,24 @@
+---
+description: Never discard uncommitted work or rewrite history without explicit approval. Unexplained local changes are the user's work, not noise to clean up.
+alwaysApply: true
+---
+
+# No destructive actions without approval
+
+Uncommitted work cannot be recovered once it is gone. Treat it as the user's.
+
+## Ask first
+
+Do not run any of these until the user confirms:
+
+- `git checkout` or `git restore` on paths, `git reset` (especially `--hard`), `git clean`, `git stash drop` or `pop`, `git branch -D`, force-push, or any history rewrite.
+- Any command that overwrites or deletes files the user may have edited.
+- Chained shell commands that contain `rm -rf` or similar. Delete one file at a time with the delete tool, so each step is easy to read and approve.
+
+To compare against another state of the repo, read it without changing the working tree: `git diff`, `git show <ref>:<path>`, `git log`, or a throwaway `git worktree`. Do not switch branches, reset, or stash just to get a clean state.
+
+## Unexplained changes are the user's work
+
+If a file has edits you did not make, assume the user made them by hand. Do not revert, delete or tidy them because "I did not make this". Say what you found and ask.
+
+When in doubt, stop and ask. Asking costs one message. Destroying work costs trust.

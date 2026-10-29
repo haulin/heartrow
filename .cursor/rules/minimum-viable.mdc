@@ -1,0 +1,31 @@
+---
+description: Keep comments and tests minimal. Agents over-produce both. Write a comment only when the code cannot carry the meaning, and a test only where it guards a real regression.
+globs: src/**/*.ts, src/**/*.tsx, tests/**/*.ts
+alwaysApply: false
+---
+
+# Minimum-viable comments and tests
+
+Both comments and tests are cheap to generate and expensive to maintain. Push back on the default to write more.
+
+## Comments: default to none
+
+- Put reasoning (why this number or shape) in `DESIGN.md`, not in code.
+- Do not write dates, version numbers or "after pass X" notes. Git records history.
+- Do not point at other files ("see `foo.ts`", "matches `BAR`"). They go stale when files move.
+- Do not narrate the obvious. If code is unclear, rename or restructure it.
+- Keep a comment only for non-obvious intent, a trade-off the code cannot show, or an invariant a reader would miss. Example: "Sort first so the old deck order leaves no trace."
+
+When in doubt, delete the comment and see if anyone notices.
+
+## Tests: follow the cost of a regression
+
+- Test behaviour a player or another module depends on: rules, the engine's move results, undo, bot determinism.
+- Test formulas only where the math is not obvious.
+- Do not test something the type system already guarantees.
+- Do not assert that a constant equals its own literal. Test the function that computes it.
+- Prefer one parameterised test (`it.each`) over many near-copies.
+- Use one randomised check with bounds instead of several fixed sweeps for the same property.
+- A new test should be able to fail. For a fix, check that the test fails without the fix.
+
+When in doubt, delete the test and see if a real regression gets through.

@@ -1,0 +1,32 @@
+---
+description: After building visible UI, iterate with the user until they sign off. Do not treat passing tests as done. Cap the loop at three rounds.
+globs: src/platform/**/*.ts, src/platform/**/*.tsx, src/platform/**/*.css
+alwaysApply: false
+---
+
+# Visual convergence
+
+Tests cannot tell whether a screen looks right. For any change that produces visible UI, the work is done when the user says so.
+
+## Your role
+
+- Do what was asked. Make no unrequested visual changes.
+- Choose sensible defaults for anything unspecified (spacing, sizing, alignment). Do not ask permission for these. Make a decision and mention it.
+
+## Rounds
+
+1. **First render.** Implement the feature, then ask: "Here is what I decided on: (two or three notable choices). What are the biggest visual issues?"
+2. **Later rounds.** Collect the user's list of issues and fix all of them in one batch. Then ask: "Fixed. Anything else, or are we done?"
+3. **Stop** when the user says "done" or "good enough".
+
+Ask at most three times. If issues remain after round three, write them down as known issues and move on. Aim for convergence, not perfection.
+
+## Who decides what
+
+- The user decides whether it looks right, when to stop, and any change they ask for.
+- You decide how to implement a change, and the small details nobody specified.
+- You may point out when more rounds have stopped helping.
+
+## Checking in the browser
+
+Check at the narrowest supported width (about 360 px) and at a wider one (about 760 px). For a visible playtest, see "Visible browser playtests" in `AGENTS.md`.

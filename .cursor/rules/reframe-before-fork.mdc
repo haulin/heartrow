@@ -1,0 +1,41 @@
+---
+description: Before building a new feature, check whether it is a variant of something that already exists. Prefer data and one small strategy slot over a new code path.
+alwaysApply: true
+---
+
+# Reframe before you fork
+
+Most "new" features are mostly an existing shape plus a small difference. Find the existing shape before you write the difference.
+
+## 1. Probe first
+
+Before designing, look for the nearest existing shape:
+
+- **Verbs**: does it reuse operations that already exist (buy, play, gain, discard, reshuffle)?
+- **Effect shape**: does it produce the same kind of output and side effect as something else?
+- **Question**: is it another answer to a question an existing feature already answers?
+
+Report the nearest existing shape and the residual, which is what is actually different.
+
+## 2. Classify each difference
+
+- A difference in numbers, names or text becomes a plain field in a config or data record.
+- A difference in behaviour becomes a function-valued field (a strategy slot) on that record.
+
+Two failure modes are not allowed. Do not copy a function and tweak its constants. Do not thread `if (variant === 'x')` through a shared function.
+
+## 3. Keep one level of indirection
+
+An engine, one flat record, and a few small functions in the variant's own file. No inheritance, no middleware. If a second layer seems necessary, prefer duplication.
+
+## 4. Forking is allowed when you say so
+
+Fork only when the residual is new control flow, and state the reason. A second variant may duplicate. When the third arrives, extract the shared engine in the same change.
+
+## 5. Report before coding
+
+Say which shape you found, what the residual is, how you classified it, and whether you recommend a variant or a fork. The user decides whether a difference is essential or incidental.
+
+## Example in this repo
+
+A new card effect is one module under `src/core/effects/` plus one line in the registry. The generator, the formatter and the bots read the registry, so they need no change. Do not add effect names to switch statements elsewhere.
