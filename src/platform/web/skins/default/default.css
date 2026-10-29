@@ -1,0 +1,103 @@
+.card {
+  --c: var(--dim);
+  --u: calc(var(--cw) / 118);
+  flex: none;
+  position: relative;
+  isolation: isolate;
+  width: 100%;
+  height: 100%;
+  font-size: calc(12 * var(--u));
+  line-height: 1.35;
+  background: var(--card);
+  border: max(1px, calc(2 * var(--u))) solid var(--c);
+  border-radius: calc(10 * var(--u));
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+  color: var(--ink);
+  font-family: inherit;
+  transition: transform 0.12s ease;
+}
+div.card {
+  cursor: default;
+}
+.card.moss { --c: var(--moss); }
+.card.ember { --c: var(--ember); }
+.card.tide { --c: var(--tide); }
+.card.foe { --c: var(--foe); }
+.card.enemy { border-style: dashed; }
+.card .top {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  white-space: nowrap;
+  display: flex;
+  justify-content: space-between;
+  gap: calc(4 * var(--u));
+  padding: calc(3 * var(--u)) calc(6 * var(--u));
+  font-weight: 800;
+  font-size: 1.2em;
+  background: color-mix(in srgb, var(--c) 18%, var(--card));
+}
+.card .top em {
+  font-style: normal;
+  color: var(--c);
+  font-weight: 600;
+  font-size: 1em;
+}
+.card svg.art {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+  display: block;
+  background: color-mix(in srgb, var(--c) 10%, var(--card));
+  pointer-events: none;
+}
+.card .bd {
+  position: relative;
+  z-index: 1;
+  flex: none;
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+}
+.card b { font-size: 1.25em; }
+.card i { font-style: normal; line-height: 1.2; }
+.card .bd > * {
+  align-self: flex-start;
+  background: color-mix(in srgb, var(--card) 78%, transparent);
+  padding: calc(1 * var(--u)) calc(3 * var(--u)) calc(2 * var(--u)) calc(6 * var(--u));
+  margin: 0 calc(-2 * var(--u));
+  border-radius: calc(4 * var(--u));
+}
+.card .fe { color: var(--foe); font-weight: 600; }
+.card.no { opacity: 0.55; }
+.card.rim { outline: max(1px, calc(2 * var(--u))) solid var(--dim); outline-offset: 1px; }
+.card.edge { outline: max(1px, calc(3 * var(--u))) solid var(--foe); outline-offset: 1px; }
+.card .lock {
+  position: absolute;
+  z-index: 2;
+  top: 2.45em;
+  right: calc(5 * var(--u));
+  width: calc(18 * var(--u));
+  height: calc(18 * var(--u));
+  display: grid;
+  place-items: center;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: help;
+  pointer-events: auto;
+}
+.card .lock svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  fill: currentColor;
+  pointer-events: none;
+}
+.card.played { filter: brightness(0.72) saturate(0.5); }
+.card:focus-visible { outline: 3px solid var(--tide); outline-offset: 2px; }
+.card[data-rejected] { outline: 3px solid var(--ember); }

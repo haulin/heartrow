@@ -8,6 +8,6 @@
     "outDir": "./.cache/tsc/web",
     "tsBuildInfoFile": "./.cache/tsc/web.tsbuildinfo"
   },
-  "include": ["src/platform/web"],
+  "include": ["src/platform/web", "tests/web"],
   "references": [{ "path": "./tsconfig.core.json" }]
 }
