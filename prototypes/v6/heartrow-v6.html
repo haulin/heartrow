@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Heartrow v6</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#efe9f3;--ink:#241a30;--panel:#e0d6ea;--card:#faf6fd;--dim:#6b5d7a;--moss:#2f8f5b;--ember:#c8452f;--tide:#2f6fc2;--foe:#7a3fa8;--gold:#c08a0c;--heart:#d62f6b;--pow:#d4600a;--z:1;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#171120;--ink:#f0e8f7;--panel:#261b35;--card:#2f2342;--dim:#9a8bb0;--gold:#f0b429;--heart:#ff5d93;--pow:#ff8a3d;--foe:#b07be0}}
+:root[data-theme="dark"]{--bg:#171120;--ink:#f0e8f7;--panel:#261b35;--card:#2f2342;--dim:#9a8bb0;--gold:#f0b429;--heart:#ff5d93;--pow:#ff8a3d;--foe:#b07be0}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 15px/1.35 "Bricolage Grotesque",system-ui,sans-serif;min-height:100vh}
+main{max-width:760px;margin:0 auto;padding:12px}
+header{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;justify-content:space-between}
+h1{font-size:20px;margin:0;font-weight:800}
+.stats{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.stat{background:var(--panel);border-radius:10px;padding:6px 10px;font-weight:600;font-size:19px;line-height:19px;font-family:inherit;color:var(--ink);border:0;text-align:left}
+button.stat{cursor:pointer}.stat small{display:block;font-weight:400;color:var(--dim);font-size:11px;line-height:14px}.den{font-size:11px;font-weight:400;color:var(--dim)}
+.g{color:var(--gold)}.p{color:var(--ember)}.h{color:var(--heart)}
+.stat.big{box-shadow:inset 0 0 0 2px currentColor;background:color-mix(in srgb,currentColor 14%,var(--panel))}
+h2{font-size:13px;font-weight:600;color:var(--dim);margin:14px 0 6px}
+.cards{display:flex;gap:6px;flex-wrap:wrap}.row,.hand{flex-wrap:nowrap}
+.hand{min-height:calc(175px*var(--z) + 10px);padding-top:6px}
+.mini{flex-wrap:nowrap;overflow-x:auto;min-height:106px;padding:6px;border:1px solid color-mix(in srgb,var(--dim) 45%,transparent);border-radius:8px}
+.card{--c:var(--dim);flex:none;position:relative;isolation:isolate;width:var(--cw,118px);height:175px;zoom:var(--z);font-size:12px;background:var(--card);border:2px solid var(--c);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;padding:0;cursor:pointer;text-align:left;color:var(--ink);font-family:inherit}
+.card.moss{--c:var(--moss)}.card.ember{--c:var(--ember)}.card.tide{--c:var(--tide)}.card.foe{--c:var(--foe)}
+.card.enemy{border-style:dashed}
+.mini .card{zoom:.5;width:118px}
+.hand .slot,.row .slot{position:relative;flex:none;width:calc(var(--cw,118px)*var(--z));height:calc(175px*var(--z))}.hand .slot+.slot{margin-left:calc(var(--k,0)*-1*(var(--cw,118px)*var(--z) + 6px))}
+.hand .slot:hover,.hand .slot:focus-within{z-index:5}.hand .slot:hover .card,.hand .slot:focus-within .card,.row .slot:hover .card,.row .slot:focus-within .card{transform:translateY(-6px)}.row .slot:hover,.row .slot:focus-within{z-index:5}
+.card .top{position:relative;z-index:1;flex:none;white-space:nowrap;display:flex;justify-content:space-between;gap:4px;padding:3px 6px;font-weight:800;font-size:1.2em;background:color-mix(in srgb,var(--c) 18%,var(--card))}
+.card .top em{font-style:normal;color:var(--c);font-weight:600;font-size:1em}
+.card svg{position:absolute;inset:0;height:100%;width:100%;display:block;background:color-mix(in srgb,var(--c) 10%,var(--card));pointer-events:none}
+.card .bd{position:relative;z-index:1;flex:none;margin-top:auto;display:flex;flex-direction:column}
+.card b{font-size:1.25em}.card i{font-style:normal;line-height:1.2}.card .bd>*{align-self:flex-start;background:color-mix(in srgb,var(--card) 78%,transparent);padding:1px 3px 2px 6px;margin:0 -2px;border-radius:4px}.card .fe{color:var(--foe);font-weight:600}
+.card.no{opacity:.55}.card.rim{outline:2px solid var(--dim);outline-offset:1px}.card.edge{outline:3px solid var(--foe);outline-offset:1px}
+.card .lock{position:absolute;z-index:2;top:2.45em;right:5px;width:18px;height:18px;display:grid;place-items:center;color:rgba(255,255,255,.8);cursor:help;pointer-events:auto}
+.card .lock svg{position:static;inset:auto;width:18px;height:18px;background:none;fill:currentColor;pointer-events:none}
+.card.played{filter:brightness(.72) saturate(.5)}
+.shake{animation:sh .2s}@keyframes sh{25%{translate:-5px 0}75%{translate:5px 0}}
+.logline{margin:0 0 4px}.ri{font-weight:inherit}
+@media(prefers-reduced-motion:reduce){.shake{animation:none;outline:3px solid var(--ember)}}
+.card:focus-visible,button:focus-visible,.msg:focus-visible{outline:3px solid var(--tide);outline-offset:2px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+button.b{font-weight:600;font-size:14px;font-family:inherit;background:var(--ink);color:var(--bg);border:0;border-radius:10px;padding:9px 14px;cursor:pointer}
+button.b.alt{background:var(--panel);color:var(--ink)}button.b:disabled{opacity:.4;cursor:default}
+.msg{margin:12px 0 0;cursor:pointer;background:var(--panel);border-radius:10px;padding:8px 10px;min-height:2.8em}.msg.warn{outline:2px solid var(--tide)}
+.rules{color:var(--dim);font-size:13px;margin-top:16px}
+main{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}dialog{user-select:text;-webkit-user-select:text}.stat{position:relative}.rb{position:absolute;right:6px;bottom:-6px;font-size:10px;line-height:1;padding:1px 4px;border-radius:8px;background:var(--bg);border:1px solid var(--heart);color:var(--heart);font-weight:600}
+dialog{background:var(--bg);color:var(--ink);border:0;border-radius:14px;max-width:min(700px,94vw);padding:14px}dialog::backdrop{background:#0008}
+</style></head><body><main>
+<header><h1>Heartrow v6</h1><span id="goal" class="stat"></span></header>
+<div class="stats" id="stats"></div>
+
+<h2>Recruit row</h2><div class="cards row" id="row"></div>
+
+<div class="msg" id="msg" title="Click for the full log" role="button" tabindex="0" aria-haspopup="dialog" aria-live="polite" aria-atomic="true"></div>
+<h2>Your hand</h2><div class="cards hand" id="hand"></div>
+<div class="bar" id="bar"></div>
+
+
+<dialog id="dlg" style="padding:0"><div style="padding:14px"><div id="dlgC"></div><form method="dialog" style="margin-top:12px"><button class="b">Close</button></form></div></dialog>
+</main>
+<script>
+const TG={moss:['●','--moss'],ember:['▬','--ember'],tide:['◯','--tide']};
+const paint=s=>s.replaceAll('●','<span class="g">●</span>').replaceAll('⚔','<span class="p">⚔</span>').replaceAll('♥','<span class="h">♥</span>');
+const spoken=s=>s.replace(/\bgold\s+●/gi,'gold').replace(/\bpower\s+⚔/gi,'power').replace(/\bhearts?\s+♥/gi,'hearts').replaceAll('●','gold').replaceAll('⚔','power').replaceAll('♥','hearts');
+const $=s=>document.querySelector(s),T=['moss','ember','tide'];
+const NAME={moss:'Moss',ember:'Ember',tide:'Tide',plain:'Basic',foe:'Enemy'},GOAL=48,TURNS=24,FOE=.35,HM=1.4,SP=4,EC=2,TP=.5,GOALS=[48,64,80];
+const FX={
+draw1:{v:1,t:'Draw 1'},draw2:{v:3,t:'Draw 2'},
+coin:{v:2.5,t:'Flip: +2 or +4 ●'},
+exile:{v:1,t:'Exile a card from hand'},
+cheap:{v:1.5,t:'Recruits cost 1 less ● this turn'},
+foes:{v:2,t:'+1 ⚔ per enemy in the recruit row'},
+all3:{v:2,t:'+2 ♥ if you played all 3 types this turn'},
+vault:{v:2,t:'+1 ♥ per 3 cards in exile'},
+basics:{v:1.5,t:'+1 ● per 4 basic cards in your deck'},
+pile:{v:1.5,t:'+1 ⚔ per 3 cards in your discard'},
+bond:{v:.5,t:'Bond: +{n} {m} if you played {T} earlier this turn'},kin:{v:1.5,t:'+1 {k} per other {T} card played this turn'},weak:{v:1.5,t:'Enemies cost 1 less ⚔ this turn'},army:{v:1.5,t:'+1 {k} per 4 {T} cards in your deck'},cycle:{v:1.5,t:'Discard your unplayed cards except Retain ones, draw as many'},purge:{v:1.25,t:'Discard all your unplayed cards, even Retain, draw as many'},swap:{v:1.5,t:'Swap your ● and ⚔'},reapG:{v:1.5,t:'End of turn: +1 ♥ per 3 unspent ●'},reapP:{v:1.5,t:'End of turn: +1 ♥ per 2 unspent ⚔'}};
+const RES={gold:1,power:1,hearts:1.5},NF=['all3','bond','kin','army'],CF=['foes','all3','vault','pile','kin','bond','army','swap'],LEAN={moss:['coin','basics','kin','bond','army','reapG','swap'],ember:['foes','pile','weak','kin','army','reapP','swap'],tide:['draw1','draw2','exile','cheap','all3','cycle','purge','army']},EXTRA={moss:['exile'],ember:['exile']};
+let S,uid=0,LV=0;
+const shuf=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+function make(turn){
+ const r=Math.random,foe=r()<FOE,kind=foe?'enemy':'recruit',type=foe?'foe':T[r()*3|0];
+ const t=Math.min(turn,TURNS)/TURNS,lo=2+Math.round(t*3),hi=4+Math.round(t*5);
+ let cost=lo+(r()*(hi-lo+1)|0);if(r()<.1)cost+=2;if(r()<.15)cost=2+(r()*3|0);if(foe)cost=Math.max(1,cost-EC);
+ const c={id:++uid,type,kind,cost,gold:0,power:0,hearts:0,fx:[]};
+ let b=foe?cost*HM:cost*.85+.3;const b0=b;const main=type=='ember'||(type=='tide'&&r()<TP)?'power':'gold';c.m=main;
+ if(r()<(type=='tide'?.75:.45)){
+  const o=Object.keys(FX).filter(k=>FX[k].v<=b-(k[0]=='d'?1:0)&&!(foe&&NF.includes(k)));{const L=LEAN[type]||[],f=o.filter(k=>L.includes(k));const w=Math.max(1,Math.round(.7*(o.length-f.length)/(.3*Math.max(1,f.length))));for(let j=1;j<w;j++)o.push(...f);if(!foe)for(const k of EXTRA[type]||[])if(o.includes(k))o.push(k)}
+  if(o.length){const k=o[r()*o.length|0];c.fx.push(k);if(k=='kin'||k=='army')c.km=r()<.5?main:(main=='gold'?'power':'gold');b-=FX[k].v;if(k=='bond'){let n=1+(r()*3|0);while(n>1&&[0,.7,1.5][n-1]>b)n--;c.bn=n;b-=[0,.7,1.5][n-1]}if(!foe&&CF.includes(k)&&b>=.5&&r()<.8){c.ret=1;b-=.5}}}
+ while(b>=1){
+  const hc=c.hearts?.75:type=='tide'?.165:.075,q=r();
+  let res=foe?'hearts':q<hc?'hearts':q<hc+.15?(main=='gold'?'power':'gold'):main;
+  if(b<RES[res])res=b>=1?main:'';
+  if(!res||(foe&&res!='hearts'))break;
+  c[res]++;b-=RES[res]}
+ {const sp=b0-b;c.cost=Math.max(foe?1:2,Math.min(cost,Math.ceil(foe?sp/HM:(sp-.3)/.85-1e-9)))}
+ if(foe&&!c.hearts)c.hearts=1;
+ if(!foe&&!c.gold&&!c.power&&!c.hearts&&!c.fx.length)c.gold=1;
+ return c}
+const basic=(g,p)=>({id:++uid,type:'plain',kind:'basic',cost:0,gold:g,power:p,hearts:0,fx:[]});
+function snap(){S.snap=null;S.snap=structuredClone(S)}
+function undo(){if(!S.snap)return;S=structuredClone(S.snap);S.snap=null;render()}
+function say(m){S.log=m;S.hist.push('T'+S.turn+' · '+m)}
+function newGame(lv){if(lv!==undefined)LV=lv;
+ const deck=[];for(let i=0;i<10-SP;i++)deck.push(basic(1,0));for(let i=0;i<SP;i++)deck.push(basic(0,1));
+ S={turn:1,max:TURNS,goal:GOALS[LV],hearts:0,gold:0,power:0,disc:0,edisc:0,rg:0,rp:0,mull:1,types:new Set(),deck:shuf(deck),hand:[],discard:[],exile:[],row:[],pending:0,over:0,k:0,b:0,lost:0,x:0,pl:0,wg:0,wp:0,hist:[],last:'',log:'Click hand cards to play them and cards in the recruit row to buy them. Gold ● buys recruits; power ⚔ defeats enemies for their ♥. An enemy on the right edge costs you its ♥ when you end your turn.'};
+ for(let i=0;i<5;i++)S.row.push(make(1));
+ draw(5);render()}
+function draw(n){S.snap=null;for(let i=0;i<n;i++){if(!S.deck.length){S.deck=shuf(S.discard);S.discard=[]}if(!S.deck.length)return;S.hand.push(S.deck.pop())}}
+function apply(c,fromPlay,rowEnemies){
+ const m=c.m||'gold';let had=false;
+ S.gold+=c.gold;S.power+=c.power;S.hearts+=c.hearts;
+ if(fromPlay){had=S.types.has(c.type);if(c.type!='plain')S.types.add(c.type)}
+ for(const k of c.fx){
+  if(k=='draw1'){draw(1);say('Drew 1 card.')}if(k=='draw2'){draw(2);say('Drew 2 cards.')}
+  if(k=='coin'){const g=Math.random()<.5?2:4;S.snap=null;S.gold+=g;say('Coin flip: +'+g+' ●.')}
+  if(k=='exile'&&S.hand.length)S.pending=1;
+  if(k=='cheap')S.disc++;if(k=='weak')S.edisc++;if(k=='army')S[c.km||m]+=[...S.deck,...S.hand,...S.discard].filter(x=>x.type==c.type).length/4|0;if(k=='reapG')S.rg++;if(k=='reapP')S.rp++;if(k=='swap'){const g=S.gold;S.gold=S.power;S.power=g;say('Swapped ● and ⚔.')}if(k=='cycle'||k=='purge'){const un=S.hand.filter(x=>!x.u&&x!==c&&(k=='purge'||!x.ret));S.hand=S.hand.filter(x=>!un.includes(x));draw(un.length);S.discard.push(...un);if(un.length)say('Cycled '+un.length+' cards.');else S.last='Nothing to discard.'}
+  if(k=='foes')S.power+=fromPlay?S.row.filter(x=>x.kind=='enemy').length:rowEnemies;
+  if(k=='all3'&&fromPlay&&S.types.size>=3)S.hearts+=2;
+  if(k=='vault')S.hearts+=S.exile.length/3|0;
+  if(k=='basics')S.gold+=[...S.deck,...S.hand,...S.discard].filter(x=>x.kind=='basic').length/4|0;
+  if(k=='pile')S.power+=S.discard.length/3|0;
+  if(k=='bond'&&had)S[m]+=c.bn||1;if(k=='kin'&&fromPlay)S[c.km||m]+=S.hand.filter(x=>x.u&&x!==c&&x.type==c.type).length}}
+function play(i){
+ if(S.over)return;const c=S.hand[i];
+ if(S.pending){snap();S.hand.splice(i,1);S.exile.push(c);S.x++;S.pending=0;say('Exiled a '+NAME[c.type]+' card.');return render()}
+ if(c.u){S.log='That card is already played this turn.';render();return shake(i,'#hand')}
+ snap();c.u=1;S.last='';S.pl++;const g0=S.gold,p0=S.power,h0=S.hearts,i0=S.hist.length;apply(c,1);const dg=S.gold-g0,dp=S.power-p0,dh=S.hearts-h0,note=S.last;S.last='';const pm='Played a '+NAME[c.type]+' card'+(dg>0?' +'+dg+' ●':'')+(dp>0?' +'+dp+' ⚔':'')+(dh>0?' +'+dh+' ♥':'')+'.'+(note?' '+note:'');S.hist.splice(i0,0,'T'+S.turn+' · '+pm);if(S.hist.length==i0+1||note)S.log=pm;check();render()}
+function skip(){S.pending=0;say('Skipped the exile.');render()}
+function cost(c){return c.kind=='recruit'?Math.max(0,c.cost-S.disc):Math.max(0,c.cost-S.edisc)}
+function can(c){return c.kind=='recruit'?S.gold>=cost(c):S.power>=cost(c)}
+function shake(i,q='#row'){const e=document.querySelectorAll(q+' .card')[i];if(e)e.classList.add('shake')}
+function take(i){
+ if(S.over||S.pending)return;const c=S.row[i],rowEnemies=c.kind=='enemy'?S.row.filter(x=>x.kind=='enemy').length:0;
+ if(!can(c)){const n=c.kind=='recruit'?cost(c)-S.gold:cost(c)-S.power;S.log='Need '+n+' more '+(c.kind=='recruit'?'●':'⚔')+'.';render();return shake(i)}
+ S.last='';S.snap=null;if(c.kind=='recruit'){S.gold-=cost(c);S.discard.push(c);S.b++;say('Recruited a '+NAME[c.type]+' card for '+cost(c)+' ●.')}
+ else{S.power-=cost(c);S.k++;say('Defeated an enemy ('+c.cost+' ⚔): +'+c.hearts+' ♥.')}
+ S.row.splice(i,1);S.row.unshift(make(S.turn));
+ if(c.kind=='enemy')apply(c,0,rowEnemies);
+ if(S.last){S.log+=' '+S.last;S.hist[S.hist.length-1]+=' '+S.last;S.last=''}
+ check();render()}
+function autoplay(){if(S.over||S.pending)return;for(let i=S.hand.length-1;i>=0;i--)if(!S.hand[i].fx.length&&!S.hand[i].u)play(i)}
+function mulligan(){if(S.over||S.pending||S.mull<1)return;S.snap=null;S.mull--;const e=S.row[4];S.row=[];for(let i=0;i<4;i++)S.row.push(make(S.turn));S.row.push(e);say('Redrew the four left cards. The right-edge card cannot be redrawn.');render()}
+function endTurn(){
+ if(S.over||S.pending)return;
+ S.snap=null;const out=S.row.pop();let note='';
+ if(out.kind=='enemy'){S.hearts-=out.hearts;S.lost+=out.hearts;note='An enemy escaped: −'+out.hearts+' ♥. '}
+ S.row.unshift(make(S.turn+1));
+ const keep=S.hand.filter(c=>c.ret&&!c.u);S.hand.forEach(c=>c.u=0);S.discard.push(...S.hand.filter(c=>!keep.includes(c)));S.hand=keep;
+ {const rh=S.rg*(S.gold/3|0)+S.rp*(S.power/2|0);if(rh){S.hearts+=rh;note+='Leftovers reaped: +'+rh+' ♥. '}}S.wg+=S.gold;S.wp+=S.power;S.rg=S.rp=0;S.gold=S.power=S.disc=S.edisc=0;S.types=new Set();if(S.hearts>=S.goal){S.over=1;return render()}
+ if(S.turn>=S.max){S.over=S.hearts>=S.goal?1:2;return render()}
+ S.turn++;if((S.turn-1)%3==0){S.mull++;note+='You gained a redraw. '}
+ draw(5);say('Turn '+S.turn+'. '+note+(keep.length?'Kept '+keep.length+' with Retain. ':'')+(S.row[4].kind=='enemy'?'The enemy on the right edge costs '+S.row[4].hearts+' ♥ if it escapes.':''));render()}
+function check(){if(S.hearts>=S.goal&&!S.reached){S.reached=1;say('Goal reached! End your turn to win, or keep going for a bigger margin.')}}
+function art(c){let a=0;for(const ch of [c.type,c.kind,c.cost,c.gold,c.power,c.hearts,c.fx.join()].join('|'))a=(a*31+ch.charCodeAt(0))|0;const r=()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+ const col=`var(--${c.type=='plain'?'dim':c.type})`;let s='';
+ for(let i=0;i<(c.type=='plain'?7:Math.min(18,5+c.cost));i++){const x=r()*100,y=r()*100,z=8+r()*26,o=.25+r()*.5,d=r()*90|0,p=`transform="rotate(${d} ${x} ${y})" opacity="${o}"`;
+  s+=c.type=='moss'?`<circle cx="${x}" cy="${y}" r="${z/1.6}" fill="${col}" opacity="${o}"/>`
+  :c.type=='ember'?`<rect x="${x-z/2}" y="${y-z/3}" width="${z}" height="${z*.66}" fill="${col}" ${p}/>`
+  :c.type=='tide'?`<circle cx="${x}" cy="${y}" r="${z/1.5}" fill="none" stroke="${col}" stroke-width="3" opacity="${o}"/>`
+  :c.type=='foe'?`<polygon points="${x},${y-z} ${x+z*.8},${y+z*.6} ${x-z*.8},${y+z*.6}" fill="${col}" ${p}/>`
+  :`<line x1="${c.power?x+30:x-30}" y1="102" x2="${c.power?x-30:x+30}" y2="-2" stroke="${col}" stroke-width="${2+z/5}" opacity="${o}"/>`}
+ return`<svg viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${s}</svg>`}
+function card(c,i,ctx){
+ let b='';if(c.gold)b+=`<b class="g">+${c.gold} ●</b>`;if(c.power)b+=`<b class="p">+${c.power} ⚔</b>`;if(c.hearts)b+=`<b class="h">+${c.hearts} ♥</b>`;
+ for(const k of c.fx)b+=`<i${c.kind=='enemy'?' class="fe"':''}>${c.kind=='enemy'?'Defeat: ':''}${paint(FX[k].t.replace('{m}',c.m=='power'?'⚔':'●').replace('{k}',c.km=='power'?'⚔':'●').replace('{n}',c.bn||1).replace('{T}',NAME[c.type]))}</i>`;if(c.ret)b+='<i>↺ Retain: stays in hand if unplayed</i>';
+ const cc=ctx=='row'?cost(c):c.cost,sx='',L=c.kind=='recruit'?`<span class="g">${sx}${cc} ●</span>`:c.kind=='enemy'?`<span class="p">${sx}${cc} ⚔</span>`:'<span></span>';
+ const cls=(ctx=='row'&&!can(c)?' no':'')+(ctx=='row'&&i==4?(c.kind=='enemy'?' edge':' rim'):'')+(ctx=='hand'&&c.u?' played':'');
+ const ax=ctx=='hand'?(c.u?' aria-disabled="true"':'')+(S.pending?' aria-describedby="msg"':''):ctx=='row'&&!can(c)?' aria-disabled="true"':'';
+ const lock=ctx=='row'&&i==4?'<span class="lock" role="img" title="This card stays when you redraw" aria-label="This card stays when you redraw"><svg viewBox="0 0 330 330" aria-hidden="true"><path fill="currentColor" d="M65 330h200c8.284 0 15-6.716 15-15V145c0-8.284-6.716-15-15-15h-15V85C250 38.131 211.869 0 165 0S80 38.131 80 85v45H65c-8.284 0-15 6.716-15 15v170c0 8.284 6.716 15 15 15zm115-95.014V255c0 8.284-6.716 15-15 15s-15-6.716-15-15v-20.014c-6.068-4.565-10-11.824-10-19.986 0-13.785 11.215-25 25-25s25 11.215 25 25c0 8.162-3.932 15.421-10 19.986zM110 85c0-30.327 24.673-55 55-55s55 24.673 55 55v45H110V85z"/></svg></span>':'';
+ const al=spoken(`${ctx=='row'?(c.kind=='enemy'?'Enemy':'Recruit')+' ':''}${NAME[c.type]} card. ${ctx=='row'?(c.kind=='recruit'?'gold ●':'power ⚔')+' to '+(c.kind=='recruit'?'buy':'defeat')+'. ':''}${b.replace(/<[^>]+>/g,' ')}${c.u?' Already played this turn.':''}`);
+ return`<button class="card ${c.type} ${c.kind=='enemy'?'enemy':''}${cls}" data-i="${i}"${ax} aria-label="${al}" title="${ctx=='row'?(c.kind=='enemy'?'Enemy: defeat it with power. You get its hearts and effects right away, once.':'Recruit: buy it with gold. It goes to your discard, and its gains and effects happen when you play it from your hand.'):''}"><div class="top">${L}<em>${NAME[c.type]}</em></div>${lock}${art(c)}<div class="bd">${b}</div></button>`}
+function render(){
+ $('#goal').innerHTML=`Goal: <span class="h">${S.goal} ♥</span> in ${S.max} turns`;
+ const TIP={turn:'Turn number. The game ends after the last turn.',hearts:'Reach the goal to win. Enemies that fall off the right edge take hearts away, and hearts can go negative.',gold:'Spent on recruits. Resets every turn.',power:'Spent on defeating enemies. Resets every turn.',discount:'Recruits cost less gold ●, and enemies cost less power ⚔, this turn.',redraws:'Replace the four left cards of the recruit row. You gain one every 3 turns and they stack.','types played':'Moss, Ember and Tide cards played this turn. Some cards reward playing all three.'};
+ const st=(l,v,c='',t='',lab='',bd='')=>`<div class="stat ${c}" title="${t||TIP[l]||''}"${l=='redraws'?' data-r="1" style="cursor:pointer"':''}>${v}<small>${lab||l}</small>${bd?`<span class="rb">${bd}</span>`:''}</div>`,pb=(n,l)=>`<button class="stat" data-p="${n}">${S[n].length}<small>${l}</small></button>`;
+ $('#stats').innerHTML=st('turn',`${S.turn}<span class="den">/${S.max}</span>`)+st('hearts',`${S.hearts}<span class="den">/${S.goal}</span>`,'h')+st('gold',S.gold,'g big',S.rg?`Unspent gold turns into hearts at the end of the turn: 1 per 3 for each reaping card in play. Now: +${S.rg*(S.gold/3|0)} ♥.`:'','',hb(S.rg))+st('power',S.power,'p big',S.rp?`Unspent power turns into hearts at the end of the turn: 1 per 2 for each reaping card in play. Now: +${S.rp*(S.power/2|0)} ♥.`:'','',hb(S.rp))+st('discount',(S.disc?`<span class="g">−${S.disc}</span>`:'')+(S.disc&&S.edisc?' ':'')+(S.edisc?`<span class="p">−${S.edisc}</span>`:'')||'0','',[S.disc&&`Recruits cost ${S.disc} less gold ●.`,S.edisc&&`Enemies cost ${S.edisc} less power ⚔.`].filter(Boolean).join(' ')||'No discounts this turn. Some cards make recruits or enemies cheaper.')+st('redraws',S.mull)+st('types played','<span style="display:flex;gap:3px">'+['moss','ember','tide'].map(t=>`<span style="display:inline-block;width:14px;height:19px;border-radius:3px;background:var(${TG[t][1]});opacity:${S.types.has(t)?1:.2}"></span>`).join('')+'</span>')+`<button class="stat" data-p="1" title="Draw pile / discard / exile. Click to look inside.">${S.deck.length} / ${S.discard.length} / ${S.exile.length}<small>draw / discard / exile</small></button>`;
+ $('#row').innerHTML=S.row.map((c,i)=>'<div class="slot">'+card(c,i,'row')+'</div>').join('');
+ const hh=$('#hand'),n=S.hand.length;if(hh.style)hh.style.setProperty('--k',n>5?(n-5)/(n-1):0);hh.innerHTML=S.hand.map((c,i)=>'<div class="slot">'+card(c,i,'hand')+'</div>').join('');
+ const sm=`Defeated ${S.k}, recruited ${S.b}, exiled ${S.x}, lost ${S.lost} ♥ to escapes. Wasted ${S.wg} ●, ${S.wp} ⚔; ${S.mull} redraws left.`;
+ const m=$('#msg');m.className='msg'+(S.pending?' warn':'');
+ const mt=S.over==1?`You won with ${S.hearts} ♥ on turn ${S.turn}. `+sm:S.over==2?`Out of turns: ${S.hearts}/${S.goal} ♥. `+sm:S.pending?'Exile: click any card in your hand, played or not, or skip.':S.log;m.innerHTML=paint(mt);m.setAttribute('aria-label',spoken(mt)+(S.pending?' Select a card to exile, or skip.':' Activate to open the full log.'));if(S.over&&!S.el){S.el=1;S.hist.push('T'+S.turn+' · '+mt)}
+ $('#bar').innerHTML=`<button class="b" id="e" ${S.over||S.pending?'disabled':''}>End turn</button><button class="b alt" id="a" ${S.over||S.pending||!S.hand.some(c=>!c.fx.length&&!c.u)?'disabled':''} title="Plays every card without a worded effect.">Play simple (space)</button><button class="b alt" title="Replaces the four left cards of the recruit row; the right-edge card stays." id="m" ${S.mull<1?'disabled':''}>Redraw</button>${S.pending?'<button class="b alt" id="s">Skip exile</button>':''}<button class="b alt" id="u" ${S.snap?'':'disabled'} title="Undo your last card play or exile (only if nothing was drawn or flipped).">Undo</button><button class="b alt" id="n">New game</button><button class="b alt" id="about">About</button>`;
+ $('#e').onclick=endTurn;$('#a').onclick=autoplay;$('#m').onclick=mulligan;$('#n').onclick=askNew;$('#u').onclick=undo;$('#about').onclick=showAbout;if(S.pending)$('#s').onclick=skip}
+$('#row').onclick=e=>{const b=e.target.closest('.card');if(b)take(+b.dataset.i)};
+$('#hand').onclick=e=>{const b=e.target.closest('.card');if(b)play(+b.dataset.i)};
+$('#stats').onclick=e=>{if(e.target.closest('[data-r]'))return mulligan();if(!e.target.closest('[data-p]'))return;
+ const O=['plain','moss','ember','tide','foe'],v=c=>c.gold+c.power+c.hearts*1.5+c.fx.length;
+ $('#dlgC').innerHTML=deckSummary()+[['deck','Draw pile (sorted; order hidden)'],['discard','Discard'],['exile','Exile']].map(([n,t])=>`<h2>${t} · ${S[n].length}</h2><div class="cards mini">${S[n].slice().sort((a,b)=>O.indexOf(a.type)-O.indexOf(b.type)||v(b)-v(a)).map(c=>card(c,0,'pile')).join('')||'<span class="rules">Empty.</span>'}</div>`).join('');$('#dlg').showModal()};
+function showAbout(){$('#dlgC').innerHTML='<h2>About Heartrow</h2><p>Click a hand card to play it, or a recruit row card to buy it. Recruits cost gold ●, go to your discard and work whenever you draw them. Enemies cost power ⚔: defeating one gives its hearts ♥ and effects once, and if one falls off the right edge you lose that many.</p><p>Costs in the recruit row rise as turns pass. Space plays all simple cards. Every card is generated as it appears, from about 8,500 possible recruits and 126 enemies. Moss leans gold and rewards a larger deck, Ember leans power and enemies, Tide leans draw, exile, and hearts.</p><p>Inspired by Dominion, Ascension, Gemblades and Star Realms.</p>';$('#dlg').showModal()}
+function showLog(){$('#dlgC').innerHTML='<h2>Log (newest first)</h2><div style="max-height:60vh;overflow:auto">'+S.hist.slice().reverse().map(x=>'<div class="logline">'+paint(x)+'</div>').join('')+'</div>';$('#dlg').showModal()}
+$('#msg').onclick=showLog;$('#msg').onkeydown=e=>{if(e.key=='Enter'||e.key==' '){e.preventDefault();showLog()}};
+$('#dlg').onclick=e=>{const b=e.target.closest('[data-lv]');if(b){e.currentTarget.close();return newGame(+b.dataset.lv)}if(e.target===e.currentTarget)e.currentTarget.close()};
+addEventListener('keydown',e=>{if(e.code=='Space'&&!e.target.closest('button')){e.preventDefault();autoplay()}});
+function hb(n){return n?(n<4?'♥'.repeat(n):'♥×'+n):''}
+function deckSummary(){const all=[...S.deck,...S.hand,...S.discard],t=k=>all.reduce((a,c)=>a+c[k],0),n=y=>all.filter(c=>c.type==y).length,e={g:0,p:0,h:0,u:0};for(const c of all)for(const k of c.fx)e[({coin:'g',basics:'g',foes:'p',pile:'p',all3:'h',vault:'h',reapG:'h',reapP:'h',bond:c.m=='power'?'p':'g',kin:c.km=='power'?'p':'g',army:c.km=='power'?'p':'g'})[k]||'u']++;return`<p style="margin:0 0 10px"><b>Your deck:</b> ${all.length} cards · plain gains <span class="g">${t('gold')} ●</span> <span class="p">${t('power')} ⚔</span> <span class="h">${t('hearts')} ♥</span> · effects <span class="g">${e.g} ●</span> <span class="p">${e.p} ⚔</span> <span class="h">${e.h} ♥</span> ${e.u} other · Moss ${n('moss')}, Ember ${n('ember')}, Tide ${n('tide')}, Basic ${n('plain')}</p>`}
+function askNew(){$('#dlgC').innerHTML='<h2>New game: choose a level</h2><div style="display:flex;flex-direction:column;gap:8px">'+GOALS.map((g,i)=>`<button class="b alt" data-lv="${i}">Level ${i+1}: ${g} ♥ in ${TURNS} turns</button>`).join('')+'</div>';$('#dlg').showModal()}
+function fit(){const a=($('main').clientWidth-48)/5,d=document.documentElement.style;d.setProperty('--z',a/118)}
+if(typeof window!='undefined'){fit();addEventListener('resize',fit)}
+newGame();
+</script></body></html>
