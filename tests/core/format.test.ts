@@ -137,7 +137,7 @@ describe('effectText', () => {
             '+1 ⚔ per 4 Tide cards in your deck',
         ])
         expect(fx(['kin'])).toEqual(['+1 ● per other Tide card played this turn'])
-        expect(fx(['swap'], { retain: true })).toEqual(['Swap your ● and ⚔', '↺ Retain: stays in hand if unplayed'])
+        expect(fx(['swap'], { retain: true })).toEqual(['Swap ● and ⚔', '↺ Retain: stays in hand if unplayed'])
     })
 
     it('prefixes enemy effects with Defeat', () => {

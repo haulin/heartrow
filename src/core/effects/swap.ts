@@ -3,7 +3,7 @@ import type { EffectDef } from './types'
 export const swap: EffectDef = {
     id: 'swap',
     price: 1.5,
-    text: 'Swap your ● and ⚔',
+    text: 'Swap ● and ⚔',
     enemies: true,
     lean: ['moss', 'ember'],
     retainable: true,

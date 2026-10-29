@@ -29,7 +29,7 @@ const EFFECT_TEMPLATES: Record<EffectId, string> = {
     army: '+1 {k} per 4 {T} cards in your deck',
     cycle: 'Discard your unplayed cards except Retain ones, draw as many',
     purge: 'Discard all your unplayed cards, even Retain, draw as many',
-    swap: 'Swap your ● and ⚔',
+    swap: 'Swap ● and ⚔',
     reapG: 'End of turn: +1 ♥ per 3 unspent ●',
     reapP: 'End of turn: +1 ♥ per 2 unspent ⚔',
 }
