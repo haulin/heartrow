@@ -3,93 +3,114 @@ import type { GameState } from '../../core'
 import { Rich } from './Rich'
 
 const PIPS = [
-  ['moss', '--moss'],
-  ['ember', '--ember'],
-  ['tide', '--tide'],
+    ['moss', '--moss'],
+    ['ember', '--ember'],
+    ['tide', '--tide'],
 ] as const
 
 const reapBadge = (n: number): string => (n === 0 ? '' : n < 4 ? '♥'.repeat(n) : `♥×${n}`)
 
 interface StatProps {
-  label: string
-  cls?: string
-  title?: string
-  badge?: string
-  children: ComponentChildren
+    label: string
+    cls?: string
+    title?: string
+    badge?: string
+    children: ComponentChildren
 }
 
 function Stat({ label, cls = '', title, badge, children }: StatProps) {
-  return (
-    <div class={`stat ${cls}`} title={title}>
-      {children}
-      <small>{label}</small>
-      {badge ? <span class="rb">{badge}</span> : null}
-    </div>
-  )
+    return (
+        <div class={`stat ${cls}`} title={title}>
+            {children}
+            <small>{label}</small>
+            {badge ? <span class="rb">{badge}</span> : null}
+        </div>
+    )
 }
 
 export interface StatsProps {
-  state: GameState
-  onRedraw: () => void
-  onPiles: () => void
+    state: GameState
+    onRedraw: () => void
+    onPiles: () => void
 }
 
 export function Stats({ state: s, onRedraw, onPiles }: StatsProps) {
-  const long = s.goal === null
-  const discountTip = [s.recruitDiscount && `Recruits cost ${s.recruitDiscount} less gold ●.`, s.enemyDiscount && `Enemies cost ${s.enemyDiscount} less power ⚔.`].filter(Boolean).join(' ')
-  return (
-    <div class="stats">
-      <Stat label="turn" title="Turn number. The game ends after the last turn.">
-        {s.turn}
-        <span class="den">/{s.maxTurns}</span>
-      </Stat>
-      <Stat label="hearts" cls="h" title={long ? 'High-score hearts. The run ends after the final turn.' : 'Reach the goal to win. Enemies that fall off the right edge take hearts away, and hearts can go negative.'}>
-        {s.hearts}
-        {long ? null : <span class="den">/{s.goal}</span>}
-      </Stat>
-      <Stat
-        label="gold"
-        cls="g big"
-        badge={reapBadge(s.reapGold)}
-        title={s.reapGold ? `Unspent gold turns into hearts at the end of the turn: 1 per 3 for each reaping card in play. Now: +${s.reapGold * Math.floor(s.gold / 3)} ♥.` : 'Spent on recruits. Resets every turn.'}
-      >
-        {s.gold}
-      </Stat>
-      <Stat
-        label="power"
-        cls="p big"
-        badge={reapBadge(s.reapPower)}
-        title={s.reapPower ? `Unspent power turns into hearts at the end of the turn: 1 per 2 for each reaping card in play. Now: +${s.reapPower * Math.floor(s.power / 2)} ♥.` : 'Spent on defeating enemies. Resets every turn.'}
-      >
-        {s.power}
-      </Stat>
-      <Stat label="discount" title={discountTip || 'No discounts this turn. Some cards make recruits or enemies cheaper.'}>
-        {s.recruitDiscount ? <span class="g">−{s.recruitDiscount}</span> : null}
-        {s.recruitDiscount && s.enemyDiscount ? ' ' : null}
-        {s.enemyDiscount ? <span class="p">−{s.enemyDiscount}</span> : null}
-        {!s.recruitDiscount && !s.enemyDiscount ? '0' : null}
-      </Stat>
-      <button
-        type="button"
-        class="stat"
-        onClick={onRedraw}
-        title={`Replace the four left cards of the recruit row. You gain one every ${s.config.redrawEvery} turns and they stack.`}
-        aria-disabled={s.redraws < 1 ? 'true' : undefined}
-      >
-        {s.redraws}
-        <small>redraws</small>
-      </button>
-      <Stat label="types played" title="Moss, Ember and Tide cards played this turn. Some cards reward playing all three.">
-        <span class="pips">
-          {PIPS.map(([t, v]) => (
-            <span key={t} class="pip" style={{ background: `var(${v})`, opacity: s.typesPlayed.includes(t) ? 1 : 0.2 }} />
-          ))}
-        </span>
-      </Stat>
-      <button type="button" class="stat" onClick={onPiles} title="Draw pile / discard / exile. Click to look inside.">
-        <Rich text={`${s.deck.length} / ${s.discard.length} / ${s.exile.length}`} />
-        <small>draw / discard / exile</small>
-      </button>
-    </div>
-  )
+    const long = s.goal === null
+    const discountTip = [
+        s.recruitDiscount && `Recruits cost ${s.recruitDiscount} less gold ●.`,
+        s.enemyDiscount && `Enemies cost ${s.enemyDiscount} less power ⚔.`,
+    ]
+        .filter(Boolean)
+        .join(' ')
+    return (
+        <div class="stats">
+            <Stat label="turn" title="Turn number. The game ends after the last turn.">
+                {s.turn}
+                <span class="den">/{s.maxTurns}</span>
+            </Stat>
+            <Stat
+                label="hearts"
+                cls="h"
+                title={
+                    long
+                        ? 'High-score hearts. The run ends after the final turn.'
+                        : 'Reach the goal to win. Enemies that fall off the right edge take hearts away, and hearts can go negative.'
+                }
+            >
+                {s.hearts}
+                {long ? null : <span class="den">/{s.goal}</span>}
+            </Stat>
+            <Stat
+                label="gold"
+                cls="g big"
+                badge={reapBadge(s.reapGold)}
+                title={
+                    s.reapGold
+                        ? `Unspent gold turns into hearts at the end of the turn: 1 per 3 for each reaping card in play. Now: +${s.reapGold * Math.floor(s.gold / 3)} ♥.`
+                        : 'Spent on recruits. Resets every turn.'
+                }
+            >
+                {s.gold}
+            </Stat>
+            <Stat
+                label="power"
+                cls="p big"
+                badge={reapBadge(s.reapPower)}
+                title={
+                    s.reapPower
+                        ? `Unspent power turns into hearts at the end of the turn: 1 per 2 for each reaping card in play. Now: +${s.reapPower * Math.floor(s.power / 2)} ♥.`
+                        : 'Spent on defeating enemies. Resets every turn.'
+                }
+            >
+                {s.power}
+            </Stat>
+            <Stat label="discount" title={discountTip || 'No discounts this turn. Some cards make recruits or enemies cheaper.'}>
+                {s.recruitDiscount ? <span class="g">−{s.recruitDiscount}</span> : null}
+                {s.recruitDiscount && s.enemyDiscount ? ' ' : null}
+                {s.enemyDiscount ? <span class="p">−{s.enemyDiscount}</span> : null}
+                {!s.recruitDiscount && !s.enemyDiscount ? '0' : null}
+            </Stat>
+            <button
+                type="button"
+                class="stat"
+                onClick={onRedraw}
+                title={`Replace the four left cards of the recruit row. You gain one every ${s.config.redrawEvery} turns and they stack.`}
+                aria-disabled={s.redraws < 1 ? 'true' : undefined}
+            >
+                {s.redraws}
+                <small>redraws</small>
+            </button>
+            <Stat label="types played" title="Moss, Ember and Tide cards played this turn. Some cards reward playing all three.">
+                <span class="pips">
+                    {PIPS.map(([t, v]) => (
+                        <span key={t} class="pip" style={{ background: `var(${v})`, opacity: s.typesPlayed.includes(t) ? 1 : 0.2 }} />
+                    ))}
+                </span>
+            </Stat>
+            <button type="button" class="stat" onClick={onPiles} title="Draw pile / discard / exile. Click to look inside.">
+                <Rich text={`${s.deck.length} / ${s.discard.length} / ${s.exile.length}`} />
+                <small>draw / discard / exile</small>
+            </button>
+        </div>
+    )
 }

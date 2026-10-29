@@ -1,13 +1,13 @@
 import type { EffectDef } from './types'
 
 export const foes: EffectDef = {
-  id: 'foes',
-  price: 2,
-  text: '+1 ⚔ per enemy in the recruit row',
-  enemies: true,
-  lean: ['ember'],
-  retainable: true,
-  apply({ state, source, rowEnemies, gain }) {
-    gain('power', source === 'play' ? state.row.filter((card) => card.kind === 'enemy').length : rowEnemies)
-  },
+    id: 'foes',
+    price: 2,
+    text: '+1 ⚔ per enemy in the recruit row',
+    enemies: true,
+    lean: ['ember'],
+    retainable: true,
+    apply({ state, source, rowEnemies, gain }) {
+        gain('power', source === 'play' ? state.row.filter((card) => card.kind === 'enemy').length : rowEnemies)
+    },
 }

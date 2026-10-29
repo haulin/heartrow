@@ -2,16 +2,16 @@
 import { createServer } from 'vite'
 
 const server = await createServer({
-  configFile: false,
-  root: process.cwd(),
-  appType: 'custom',
-  logLevel: 'error',
-  server: { middlewareMode: true, hmr: false, watch: null },
-  optimizeDeps: { noDiscovery: true, include: [] },
+    configFile: false,
+    root: process.cwd(),
+    appType: 'custom',
+    logLevel: 'error',
+    server: { middlewareMode: true, hmr: false, watch: null },
+    optimizeDeps: { noDiscovery: true, include: [] },
 })
 try {
-  const { main } = await server.ssrLoadModule('/tools/sim.ts')
-  main(process.argv.slice(2))
+    const { main } = await server.ssrLoadModule('/tools/sim.ts')
+    main(process.argv.slice(2))
 } finally {
-  await server.close()
+    await server.close()
 }

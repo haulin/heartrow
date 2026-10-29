@@ -2,9 +2,9 @@ import type { ComponentType } from 'preact'
 import type { CardView } from '../view/cardView'
 
 export interface CardSkinProps {
-  view: CardView
-  /** Absent for non-interactive cards such as the pile dialog. */
-  onActivate?: (() => void) | undefined
+    view: CardView
+    /** Absent for non-interactive cards such as the pile dialog. */
+    onActivate?: (() => void) | undefined
 }
 
 /**
@@ -14,7 +14,7 @@ export interface CardSkinProps {
  * - carry `data-card-id={view.id}` so the animation module can find it.
  */
 export interface CardSkin {
-  id: string
-  name: string
-  Card: ComponentType<CardSkinProps>
+    id: string
+    name: string
+    Card: ComponentType<CardSkinProps>
 }

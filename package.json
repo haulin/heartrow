@@ -1,35 +1,31 @@
 {
-  "name": "heartrow",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
-  "devDependencies": {
-    "@preact/preset-vite": "^2.10.6",
-    "happy-dom": "^21.0.4",
-    "typescript": "^6.0.3",
-    "vite-plus": "^1.4.0"
-  },
-  "overrides": {
-    "vite": "npm:@voidzero-dev/vite-plus-core@1.4.0",
-    "vitest": "5.0.5"
-  },
-  "dependencies": {
-    "@fontsource-variable/bricolage-grotesque": "^5.3.0",
-    "preact": "^11.1.0"
-  },
-  "scripts": {
-    "dev": "vp dev",
-    "build": "vp build",
-    "test": "vp test run",
-    "baseline": "vp test run --config vite.baseline.config.ts",
-    "baseline:bots": "vp test run --config vite.baseline.config.ts tests/baseline/bots.slow.test.ts",
-    "sim": "node tools/sim.mjs",
-    "typecheck": "tsc -b",
-    "check:portability": "node scripts/check-portability.mjs",
-    "verify": "npm run typecheck && npm run check:portability && npm run test && npm run build"
-  },
-  "packageManager": "npm@10.9.9",
-  "engines": {
-    "node": ">=22"
-  }
+    "name": "heartrow",
+    "version": "0.0.0",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "vp dev",
+        "build": "vp build",
+        "verify": "vp check && vp test run && vp build",
+        "baseline": "vp test run --config vite.baseline.config.ts",
+        "sim": "node tools/sim.mjs"
+    },
+    "dependencies": {
+        "@fontsource-variable/bricolage-grotesque": "^5.3.0",
+        "preact": "^11.1.0"
+    },
+    "devDependencies": {
+        "@preact/preset-vite": "^2.10.6",
+        "happy-dom": "^21.0.4",
+        "typescript": "^6.0.3",
+        "vite-plus": "^1.4.0"
+    },
+    "overrides": {
+        "vite": "npm:@voidzero-dev/vite-plus-core@1.4.0",
+        "vitest": "5.0.5"
+    },
+    "engines": {
+        "node": ">=22"
+    },
+    "packageManager": "npm@10.9.9"
 }

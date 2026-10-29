@@ -17,15 +17,15 @@ const { config, seed } = parseStartParams(window.location.search)
 const store = new GameStore(config, seed)
 
 if (import.meta.env.DEV) {
-  Object.assign(window, {
-    heartrow: {
-      getState: store.getState,
-      dispatch: (move: Move) => store.dispatch(move).events,
-      newGame: (modeId: string, newSeed: number) => store.newGame(modeFromId(modeId), newSeed),
-      legalMoves: () => core.legalMoves(store.getState()),
-      core,
-    },
-  })
+    Object.assign(window, {
+        heartrow: {
+            getState: store.getState,
+            dispatch: (move: Move) => store.dispatch(move).events,
+            newGame: (modeId: string, newSeed: number) => store.newGame(modeFromId(modeId), newSeed),
+            legalMoves: () => core.legalMoves(store.getState()),
+            core,
+        },
+    })
 }
 
 const root = document.getElementById('app')

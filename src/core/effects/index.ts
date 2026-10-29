@@ -22,11 +22,30 @@ import type { EffectDef } from './types'
 export type { EffectContext, EffectDef } from './types'
 
 /** Pool order matters: the generator draws from it in this order. */
-export const EFFECTS: readonly EffectDef[] = [draw, coin, exile, cheap, foes, all3, vault, basics, pile, bond, kin, weak, army, cycle, purge, swap, reapG, reapP]
+export const EFFECTS: readonly EffectDef[] = [
+    draw,
+    coin,
+    exile,
+    cheap,
+    foes,
+    all3,
+    vault,
+    basics,
+    pile,
+    bond,
+    kin,
+    weak,
+    army,
+    cycle,
+    purge,
+    swap,
+    reapG,
+    reapP,
+]
 
 export const EFFECT_BY_ID = Object.fromEntries(EFFECTS.map((effect) => [effect.id, effect])) as Record<EffectId, EffectDef>
 
 export function effectPrice(id: EffectId, drawCount = 1): number {
-  const effect = EFFECT_BY_ID[id]
-  return effect.perDrawCard ? effect.price * drawCount : effect.price
+    const effect = EFFECT_BY_ID[id]
+    return effect.perDrawCard ? effect.price * drawCount : effect.price
 }
