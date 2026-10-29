@@ -210,6 +210,8 @@ Keep proposed ideas in this document instead of implementation comments. Mark an
 
 ### Interface and presentation
 
+- Colour review after the icon change: the light theme looks weak overall; Enemy purple and Tide blue are too similar; and recruit-row cards look faded next to the Basic cards in hand. The fade is intended (`.no` dims unaffordable recruits to 55% opacity, and at turn start with 0 gold every row card is dimmed), but it may be too strong, or the Basic cards may be too dark. Decide together, in one pass over both themes.
+
 - Show calculated values for conditional effects without making card text unstable or crowded.
 - Use one visual language for resource gains, either words or resource symbols, while keeping accessible labels.
 - Call the recruit row a `river` in player-facing language, provided the term remains clear to new players and assistive technology.
@@ -221,7 +223,20 @@ Keep proposed ideas in this document instead of implementation comments. Mark an
 - Explore a Lovecraftian visual direction as an optional thematic distance from Gemblades: Moss and Tide can support organic/eldritch motifs, Ember can become arcane, enemies can become horrors, and hearts can become sanity. Treat this as a visual and naming direction, not a rules change.
 - Make the tutorial optional, with an explicit way to replay it or get the same information later.
 - Add transitions, sound, or Android packaging.
-- Undo of a redraw may be too generous because it lets the player peek at the next row for free. Kept for now; watch it in playtests and block it on purpose if abused.
+- Undo of a redraw lets the player peek at the next row for free. It works for now and is useful as a playtesting tool; plan to block it soon.
+- Defeating an enemy and recruiting a card have no animation yet, while playing a hand card has a flash that feels slightly long. Ideas: a recruited card animates toward the discard pile and that pile's number flashes; a defeated enemy leaves without a pile flash, or counts toward a defeated tally. Decide on one visual language for play, recruit and defeat.
+- Presentation lag: the game state is already final while the view still shows the previous step until the animation ends. The web store would keep a list of immutable snapshots (every `applyMove` already returns one), and the view shows a "displayed" snapshot that advances as animations finish. Open points: clicks must resolve by card id against the latest state, and undo, a new game and "animations off" must skip the queue.
+- "Play simple" should play cards left to right with a short stagger, once the presentation lag above exists.
+- Cards are drawn at a fixed design size (118 x 175) and scaled to the slot with a CSS `scale`, so small cards no longer inflate under a browser minimum font size of 12 or less (tested in Brave and Firefox). A higher minimum still inflates the text. Later idea: draw cards even larger and shrink them more. Also test large system text on a phone.
+- Carry on after the goal: today "End your turn to win, or keep going" only means keep playing the current turn, because ending the turn wins. A real choice could be a mode option where ending the turn does not win and a separate move claims the win, with the run scored by final hearts. After the goal the primary button becomes "Claim win" and "End turn" becomes secondary.
+- Defeated tally: count defeated enemies as a visible tally. The core already tracks defeats, so effects could key off it. Not needed for the animation (a defeated enemy can inflate and fade in place), so add it when the first effect uses it.
+- Animation decisions so far: input is queued and the logic stays immediate; a click resolves the card by its id (the card under the pointer), not by its position, so a card that shifts during an animation is never clicked by mistake, and a click on a card that is already gone is ignored. Undo, new game and reduced motion skip the queue. Recruit flies to the discard pile and its number flashes; a defeated enemy inflates and fades; a played card flashes and dims in place; the play simple stagger is about 60 ms and a flight about 250 ms, both scaled by the speed setting.
+- Icons are built in the web platform (`src/platform/web/icons/`): a gold coin with shine and an embossed inner disc, reddish-orange swords (Material Symbols shape, Apache 2.0; steel was tried and dropped because the red numbers no longer matched, and the power number colour is now `--pow`, separate from the Ember card colour), the favicon heart, an indigo clock for Retain, and a steel padlock for fixed-edge cards. The core keeps the unicode symbols as text. `Rich` wraps each symbol in a span whose text is transparent and whose background is the icon, so copied text stays unicode, and other platforms (such as ASCII-only TIC-80) map the tokens their own way. The selection highlight is hidden on icons because the hidden text is narrower than the icon. Open: recheck every card for the 1 px shift, and the pin was dropped because it did not read well.
+- Fixed, not yet playtested: the played-card flash now ends at the dimmed resting look (it used to fade to full brightness and then snap), and the shake adds to the resting translate (it used to drop a lifted card while shaking). The web build also gained the prototype's `line-height: normal` on cards and top-aligned stat buttons.
+- The Swap text was almost exactly as wide as a card (117.98 of 118 px), so tiny font differences could wrap the ⚔ alone onto a new line. It is now "Swap ● and ⚔".
+- Plan the animation work as one change: fix the flash, add snapshots with a displayed state so the disabled look waits for the animation, play simple left to right with a stagger, then the recruit-to-pile flash.
+- Reward spending exactly all gold and power in a turn, for example a bonus heart or a free draw. It felt good in playtests (two turns in a row).
+- The piles overview shows card text larger than normal cards and wraps differently. Check the font scaling of the small card view.
 
 ### Statistics and progression
 
