@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": [],
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
+    "outDir": "./.cache/tsc/web",
+    "tsBuildInfoFile": "./.cache/tsc/web.tsbuildinfo"
+  },
+  "include": ["src/platform/web"],
+  "references": [{ "path": "./tsconfig.core.json" }]
+}

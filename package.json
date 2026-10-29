@@ -1,0 +1,30 @@
+{
+  "name": "heartrow",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.6",
+    "typescript": "^6.0.3",
+    "vite-plus": "^1.4.0"
+  },
+  "overrides": {
+    "vite": "npm:@voidzero-dev/vite-plus-core@1.4.0",
+    "vitest": "5.0.5"
+  },
+  "dependencies": {
+    "preact": "^11.1.0"
+  },
+  "scripts": {
+    "dev": "vp dev",
+    "build": "vp build",
+    "test": "vp test run",
+    "typecheck": "tsc -b",
+    "check:portability": "node scripts/check-portability.mjs",
+    "verify": "npm run typecheck && npm run check:portability && npm run test && npm run build"
+  },
+  "packageManager": "npm@10.9.9",
+  "engines": {
+    "node": ">=22"
+  }
+}
