@@ -128,15 +128,37 @@ const PILES: [keyof Pick<GameState, 'deck' | 'discard' | 'exile'>, string][] = [
     ['exile', 'Exile'],
 ]
 
+/** A number and its resource symbol, in the resource's colour, so the figure you look for is easy to find. */
+function Count({ cls, n, sym }: { cls: 'g' | 'p' | 'h'; n: number; sym: string }) {
+    return (
+        <span class={`${cls} cnt`}>
+            <Rich text={`${n} ${sym}`} />
+        </span>
+    )
+}
+
 export function PilesDialog({ state, skin, onClose }: { state: GameState; skin: CardSkin; onClose: () => void }) {
     const d = deckSummary(state)
     return (
         <Modal onClose={onClose}>
-            <p class="summary">
-                <b>Your deck:</b> {d.total} cards · plain gains <Rich text={`${d.gold} ●`} /> <Rich text={`${d.power} ⚔`} />{' '}
-                <Rich text={`${d.hearts} ♥`} /> · effects <Rich text={`${d.fxGold} ●`} /> <Rich text={`${d.fxPower} ⚔`} />{' '}
-                <Rich text={`${d.fxHearts} ♥`} /> {d.fxOther} other · Moss {d.moss}, Ember {d.ember}, Tide {d.tide}, Basic {d.plain}
-            </p>
+            <div class="summary">
+                <div>
+                    <b>Your deck:</b> {d.total} cards
+                </div>
+                <div>
+                    <span class="lab">plain gains</span> <Count cls="g" n={d.gold} sym="●" /> <Count cls="p" n={d.power} sym="⚔" />{' '}
+                    <Count cls="h" n={d.hearts} sym="♥" />
+                </div>
+                <div>
+                    <span class="lab">effects</span> <Count cls="g" n={d.fxGold} sym="●" /> <Count cls="p" n={d.fxPower} sym="⚔" />{' '}
+                    <Count cls="h" n={d.fxHearts} sym="♥" /> {d.fxOther} other
+                </div>
+                <div>
+                    <span class="lab">types</span> <span class="cnt moss">{d.moss} Moss</span>{' '}
+                    <span class="cnt ember">{d.ember} Ember</span> <span class="cnt tide">{d.tide} Tide</span>{' '}
+                    <span class="cnt">{d.plain} Basic</span>
+                </div>
+            </div>
             {PILES.map(([name, title]) => {
                 const cards: Card[] = sortPile(state[name])
                 return (
@@ -159,7 +181,15 @@ export function PilesDialog({ state, skin, onClose }: { state: GameState; skin: 
     )
 }
 
-const LABEL: Record<string, string> = { system: 'System', light: 'Light', dark: 'Dark', off: 'Off', fast: 'Fast', normal: 'Normal' }
+const LABEL: Record<string, string> = {
+    system: 'System',
+    light: 'Light',
+    dark: 'Dark',
+    off: 'Off',
+    fast: 'Fast',
+    normal: 'Normal',
+    slow: 'Extra slow',
+}
 
 export function SettingsDialog({
     settings,

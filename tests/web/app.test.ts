@@ -3,19 +3,23 @@ import { h, render } from 'preact'
 import { act } from 'preact/test-utils'
 import { afterEach, describe, expect, it } from 'vite-plus/test'
 import { standardMode } from '../../src/core'
-import type { GameEvent } from '../../src/core'
 import { App } from '../../src/platform/web/App'
-import { createAnimator, planEffects, resolveSpeed } from '../../src/platform/web/anim'
+import { planAfter, planBefore, resolveSpeed } from '../../src/platform/web/anim'
+import { createPresenter } from '../../src/platform/web/anim/presenter'
+import { DEFAULT_SETTINGS, saveSettings } from '../../src/platform/web/settings'
+import type { AnimSpeed } from '../../src/platform/web/settings'
 import { GameStore } from '../../src/platform/web/store'
 import { createMemoryStorage } from '../../src/platform/web/storage'
 
 let host: HTMLElement | null = null
 
-function mount(seed = 4) {
+/** Tests run with animations off by default, so frames commit at once. */
+function mount(seed = 4, anim: AnimSpeed = 'off') {
     host = document.createElement('div')
     document.body.append(host)
     const store = new GameStore(standardMode(0), seed)
     const storage = createMemoryStorage()
+    saveSettings(storage, { ...DEFAULT_SETTINGS, anim })
     void act(() => render(h(App, { store, storage }), host!))
     return { store, storage, host }
 }
@@ -78,18 +82,71 @@ describe('animation module', () => {
         expect(resolveSpeed('fast', false)).toBe('fast')
     })
 
-    it('plans effects from events and tolerates a DOM without the Web Animations API', async () => {
+    it('plans effects before and after a frame', () => {
         const { host, store } = mount()
-        const first = store.getState().hand[0]!
-        const row0 = store.getState().row[0]!
-        const events: GameEvent[] = [
-            { type: 'played', card: first, gains: { gold: 0, power: 0, hearts: 0 } },
-            { type: 'rowRefilled', card: row0 },
-            { type: 'rejected', reason: 'cannotAfford' },
-        ]
-        const plan = planEffects(events, { root: host, move: { type: 'take', rowIndex: 0 } })
-        expect(plan.map((e) => e.kind)).toEqual(['highlight', 'enter', 'shake'])
-        await createAnimator(() => false).play(events, { root: host, move: { type: 'take', rowIndex: 0 }, speed: 'normal' })
-        await createAnimator(() => true).play(events, { root: host, move: { type: 'take', rowIndex: 0 }, speed: 'normal' })
+        const play = store.dispatch({ type: 'play', handIndex: store.getState().hand.findIndex((c) => c.fx.length === 0) })
+        expect(planBefore(play, host).map((e) => e.kind)).toEqual(expect.arrayContaining(['flash', 'fly']))
+        // The gold or power box pulses when the flight arrives (the presenter does that), not after the commit.
+        expect(planAfter(play, host).map((e) => e.kind)).not.toContain('pulse')
+        const take = store.dispatch({ type: 'take', rowIndex: 0 })
+        if (take.rejected) expect(planAfter(take, host).map((e) => e.kind)).toEqual(['shake'])
+        else expect(planBefore(take, host).map((e) => e.kind)).toContain('flyCard')
+    })
+
+    it('flies every card that leaves the hand to the piles when the turn ends', () => {
+        const { host, store } = mount()
+        const before = store.getState().hand
+        const kept = before.filter((c) => c.retain).length
+        const end = store.dispatch({ type: 'endTurn' })
+        const kinds = planBefore(end, host).map((e) => e.kind)
+        expect(kinds.filter((k) => k === 'flyCard')).toHaveLength(before.length - kept)
+        expect(kinds).toContain('leave')
+    })
+
+    it('commits frames at once when nothing can animate, and resolves clicks by card id', () => {
+        const { host, store } = mount()
+        const buttons = host.querySelectorAll<HTMLButtonElement>('[data-zone="hand"] button.card')
+        void act(() => buttons[0]!.click())
+        expect(store.pendingFrames()).toBe(0)
+        expect(store.getShown()).toBe(store.getSession())
+        // Clicking the same card again is ignored once it is played.
+        void act(() => buttons[0]!.click())
+        expect(store.getSession().history).toHaveLength(1)
+    })
+
+    it('holds the shown state back while an animation plays, then commits', async () => {
+        const proto = HTMLElement.prototype as unknown as { animate?: unknown }
+        const saved = proto.animate
+        proto.animate = () => ({ finished: Promise.resolve(), cancel() {}, addEventListener() {} })
+        try {
+            const { host, store } = mount(4, 'fast')
+            const shown = store.getShown()
+            void act(() => host.querySelector<HTMLButtonElement>('[data-zone="hand"] button.card')!.click())
+            expect(store.getShown()).toBe(shown)
+            expect(store.getState().hand[0]!.played).toBe(true)
+            await act(() => new Promise((r) => setTimeout(r, 20)))
+            expect(store.getShown()).toBe(store.getSession())
+            expect(store.pendingFrames()).toBe(0)
+        } finally {
+            proto.animate = saved
+        }
+    })
+
+    it('drops pending animations on undo', () => {
+        const proto = HTMLElement.prototype as unknown as { animate?: unknown }
+        const saved = proto.animate
+        proto.animate = () => ({ finished: new Promise(() => {}), cancel() {}, addEventListener() {} })
+        try {
+            const { host, store } = mount(4, 'fast')
+            void act(() => host.querySelector<HTMLButtonElement>('[data-zone="hand"] button.card')!.click())
+            expect(store.pendingFrames()).toBe(1)
+            const presenter = createPresenter(store, { root: () => host, speed: () => 'fast', reducedMotion: () => false })
+            store.undo()
+            expect(store.pendingFrames()).toBe(0)
+            expect(store.getShown()).toBe(store.getSession())
+            presenter.dispose()
+        } finally {
+            proto.animate = saved
+        }
     })
 })

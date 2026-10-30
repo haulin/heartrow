@@ -7,6 +7,7 @@
 - Add general workflow and tooling learnings to this file.
 - Do not hard-wrap Markdown prose. Keep each paragraph on one line.
 - Log every idea the user mentions in chat, even in passing, as one undated line under "Parked ideas" in `DESIGN.md` in the same turn. Do not add dates to ideas or notes; git records when. Update the idea's status when it changes.
+- Before adding to an existing log, list or notes file, read its first lines for ordering or format rules, and put the new entry where the rules say. For example `local/PLAYTESTS.md` is newest first.
 - Inspect scripts before running them.
 - Project rules live in `.cursor/rules/`: `no-destructive-actions` and `reframe-before-fork` always apply; `seed-stability`, `minimum-viable` and `visual-convergence` apply to matching files. They are written to be reusable in other projects.
 - Discuss design and process questions first. Do not commit, push or change config unless the user asked for it. When a message says "resolve these points", answer and propose, then wait for a go-ahead before committing.

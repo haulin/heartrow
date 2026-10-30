@@ -291,6 +291,37 @@ button.stat {
 }
 .msg.warn {
     outline: 2px solid var(--tide);
+    /* Slowly moving diagonal stripes, so the exile prompt is hard to overlook. */
+    background-color: var(--panel);
+    background-image: linear-gradient(
+        45deg,
+        color-mix(in srgb, var(--tide) 15%, transparent) 25%,
+        transparent 25%,
+        transparent 50%,
+        color-mix(in srgb, var(--tide) 15%, transparent) 50%,
+        color-mix(in srgb, var(--tide) 15%, transparent) 75%,
+        transparent 75%
+    );
+    /* A halo in the box colour (dark on the dark theme, light on the light theme) keeps the text readable over the stripes. */
+    text-shadow:
+        0 0 3px var(--panel),
+        0 0 6px var(--panel),
+        0 0 10px var(--panel);
+    background-size: 40px 40px;
+    animation: prompt-stripes 1.6s linear infinite;
+}
+.msg.warn.calm {
+    animation: none;
+}
+@keyframes prompt-stripes {
+    to {
+        background-position: 40px 0;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .msg.warn {
+        animation: none;
+    }
 }
 .bar {
     display: flex;
@@ -334,6 +365,35 @@ select:focus-visible {
 }
 .summary {
     margin: 0 0 10px;
+}
+/* The labels share a width, so the gold, power and heart figures of the two rows line up. Copied text keeps single spaces. */
+.summary .lab {
+    display: inline-block;
+    min-width: 6em;
+}
+/* Every row has the same columns, so gold sits over Moss, power over Ember and hearts over Tide. */
+.summary .cnt {
+    display: inline-block;
+    min-width: 4.8em;
+}
+/* On a narrow screen the four columns no longer fit, so the rows flow inline and may wrap instead of breaking the grid. */
+@media (max-width: 450px) {
+    .summary .lab,
+    .summary .cnt {
+        min-width: 0;
+    }
+    .summary .cnt {
+        margin-right: 0.4em;
+    }
+}
+.summary .moss {
+    color: var(--moss);
+}
+.summary .ember {
+    color: var(--ember);
+}
+.summary .tide {
+    color: var(--tide);
 }
 .logline {
     margin: 0 0 4px;

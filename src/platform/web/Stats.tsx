@@ -12,15 +12,17 @@ const reapBadge = (n: number): string => (n === 0 ? '' : n < 4 ? '♥'.repeat(n)
 
 interface StatProps {
     label: string
+    /** Lets the animations find the box (`data-stat`). */
+    id?: string
     cls?: string
     title?: string
     badge?: string
     children: ComponentChildren
 }
 
-function Stat({ label, cls = '', title, badge, children }: StatProps) {
+function Stat({ label, id, cls = '', title, badge, children }: StatProps) {
     return (
-        <div class={`stat ${cls}`} title={title}>
+        <div class={`stat ${cls}`} title={title} data-stat={id}>
             {children}
             <small>{label}</small>
             {badge ? (
@@ -48,12 +50,13 @@ export function Stats({ state: s, onRedraw, onPiles }: StatsProps) {
         .join(' ')
     return (
         <div class="stats">
-            <Stat label="turn" title="Turn number. The game ends after the last turn.">
+            <Stat label="turn" id="turn" title="Turn number. The game ends after the last turn.">
                 {s.turn}
                 <span class="den">/{s.maxTurns}</span>
             </Stat>
             <Stat
                 label="hearts"
+                id="hearts"
                 cls="h"
                 title={
                     long
@@ -66,6 +69,7 @@ export function Stats({ state: s, onRedraw, onPiles }: StatsProps) {
             </Stat>
             <Stat
                 label="gold"
+                id="gold"
                 cls="g big"
                 badge={reapBadge(s.reapGold)}
                 title={
@@ -78,6 +82,7 @@ export function Stats({ state: s, onRedraw, onPiles }: StatsProps) {
             </Stat>
             <Stat
                 label="power"
+                id="power"
                 cls="p big"
                 badge={reapBadge(s.reapPower)}
                 title={
@@ -88,7 +93,11 @@ export function Stats({ state: s, onRedraw, onPiles }: StatsProps) {
             >
                 {s.power}
             </Stat>
-            <Stat label="discount" title={discountTip || 'No discounts this turn. Some cards make recruits or enemies cheaper.'}>
+            <Stat
+                label="discount"
+                id="discount"
+                title={discountTip || 'No discounts this turn. Some cards make recruits or enemies cheaper.'}
+            >
                 {s.recruitDiscount ? <span class="g">−{s.recruitDiscount}</span> : null}
                 {s.recruitDiscount && s.enemyDiscount ? ' ' : null}
                 {s.enemyDiscount ? <span class="p">−{s.enemyDiscount}</span> : null}
@@ -97,6 +106,7 @@ export function Stats({ state: s, onRedraw, onPiles }: StatsProps) {
             <button
                 type="button"
                 class="stat"
+                data-stat="redraws"
                 onClick={onRedraw}
                 title={`Replace the four left cards of the recruit row. You gain one every ${s.config.redrawEvery} turns and they stack.`}
                 aria-disabled={s.redraws < 1 ? 'true' : undefined}
@@ -111,7 +121,13 @@ export function Stats({ state: s, onRedraw, onPiles }: StatsProps) {
                     ))}
                 </span>
             </Stat>
-            <button type="button" class="stat" onClick={onPiles} title="Draw pile / discard / exile. Click to look inside.">
+            <button
+                type="button"
+                class="stat"
+                data-stat="piles"
+                onClick={onPiles}
+                title="Draw pile / discard / exile. Click to look inside."
+            >
                 <Rich text={`${s.deck.length} / ${s.discard.length} / ${s.exile.length}`} />
                 <small>draw / discard / exile</small>
             </button>

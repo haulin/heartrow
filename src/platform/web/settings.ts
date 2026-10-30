@@ -1,7 +1,7 @@
 import type { AppStorage } from './storage'
 
 export const THEMES = ['system', 'light', 'dark'] as const
-export const ANIM_SPEEDS = ['off', 'fast', 'normal'] as const
+export const ANIM_SPEEDS = ['off', 'fast', 'normal', 'slow'] as const
 
 export type Theme = (typeof THEMES)[number]
 export type AnimSpeed = (typeof ANIM_SPEEDS)[number]

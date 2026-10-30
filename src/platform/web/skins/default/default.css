@@ -19,7 +19,15 @@
     text-align: left;
     color: var(--ink);
     font-family: inherit;
-    transition: translate 0.12s ease;
+    transition:
+        translate 0.12s ease,
+        filter 0.15s ease,
+        box-shadow 0.15s ease;
+}
+/* A soft glow in the card's own colour on the card under the pointer or keyboard focus. Not on cards that cannot be used. */
+.slot:hover button.card:not([aria-disabled='true']),
+.slot:has(:focus-visible) button.card:not([aria-disabled='true']) {
+    box-shadow: 0 0 calc(14 * var(--u)) calc(2 * var(--u)) color-mix(in srgb, var(--c) 55%, transparent);
 }
 div.card {
     cursor: default;

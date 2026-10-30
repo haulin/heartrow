@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vite-plus/test'
 import { LONG_MODE, legalMoves, standardMode } from '../../src/core'
 import type { Card, GameState, Move } from '../../src/core'
+import { departingIds } from '../../src/platform/web/anim'
 import { modeFromId, parseStartParams, shareQuery } from '../../src/platform/web/mode'
 import { startSession, stepSession, undoSession } from '../../src/platform/web/session'
 import type { Session } from '../../src/platform/web/session'
@@ -144,8 +145,65 @@ describe('store and session', () => {
         store.dispatch({ type: 'endTurn' })
         expect(store.getSession().history[0]).toMatch(/^T1 · Played a /)
         expect(store.getSession().history.some((l) => l.startsWith('T2 · Turn 2.'))).toBe(true)
-        expect(store.takeBatches()).toHaveLength(2)
-        expect(store.takeBatches()).toHaveLength(0)
+    })
+
+    it('counts a card that is discarded and drawn straight back as leaving the hand', () => {
+        // A ten-card deck: every second end turn reshuffles the cards just discarded, so some come back at once.
+        const store = new GameStore(standardMode(0), 5)
+        let comeBack = 0
+        for (let turn = 0; turn < 8; turn++) {
+            const frame = store.dispatch({ type: 'endTurn' })
+            const expected = frame.before.state.hand.filter((c) => !(c.retain && !c.played)).map((c) => c.id)
+            expect(departingIds(frame)).toEqual(expected)
+            const after = new Set(frame.after.state.hand.map((c) => c.id))
+            comeBack += expected.filter((id) => after.has(id)).length
+        }
+        expect(comeBack).toBeGreaterThan(0)
+    })
+
+    it('holds a resource number until released, and clears holds on a jump', () => {
+        const store = new GameStore(standardMode(0), 5)
+        store.hold('gold', 0)
+        store.hold('gold', 7)
+        expect(store.getHolds()).toEqual({ gold: 0 })
+        let emitted = 0
+        store.subscribe(() => emitted++)
+        store.release('gold')
+        expect(store.getHolds()).toEqual({})
+        expect(emitted).toBe(1)
+        store.hold('gold', 3)
+        store.bump('gold', 1)
+        store.bump('gold', 1)
+        expect(store.getHolds()).toEqual({ gold: 5 })
+        store.bump('hearts', 1)
+        expect(store.getHolds()).toEqual({ gold: 5 })
+        store.hold('power', 1)
+        store.newGame(standardMode(0), 6)
+        expect(store.getHolds()).toEqual({})
+    })
+
+    it('keeps shown behind latest until frames are committed, and flushes on undo and new game', () => {
+        const store = new GameStore(standardMode(0), 5)
+        const first = store.getShown()
+        const idx = store.getState().hand.findIndex((c) => c.fx.length === 0)
+        store.dispatch({ type: 'play', handIndex: idx })
+        store.dispatch({ type: 'endTurn' })
+        expect(store.pendingFrames()).toBe(2)
+        expect(store.getShown()).toBe(first)
+        expect(store.getState().turn).toBe(2)
+        store.commit()
+        expect(store.pendingFrames()).toBe(1)
+        expect(store.getShown()).not.toBe(first)
+        store.newGame(standardMode(0), 6)
+        expect(store.pendingFrames()).toBe(0)
+        expect(store.getShown()).toBe(store.getSession())
+        store.dispatch({ type: 'play', handIndex: store.getState().hand.findIndex((c) => c.fx.length === 0) })
+        store.commit()
+        const epoch = store.getEpoch()
+        store.undo()
+        expect(store.pendingFrames()).toBe(0)
+        expect(store.getEpoch()).toBeGreaterThan(epoch)
+        expect(store.getShown()).toBe(store.getSession())
     })
 
     it('plays a whole Long Run through legal moves and finishes', () => {
