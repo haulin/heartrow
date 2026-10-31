@@ -1,5 +1,5 @@
 import { CUSTOM_ID, GOALS, LONG_MODE, customFromMode, customMode, standardMode } from '../../core'
-import type { ModeConfig } from '../../core'
+import type { CustomGenerator, ModeConfig } from '../../core'
 import { customQuery, parseCustom } from './custom'
 
 /** A goal level (1 to 3) from a link, as an index into the goals. Anything else is null. */
@@ -20,7 +20,7 @@ export function modeFromId(id: string | null | undefined, goal?: string | null):
 }
 
 export function randomSeed(): number {
-    return (Math.floor(Math.random() * 0x100000000) ^ (Date.now() & 0xffffffff)) >>> 0
+    return Math.floor(Math.random() * 0x100000000)
 }
 
 export interface StartParams {
@@ -43,13 +43,29 @@ export function hasRun(search: string): boolean {
     return params.has('mode') || params.has('seed')
 }
 
-export type Route = { screen: 'home' } | { screen: 'game'; start: StartParams | null }
+/** `screen=custom` is the generator editor. It wins over a mode or seed, since the editor starts no run by itself. */
+export function isEditor(search: string): boolean {
+    return new URLSearchParams(search).get('screen') === 'custom'
+}
+
+/** `screen=standard` is the level picker. Like the editor, it starts no run by itself. */
+export function isLevelPick(search: string): boolean {
+    return new URLSearchParams(search).get('screen') === 'standard'
+}
+
+export type Route =
+    | { screen: 'home' }
+    | { screen: 'custom'; def: CustomGenerator }
+    | { screen: 'standard' }
+    | { screen: 'game'; start: StartParams | null }
 
 /**
  * The screen an address shows. `runQuery` is the share query of the run in memory, or null when none was started.
  * A game address that matches the run in memory resumes it (`start` is null); any other game address starts that run.
  */
 export function routeFor(search: string, runQuery: string | null, fallbackSeed: () => number = randomSeed): Route {
+    if (isEditor(search)) return { screen: 'custom', def: parseCustom(new URLSearchParams(search)) }
+    if (isLevelPick(search)) return { screen: 'standard' }
     if (!hasRun(search)) return { screen: 'home' }
     if (runQuery !== null && search === runQuery) return { screen: 'game', start: null }
     return { screen: 'game', start: parseStartParams(search, fallbackSeed) }

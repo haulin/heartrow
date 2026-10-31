@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vite-plus/test'
 import { standardMode } from '../../src/core'
-import { hasRun, routeFor, shareQuery } from '../../src/platform/web/mode'
+import { hasRun, isEditor, routeFor, shareQuery } from '../../src/platform/web/mode'
 
 describe('screen routes', () => {
     it('shows the home screen when the address names no run', () => {
@@ -17,6 +17,28 @@ describe('screen routes', () => {
         expect(route.screen === 'game' && route.start?.config.id).toBe('long')
         expect(hasRun('?mode=long')).toBe(true)
         expect(hasRun('?seed=5')).toBe(true)
+    })
+
+    it('shows the generator editor for screen=custom, with its settings from the address', () => {
+        const search = '?screen=custom&goal=2&types=moss,foe&res=gold,power,hearts&sg=3&sp=7&fx=coin'
+        expect(isEditor(search)).toBe(true)
+        expect(isEditor('?mode=custom')).toBe(false)
+        const route = routeFor(search, null)
+        expect(route.screen).toBe('custom')
+        expect(route.screen === 'custom' && route.def).toMatchObject({
+            goalLevel: 1,
+            types: ['moss', 'foe'],
+            starterGold: 3,
+            starterPower: 7,
+            effects: ['coin'],
+        })
+        // The editor starts no run, even with a run in memory or a seed in the address.
+        expect(routeFor(`${search}&seed=5&mode=long`, '?seed=5&mode=long').screen).toBe('custom')
+    })
+
+    it('shows the level picker for screen=standard and starts no run', () => {
+        expect(routeFor('?screen=standard', null)).toEqual({ screen: 'standard' })
+        expect(routeFor('?screen=standard&seed=5', '?seed=5')).toEqual({ screen: 'standard' })
     })
 
     it('resumes the run in memory when the address matches it', () => {

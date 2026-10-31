@@ -39,6 +39,11 @@ export function customQuery(def: CustomGenerator): string {
     return `goal=${def.goalLevel + 1}&types=${def.types.join(',')}&res=${def.resources.join(',')}&sg=${def.starterGold}&sp=${def.starterPower}&fx=${def.effects.join(',')}`
 }
 
+/** The address of the editor screen: `screen=custom` and the settings, with no seed and no mode, so it starts no run. */
+export function editorQuery(def: CustomGenerator): string {
+    return `?screen=custom&${customQuery(def)}`
+}
+
 /** `reapG` becomes "Reap G". */
 export function effectName(id: EffectId): string {
     const spaced = id.replace(/([a-z])([A-Z0-9])/g, '$1 $2')

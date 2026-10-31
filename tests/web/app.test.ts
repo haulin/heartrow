@@ -61,6 +61,68 @@ describe('App home screen', () => {
     })
 })
 
+describe('App level picker screen', () => {
+    it('is a screen with three level buttons, has its own address, and Back from a pasted address goes home', () => {
+        const { host } = mount(4, 'off', 'home')
+        press(host, 'Standard')
+        expect(window.location.search).toBe('?screen=standard')
+        expect(host.querySelectorAll('.levels button')).toHaveLength(3)
+        expect(host.querySelector('dialog')).toBeNull()
+        window.history.replaceState(null, '', '/?screen=standard')
+        press(host, '← Back')
+        expect(host.querySelector('.levels')).toBeNull()
+        expect(host.querySelector('nav')).not.toBeNull()
+        expect(window.location.search).toBe('')
+    })
+})
+
+describe('App warns before a start replaces the run in progress', () => {
+    it('says so on the level picker only when a run exists', () => {
+        const fresh = mount(4, 'off', 'home')
+        press(fresh.host, 'Standard')
+        expect(fresh.host.querySelector('.replaces')).toBeNull()
+
+        const running = mount(4)
+        press(running.host, '← Home')
+        press(running.host, 'Standard')
+        expect(running.host.querySelector('.replaces')?.textContent).toContain('replaces the one in progress')
+    })
+})
+
+describe('App generator editor screen', () => {
+    it('opens from the run dialog with the run settings, keeps them in the address, and starts a custom run', () => {
+        const { host, store } = mount(4)
+        press(host, 'Standard')
+        press(host, 'Open in the generator editor')
+        expect(host.querySelector('.gen')).not.toBeNull()
+        expect(host.querySelector('[data-zone="row"]')).toBeNull()
+        expect(window.location.search).toContain('screen=custom')
+        expect(window.location.search).not.toContain('seed=')
+        const goal = Array.from(host.querySelectorAll<HTMLSelectElement>('.gen select')).find((s) => s.textContent?.includes('Level 1'))!
+        goal.value = '1'
+        void act(() => {
+            goal.dispatchEvent(new Event('change', { bubbles: true }))
+        })
+        expect(window.location.search).toContain('goal=2')
+        press(host, 'Start')
+        expect(store.getState().config.id).toBe('custom')
+        expect(store.getState().goal).toBe(64)
+        expect(host.querySelector('[data-zone="row"]')).not.toBeNull()
+    })
+
+    it('opens from the menu, and Back from a pasted editor address goes to the menu', () => {
+        window.history.replaceState(null, '', '/?screen=custom')
+        const { host } = mount(4, 'off', 'home')
+        press(host, 'Custom generator')
+        expect(host.querySelector('.gen')).not.toBeNull()
+        window.history.replaceState(null, '', '/?screen=custom')
+        press(host, '← Back')
+        expect(host.querySelector('.gen')).toBeNull()
+        expect(host.querySelector('nav')).not.toBeNull()
+        expect(window.location.search).toBe('')
+    })
+})
+
 describe('App', () => {
     it('names the mode in the header and shows the goal and seed in its dialog', () => {
         const { host } = mount(4)

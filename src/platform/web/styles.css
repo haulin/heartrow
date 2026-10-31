@@ -191,6 +191,9 @@ button.stat {
 .ico.r {
     background-image: url('./icons/retain.svg');
 }
+.stat.h {
+    box-shadow: inset 0 0 0 2px var(--heart);
+}
 .stat.big {
     box-shadow: inset 0 0 0 2px currentColor;
     background: color-mix(in srgb, currentColor 14%, var(--panel));
@@ -214,6 +217,7 @@ button.stat {
     bottom: -6px;
     font-size: 10px;
     line-height: 1;
+    white-space: nowrap;
     padding: 1px 4px;
     border-radius: 8px;
     background: var(--bg);
@@ -445,6 +449,72 @@ dialog::backdrop {
 /* The home screen is as wide as the play area, and its type and buttons grow with that width (the main element is the container). */
 .home {
     padding-top: 6vh;
+}
+.gen h1 {
+    font-size: 24px;
+    margin: 14px 0 4px;
+}
+/* The level picker fills the screen with three big buttons; the more hearts, the stronger the tint. */
+.levelpick h1 {
+    font-size: clamp(32px, 9cqw, 64px);
+    margin: 10px 0 4px;
+}
+.levelpick .rules {
+    margin: 0 0 14px;
+    font-size: clamp(13px, 2.4cqw, 18px);
+}
+.replaces {
+    margin: 0 0 14px;
+    font-size: clamp(13px, 2.4cqw, 18px);
+    font-weight: 600;
+    color: var(--heart);
+}
+.levels {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(8px, 1.6cqw, 14px);
+}
+.levels button.b.level {
+    min-height: clamp(96px, 22cqw, 150px);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+        'lv goal'
+        'sub goal';
+    align-items: center;
+    text-align: left;
+    padding: clamp(14px, 4cqw, 28px);
+    border: 2px solid var(--heart);
+    border-radius: clamp(12px, 2.4cqw, 20px);
+    background: color-mix(in srgb, var(--heart) var(--tint), var(--bg));
+    color: var(--ink);
+}
+.level.l0 {
+    --tint: 8%;
+}
+.level.l1 {
+    --tint: 18%;
+}
+.level.l2 {
+    --tint: 30%;
+}
+.level .lv {
+    grid-area: lv;
+    align-self: end;
+    font-size: clamp(22px, 6cqw, 44px);
+    font-weight: 800;
+}
+.level .sub {
+    grid-area: sub;
+    align-self: start;
+    font-size: clamp(14px, 3cqw, 20px);
+    color: var(--dim);
+}
+.level .goal {
+    grid-area: goal;
+    font-size: clamp(40px, 12cqw, 84px);
+    font-weight: 800;
+    line-height: 1;
 }
 .home h1 {
     font-size: clamp(36px, 10cqw, 76px);

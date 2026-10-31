@@ -8,6 +8,7 @@ Finished work and evidence, kept for lookup. Do not read it before a change. Cur
 - Resource switches came from a pacifist run (`types=moss,tide`) that wasted 48 ⚔ and ended on 43 of 48 ♥ with 0 defeated, because Basics still gave power. Plain gains, hearts and the Kin and Army currency are redirected to an allowed resource.
 - Effect requirements (`EffectDef.needs`): `foes`, `weak` need enemies and power; `pile` needs power; `reapP` needs power and hearts; `coin`, `basics`, `cheap` need gold; `reapG` needs gold and hearts; `swap` needs gold and power; `all3` needs all three colours and hearts; `vault` needs exile and hearts.
 - Presets: Standard, Simple only, Attack only, Pacifist. Pacifist is the playtested variant (Moss and Tide, gold and hearts, ten gold Basics). Attack only is `types=foe&res=power,hearts&sg=0&sp=5` with Foes and Weak. Its bot run gives 98% hits and about 92 hearts in 5 turns, because stacked Weak makes enemies free. Pacifist playtest: 80 ● wasted in a win on turn 22 with 54 ♥, exiled 10, recruited 19.
+- Moss economy preset: a human won Level 3 with it (86 ♥ on turn 23), while the bots reach goal 48 only 9 to 12% of the time. Tide hearts (54 to 57%) and Ember combat (32 to 33%) are the other two. Bot numbers: 200 games, seed 1, goal 48.
 - First bot numbers for goal 1 (200 games, seed 1, `mixed`): Standard 21%, Simple only 33%, Pacifist 22%, Attack only 98%.
 - Standard playtest: won on turn 22 with 82 ♥, 19 defeated, 20 recruited, 16 exiled, no escapes, 28 ● and 13 ⚔ wasted. Final deck of 14 cards.
 - Decided: the game is called Standard, not Classic. There is no separate Simple mode; the modes are Standard, Custom and Long Run, and `goal` (1 to 3) is apart from the mode. Old ids (`standard1` to `standard3`, `level2`, a bare `2`) still parse when there is no `goal`.
@@ -15,6 +16,11 @@ Finished work and evidence, kept for lookup. Do not read it before a change. Cur
 - `drawFirst` plays a Pile card before a draw that would reshuffle. Standard bot numbers did not change (mixed 22%, smart 16%).
 - Bots end the turn by weighted chance, so an endless turn does not hang them; the 80-move turn cap and the 4000-move game cap are safety nets.
 - Old title-screen concepts and the home screen sketch were not reused; the code started again for the custom generator.
+
+## Bots
+
+- Ember combat preset: the first version had no gold effects, and its recruits (which pay out in power) could not be bought, so the bots bought nothing (32% at goal 48). Adding Exile, Coin and Swap gave 54 to 58%, and a 7 ● / 3 ⚔ start (against 5/5, 3/7 and 8/2) gave 60 to 67%; 3/7 was worse than 5/5 (20 to 32%) and 8/2 was easier (68 to 72%). Seeds 2 and 3, 400 games: 56 to 70% at goal 48 and 19 to 25% at goal 64. A human run on the earlier version wasted 44 ● and 29 ⚔ in a 54 of 80 ♥ finish.
+- `smart` against `mixed` (ablation, 400 games, goal 48, seeds 1 and 2, throwaway script): `smartRedraw` is the strong part and `smartBuy` the weak part. `mixed` with `smartRedraw` hits 73 to 74% on Ember combat (against 62 to 64% for `mixed`) and 28% in Standard (against 22%). `mixed` with `smartBuy` is worse than `mixed` in both (52 to 53% and 14%). `smart` itself beats `mixed` on Ember combat (65 to 70%) but loses in Standard (16%), because the redraw gain is the larger effect on Ember and the buying loss is the larger one in Standard. `smartBuy` prefers cheap cards; `mixed`'s `buyValue` prefers dear ones.
 
 ## Animation and interface
 

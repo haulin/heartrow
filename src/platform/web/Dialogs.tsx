@@ -113,7 +113,17 @@ export function modeLabel(id: string): string {
 }
 
 /** What kind of run this is: the mode, its goal and length, the generator settings of a custom run, and the seed. */
-export function RunDialog({ state, run, onClose }: { state: GameState; run: () => string; onClose: () => void }) {
+export function RunDialog({
+    state,
+    run,
+    onEdit,
+    onClose,
+}: {
+    state: GameState
+    run: () => string
+    onEdit: () => void
+    onClose: () => void
+}) {
     const level = state.goal === null ? -1 : GOALS.indexOf(state.goal)
     return (
         <Modal onClose={onClose}>
@@ -131,6 +141,16 @@ export function RunDialog({ state, run, onClose }: { state: GameState; run: () =
                 />
             </p>
             {state.config.description ? <p class="rules">Generator: {state.config.description}.</p> : null}
+            <p>
+                <button
+                    type="button"
+                    class="b alt"
+                    onClick={onEdit}
+                    title="Opens the generator editor with these settings. Back returns to the run."
+                >
+                    Open in the generator editor…
+                </button>
+            </p>
             <SeedLine state={state} run={run} />
         </Modal>
     )

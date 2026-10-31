@@ -1,9 +1,10 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks'
-import { DEFAULT_CUSTOM, customFromMode, customMode } from '../../core'
-import type { ModeConfig, Move } from '../../core'
+import { DEFAULT_CUSTOM, customMode, customOfMode } from '../../core'
+import type { CustomGenerator, ModeConfig, Move } from '../../core'
+import { editorQuery } from './custom'
 import { AboutDialog, LogDialog, PilesDialog, RunDialog, SettingsDialog, modeLabel } from './Dialogs'
-import { GeneratorDialog } from './GeneratorDialog'
-import { Home, StandardDialog } from './Home'
+import { GeneratorScreen } from './GeneratorScreen'
+import { Home, StandardScreen } from './Home'
 import { Rich } from './Rich'
 import { Stats } from './Stats'
 import { browserReducedMotion, createPresenter } from './anim/presenter'
@@ -16,13 +17,13 @@ import type { AppStorage } from './storage'
 import { spoken, statusMessage } from './text'
 import { buildCardView } from './view/cardView'
 
-type DialogName = 'about' | 'log' | 'piles' | 'run' | 'standard' | 'custom' | 'settings'
-type Screen = 'home' | 'game'
+type DialogName = 'about' | 'log' | 'piles' | 'run' | 'settings'
+type Screen = 'home' | 'game' | 'custom' | 'standard'
 
 export interface AppProps {
     store: GameStore
     storage: AppStorage
-    /** `game` when the address starts a run, `home` otherwise. */
+    /** `game` when the address starts a run, `custom` for the generator editor, `home` otherwise. */
     initial: Screen
     /** Whether a run is already in memory (the default is that one exists when the app opens on the game). */
     started?: boolean
@@ -43,6 +44,11 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
     const [screen, setScreen] = useState<Screen>(initial)
     // The store always holds a game, but a run only counts once it was started from a link or the menu.
     const [started, setStarted] = useState(startedAtOpen)
+    // The editor's settings come from the address, so it opens the same after a reload. The key makes a new visit start from fresh settings.
+    const [editor, setEditor] = useState<{ def: CustomGenerator; key: number }>(() => ({
+        def: initial === 'custom' ? (routeFor(window.location.search, null) as { def: CustomGenerator }).def : DEFAULT_CUSTOM,
+        key: 0,
+    }))
     const rootRef = useRef<HTMLDivElement>(null)
     const settingsRef = useRef(settings)
     settingsRef.current = settings
@@ -105,13 +111,17 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
         return () => window.removeEventListener('keydown', onKey)
     })
 
-    // Back and forward move between the home screen and the run in memory, or start the run a game address names.
+    // Back and forward move between the screens: home, the run in memory, the generator editor, or the run a game address names.
     useEffect(() => {
         const onPop = () => {
             const run = started ? shareQuery(store.getState().config, store.getState().seed) : null
             const route = routeFor(window.location.search, run)
             setDialog(null)
-            if (route.screen === 'home') return setScreen('home')
+            if (route.screen === 'home' || route.screen === 'standard') return setScreen(route.screen)
+            if (route.screen === 'custom') {
+                setEditor((e) => ({ def: route.def, key: e.key + 1 }))
+                return setScreen('custom')
+            }
             if (route.start) {
                 store.newGame(route.start.config, route.start.seed)
                 setStarted(true)
@@ -122,31 +132,48 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
         return () => window.removeEventListener('popstate', onPop)
     })
 
-    /** From the home screen a run is a new history entry, so Back returns to the menu. Inside a run it replaces the entry. */
-    const go = (query: string) => {
-        if (screen === 'home') globalThis.history?.pushState(null, '', query)
-        else globalThis.history?.replaceState(null, '', query)
-    }
+    /** Every screen change is a new history entry (marked as ours), so Back returns to the screen you came from. */
+    const push = (query: string) => globalThis.history?.pushState({ in: true }, '', query)
 
     const startNew = (config: ModeConfig) => {
         const seed = randomSeed()
         setDialog(null)
         store.newGame(config, seed)
         // Keep the address in step with the run, so a reload or a copied address gives the same game.
-        go(shareQuery(config, seed))
+        push(shareQuery(config, seed))
         setStarted(true)
         setScreen('game')
     }
 
     const goHome = () => {
         setDialog(null)
-        globalThis.history?.pushState(null, '', window.location.pathname)
+        push(window.location.pathname)
         setScreen('home')
     }
 
     const resume = () => {
-        globalThis.history?.pushState(null, '', shareQuery(state.config, state.seed))
+        push(shareQuery(state.config, state.seed))
         setScreen('game')
+    }
+
+    /** Opens the editor with the settings of `def`. */
+    const openEditor = (def: CustomGenerator) => {
+        setDialog(null)
+        push(editorQuery(def))
+        setEditor((e) => ({ def, key: e.key + 1 }))
+        setScreen('custom')
+    }
+
+    const openLevels = () => {
+        push('?screen=standard')
+        setScreen('standard')
+    }
+
+    /** Leaves the editor or the level picker the way the browser's Back would. Without an entry of ours behind it (a pasted address), it goes to the menu. */
+    const leaveEditor = () => {
+        if (globalThis.history?.state?.in) return globalThis.history.back()
+        globalThis.history?.replaceState({ in: true }, '', window.location.pathname)
+        setScreen('home')
     }
 
     const over = statusMessage(state)
@@ -169,17 +196,14 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                 />
             ) : null}
             {dialog === 'run' ? (
-                <RunDialog state={state} run={() => JSON.stringify(runOf(store, __APP_VERSION__))} onClose={close} />
-            ) : null}
-            {dialog === 'piles' ? <PilesDialog state={state} skin={skin} onClose={close} /> : null}
-            {dialog === 'standard' ? <StandardDialog onPick={startNew} onClose={close} /> : null}
-            {dialog === 'custom' ? (
-                <GeneratorDialog
-                    initial={(started ? customFromMode(state.config) : null) ?? DEFAULT_CUSTOM}
-                    onStart={(def) => startNew(customMode(def))}
+                <RunDialog
+                    state={state}
+                    run={() => JSON.stringify(runOf(store, __APP_VERSION__))}
+                    onEdit={() => openEditor(customOfMode(state.config))}
                     onClose={close}
                 />
             ) : null}
+            {dialog === 'piles' ? <PilesDialog state={state} skin={skin} onClose={close} /> : null}
             {dialog === 'settings' ? <SettingsDialog settings={settings} onChange={changeSettings} onClose={close} /> : null}
         </>
     )
@@ -190,11 +214,35 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                 <Home
                     canResume={started}
                     onResume={resume}
-                    onStandard={() => setDialog('standard')}
+                    onStandard={openLevels}
                     onLong={startNew}
-                    onCustom={() => setDialog('custom')}
+                    onCustom={() => openEditor(started ? customOfMode(state.config) : DEFAULT_CUSTOM)}
                     onSettings={() => setDialog('settings')}
                     onAbout={() => setDialog('about')}
+                />
+                {dialogs}
+            </div>
+        )
+    }
+
+    if (screen === 'standard') {
+        return (
+            <div ref={rootRef} class="app">
+                <StandardScreen replaces={started} onPick={startNew} onBack={leaveEditor} />
+                {dialogs}
+            </div>
+        )
+    }
+
+    if (screen === 'custom') {
+        return (
+            <div ref={rootRef} class="app">
+                <GeneratorScreen
+                    key={editor.key}
+                    initial={editor.def}
+                    onChange={(def) => globalThis.history?.replaceState(globalThis.history.state, '', editorQuery(def))}
+                    onStart={(def) => startNew(customMode(def))}
+                    onBack={leaveEditor}
                 />
                 {dialogs}
             </div>

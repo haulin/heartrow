@@ -13,7 +13,6 @@ Everything here is not done yet. Log each idea as one undated line, and mark its
 - Cycle and purge discard order: they discard after drawing. Check how it looks in the UI.
 - The saved run has one slot only; several slots could come with saved generators.
 - Bond pricing (parked, feels a little off): Bond costs `0.5` plus `0, 0.7, 1.5` for +1, +2, +3, so +3 costs `2.0` budget, two thirds of a plain +3. A playtest card (4 ●, 1 ⚔, Bond +3 ⚔, Retain) felt cheap, since a Retained Bond card can wait until its type has been played, and a generator with few types makes that likelier. Counter-view: a buyer who plans on several cards of one colour will often miss, and the card's price works out about right against a guaranteed 4 (Bond +3 at 2.0 is 1 + 2 + 0.5 = 3.5 budget for the bonus part, against 3.7 for a cost-4 card). Making it miss would need about 0.9 per level, which may be too harsh. Leave it until more play data; changing it is an engine change, so bump the version then.
-- The piles overview shows card text larger than normal cards and wraps differently. Check the font scaling of the small card view.
 - Recheck every card for the 1 px icon shift. The "Extra slow" animation entry vanished once after a hot reload; check after a full reload.
 - Colour review after the icon change: the light theme looks weak, Enemy purple and Tide blue are too close, and unaffordable recruit cards (dimmed to 55%) look faded next to Basics. Decide in one pass over both themes.
 - Open question for `draw`, `cycle` and `purge`: do they need anything in `EffectDef.needs`? They touch no resource.
@@ -42,7 +41,8 @@ Everything here is not done yet. Log each idea as one undated line, and mark its
 - Gain ranges: a minimum and maximum for the `+n` of plain gains per resource, set in the generator.
 - Enemy gains: let enemies also give gold or power on defeat as a plain gain, so a simple enemy reads "+3 ♥ and +2 ●". It changes Standard unless it is a generator option (for example `enemyGains`), so decide setting or rule change.
 - Show calculated values for conditional effects without crowding the card. Mark cards that need a decision so Play simple is less necessary.
-- Generator dialog: the Effects fieldset could get search or filtering if the list grows.
+- Generator editor warning: recruits are bought with gold, so a generator with recruit types but no gold (no Basic gold and no gold resource) leaves every recruit unbuyable, and the run is only enemies. Warn in the editor, or say so in the summary.
+- Generator editor: the Effects fieldset could get search or filtering if the list grows.
 
 ## Enemies
 
@@ -63,6 +63,7 @@ Everything here is not done yet. Log each idea as one undated line, and mark its
 - Endless continuation after the normal run (goals, costs, escapes, scoreboards).
 - Long Run could take a goal of its own, so `goal` would apply to every mode.
 - Saving generators: named slots in localStorage, with a Save button next to the preset list, only for Custom settings so built-in presets cannot be overwritten. Names stay in the browser and show as plain text, so no swearword filter is needed. If names ever travel in links or a public list, cap their length and show them as text only.
+- Moss economy as the beginner preset (open): one human run won Level 3 with it and found few decisions per turn. Repeat it a few times before promoting it, and decide where a beginner would find it (a "Start here" entry, or the first preset in the editor list).
 - Real preset descriptions (today they are generated). Pacifist note: with 10 Basic gold cards you are guaranteed 5 ● every turn, so the run feels easy.
 - Bots for challenge balancing once challenge definitions and playable presets exist.
 
@@ -86,7 +87,10 @@ Candidate archetypes, not approved balance targets. Test constrained generators 
 
 ## Screens, modes and sharing
 
-- Home screen: a plain first version is built (see the design doc). Still open: its look (the title screen concepts below), setup as full screens instead of dialogs, and a Challenge entry.
+- Home screen: a plain first version is built (see the design doc). Still open: its look (the title screen concepts below), the look of the level picker, and a Challenge entry.
+- Challenge entry (later): "Custom generator…" is a scary label and screen for a casual player (30 checkboxes, two dropdowns, two number fields). A Challenge screen should list presets with a level pick, and the editor should be one option on it, not the front door.
+- Level names (open): "Easy, Medium, Hard" for Levels 1 to 3 wait for evidence, since the designer struggled with Level 1 early on yet has won Level 3 twice. Revisit with feedback from new players.
+- Long Run starts a new run at once from home and replaces the run in progress without a warning. Decide whether it needs a confirm or the same note as the level picker and editor.
 - Challenge: the player chooses a generator and tries to make it work. Custom challenges choose or ban types and effects, with several slots to save, edit and duplicate. Start with the Level 1–3 goals. Leave starter decks out of the first iteration.
 - Show the mode, difficulty, goal, seed and run brief before a menu-launched game and in an overview popup. A shared link starts the game directly and opens the overview once. Compose the brief from structured selections, with only a short length-limited player note.
 - Standard setup with an editable seed field.
@@ -143,6 +147,9 @@ The working title stays Heartrow until something clearly better turns up. The re
 
 ## Bots
 
+- Gold and power balance (open): a recruit's main currency follows its colour (Ember always power, Moss always gold, Tide half and half), so a deck heavy in one colour can be short of the other and wastes what it has. Look at whether Standard needs a gold-or-power correction, using bot data over many seeds.
+- Better bot (open): combine `mixed` buying with `smartRedraw` as a new profile (not a change to `mixed`, which is the v7 baseline). Evidence is in the history file.
+- Tutorial mode (open): a predefined seed with a status bar that explains more, as the way in for new players, since Standard is where they will go first and the Moss economy and Ember combat presets have fewer or more decisions than it does.
 - Bot tuning (a thread of its own): the bots are very deterministic, with policy weights in the millions. Look at softer weights or sampling, and at teaching them goals above 48, where they hit 0 to 4%.
 - Replace the huge and tiny magnitudes (1e12, 1e-9) with human-sized numbers (about 1 to 100) and accept a different move about 1 time in 100. Measure first, change, compare, then judge. Priority tiers (a tier plus a weight within it) are a cleaner alternative.
 - Make the bot redraw memory pure without a "stuck" flag in `GameState`: a redraw counter in state, or the driver passing memory in.

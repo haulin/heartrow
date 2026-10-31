@@ -1,4 +1,4 @@
-import { useState } from 'preact/hooks'
+import { useEffect, useState } from 'preact/hooks'
 import {
     CUSTOM_EFFECTS,
     CUSTOM_PRESETS,
@@ -16,7 +16,6 @@ import {
 } from '../../core'
 import type { CustomGenerator, EffectId, GeneratorCardType, GeneratorResource } from '../../core'
 import { MAX_STARTER, effectName } from './custom'
-import { Modal } from './Dialogs'
 
 const TYPE_NAMES: Record<GeneratorCardType, string> = { moss: 'Moss', ember: 'Ember', tide: 'Tide', foe: 'Enemies' }
 const RESOURCE_NAMES: Record<GeneratorResource, string> = { gold: 'Gold ●', power: 'Power ⚔', hearts: 'Hearts ♥' }
@@ -27,16 +26,23 @@ const toggle = <T,>(list: readonly T[], all: readonly T[], item: T): T[] => {
     return all.filter((x) => next.includes(x))
 }
 
-export function GeneratorDialog({
+/**
+ * The custom generator editor, a screen of its own. Every change is reported through `onChange`, so the address always holds the
+ * settings (a reload or a copied address gives the same editor). `onBack` leaves without starting a run.
+ */
+export function GeneratorScreen({
     initial,
+    onChange,
     onStart,
-    onClose,
+    onBack,
 }: {
     initial: CustomGenerator
+    onChange: (def: CustomGenerator) => void
     onStart: (def: CustomGenerator) => void
-    onClose: () => void
+    onBack: () => void
 }) {
     const [def, setDef] = useState<CustomGenerator>(initial)
+    useEffect(() => onChange(def), [def])
     // The preset stays picked until a control changes, then the settings count as custom.
     const [presetId, setPresetId] = useState('')
     const change = (over: Partial<CustomGenerator>) => {
@@ -85,8 +91,13 @@ export function GeneratorDialog({
     )
 
     return (
-        <Modal onClose={onClose}>
-            <h2>Custom generator</h2>
+        <main class="gen">
+            <header>
+                <button type="button" class="b alt" onClick={onBack}>
+                    ← Back
+                </button>
+            </header>
+            <h1>Custom generator</h1>
             <p class="rules">
                 Choose what the generator may make. The settings go into the link, so you can open several tabs or share one.
             </p>
@@ -190,11 +201,11 @@ export function GeneratorDialog({
                     ? 'Hover an effect to see what it does. A greyed choice keeps its tick but does nothing while something it needs is switched off.'
                     : 'Pick at least one card type.'}
             </p>
-            <div class="dlg-actions">
+            <div class="bar">
                 <button type="button" class="b" disabled={!ready} onClick={() => onStart(def)}>
-                    Start
+                    Start a new run
                 </button>
             </div>
-        </Modal>
+        </main>
     )
 }
