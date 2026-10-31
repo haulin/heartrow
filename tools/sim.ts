@@ -1,4 +1,4 @@
-import { LONG_MODE, ALL_PROFILE_IDS, PROFILE_IDS, aggregate, makeProfile, runBatch, standardMode } from '../src/core'
+import { ALL_PROFILE_IDS, MODES, PROFILE_IDS, aggregate, makeProfile, runBatch, standardMode } from '../src/core'
 import type { ProfileId } from '../src/core'
 
 export function main(argv: string[]): void {
@@ -8,7 +8,8 @@ export function main(argv: string[]): void {
     const seed = Number(args.seed ?? 1)
     const modeId = args.mode ?? 'standard'
     const ids = (args.policies ?? PROFILE_IDS.join(',')).split(',') as ProfileId[]
-    const config = modeId === 'long' ? LONG_MODE : standardMode(0)
+    const base = MODES.find((m) => m.id === modeId) ?? standardMode(0)
+    const config = args.goal ? { ...base, goal: Number(args.goal) } : base
     const goal = config.goal
     for (const id of ids) {
         if (!ALL_PROFILE_IDS.includes(id)) throw new Error(`Unknown policy "${id}". Known: ${ALL_PROFILE_IDS.join(', ')}`)

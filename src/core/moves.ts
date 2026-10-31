@@ -14,7 +14,14 @@ export function newGame(config: ModeConfig, seed: number): StepResult {
     const streams = createStreams(seed)
     const state: GameState = {
         mode: config.id,
-        config: { ...config, steps: config.steps.map((step) => ({ ...step })), starter: { ...config.starter } },
+        config: {
+            ...config,
+            steps: config.steps.map((step) => ({ ...step })),
+            starter: { ...config.starter },
+            ...(config.generator && {
+                generator: { allowedTypes: [...config.generator.allowedTypes], allowedEffects: [...config.generator.allowedEffects] },
+            }),
+        },
         seed,
         turn: 1,
         maxTurns: config.turns,
@@ -214,8 +221,9 @@ function endTurn(state: GameState, events: GameEvent[]): void {
         state.hearts += reaped
         events.push({ type: 'reaped', hearts: reaped })
     }
-    state.stats.wastedGold += state.gold
-    state.stats.wastedPower += state.power
+    // Resources that reaping turned into hearts were used, so only the remainder is wasted.
+    state.stats.wastedGold += state.reapGold > 0 ? state.gold % 3 : state.gold
+    state.stats.wastedPower += state.reapPower > 0 ? state.power % 2 : state.power
     state.reapGold = state.reapPower = 0
     state.gold = state.power = state.recruitDiscount = state.enemyDiscount = 0
     state.typesPlayed = []

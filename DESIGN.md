@@ -171,6 +171,7 @@ Keep proposed ideas in this document instead of implementation comments. Mark an
 - Add an effect that draws a temporary sixth card into the recruit row. Proposed behaviour: after a card leaves, refill only until five cards; decide where the extra card enters and how redraw treats it.
 - Add a row-targeting effect to reduce dead late offers; decide whether it discards one selected card, a category, or an enemy without granting its defeat reward.
 - Refund part of a recruit's cost when it is exiled.
+- Exile bonus (open): a thin deck leaves cards like a lone Draw 1 with no reason to ever exile them. Either a card gives a bonus when it is exiled (a refund, a heart, a draw), or an exile effect carries a modifier that pays for any card exiled. The refund idea above is the same family; decide the three together. Needs an "on exile" hook next to the existing exile move.
 - Add a type-conversion effect that turns one or more Basic cards in hand or deck into a chosen gem type, such as Ember. Decide whether it changes the card permanently, preserves its resources, and competes with exile as the main way to improve deck quality.
 - Add growing cards whose payout increases after each play, such as a resource gain that increments on every use. Define whether growth belongs to the card instance or its definition, whether it persists through discard and reshuffle, and how duplication interacts with it.
 - Redraw counter as an effect input, for example a card whose gains grow with each redraw. Do not store "was stuck" in `GameState`: a human's reason for redrawing is not knowable.
@@ -190,8 +191,11 @@ Keep proposed ideas in this document instead of implementation comments. Mark an
 ### Enemies
 
 - Boss enemies every tenth turn that cost two resources, or bosses that create pressure while they remain in the row. Unresolved: whether their ongoing board effects expire or persist until removal, and how the player removes them.
+- Bosses can require two resource tracks with persistent partial payments, such as 10 ● and 10 ⚔: pay 3 ● and 4 ⚔ one turn, 4 ● and 6 ⚔ the next, then 3 ● on the third.
+- Bosses should not be affected by the normal redraw; a special effect could reroll any bosses and the fifth river card.
 - Add more enemy variety.
 - Increase enemy frequency at higher levels.
+- Anti-thin-deck enemy effect (open): for example +5 ⚔ minus 1 ⚔ for every 4 cards in your deck, so very thin decks gain little from it. It is the opposite of the existing pile-size effects (`pile` pays for the discard size, Moss rewards a larger deck). Motivated by a 10-card deck that won with 89 ♥ on turn 22.
 
 ### Starters, builds and modes
 
@@ -203,10 +207,41 @@ Keep proposed ideas in this document instead of implementation comments. Mark an
 - Candidate Moss starter: 2× `+3 ●`, 2× Coin with `+1 ●`, 2× Kin with `+1 ●`, 1× Army gold, 2× retained ReapG, and 3× retained Swap. This is a 12-card package costing `29.5` raw budget, or about `−20 ♥` before a consistency premium; a comparable 2× premium would be about `−40 ♥`. It keeps the original deck size while replacing small gold with stronger gold and an extra Swap.
 - Add level-specific goal variants.
 - Offer distinct modes with distinct objectives and separate high-score tables.
+- Add objective-based modes, possibly as a campaign: replace or supplement “collect N hearts” with goals such as defeat M enemies, reap 15 hearts, exile every Basic, or hold 12 cards at once.
 - Let players choose curated card pools or expansion sets instead of always drawing from one diluted random pool.
+- Constrained “simple only” generator (built, to playtest): `?mode=simple` is a Level 1 run where the generator makes only cards with direct resource gains and no worded effects. It comes from the generator constraints (`generator.allowedTypes` and `generator.allowedEffects` on `ModeConfig`), which also let a mode ban card types. The goal (Level 1) is a guess; tune it after playtests. First playtest: the card pool feels very small (four identical 2 ● + 2 ⚔ Ember cards in a row), a few turns had nothing affordable, and with no exile or draw the deck cannot be thinned, so a few good cards (+5 ●, +4 ⚔) carried the run. Heart-only cards looked like clutter but may help. Level 1 was reached on turn 23. Bots (400 games, seed 1, goal 48): `mixed` hit 34% in Simple Only against 22% in standard Level 1, `smart` 35% against 16%, so for bots the plain-only pool is easier, not harder; exiles are 0 by construction. The bots' mean hearts at turn 24 is about 5 higher in Simple Only (`mixed` 42.6 against 36.7 at goal 64, `smart` 43.6 against 34.0), and at goals 64 and 80 neither mode is reachable for them (0 to 4%), so the difference shows in the average, not the hit rate. `npm run sim` takes `--mode simple` and `--goal N`. Keep the mode as a reference. Open: allow exile and draw in the pool, a different starter, or different budgets for plain cards.
 - Add an endless continuation after the normal run; define how goals, costs, escapes, and scoreboards work.
 - Stop early or carry on: when the goal is reached, let the player stop or continue to the full turn limit.
 - Save and resume an unfinished run.
+
+### Screens, modes and sharing
+
+- Add a home screen with buttons for Classic, Challenge, Settings, and About; keep mode names open to revision.
+- Make Classic the current random-generator game, with Basics at the start, all cards and effects available, the current Standard levels, and Long Run as a Classic choice.
+- Make Challenge a mode where the player chooses a generator and tries to make it work, rather than starting from a fixed starter deck.
+- Let custom challenges choose or ban card types and effects, save several challenge slots, and edit or duplicate them later.
+- Start Challenge goals with the existing Level 1–3 heart goals; add custom goals only after the constrained-generator loop is playable.
+- Leave starter decks out of the first multi-screen iteration.
+- Put Settings and About on the main menu, with a route back to the menu and a way to resume an in-memory game in the web tab.
+- Keep browser back and forward useful, and preserve links that start a particular mode with a particular seed.
+- Share custom generator definitions through links so another player can open and play the same challenge.
+- Show the mode, difficulty, goal, seed, and challenge description before a menu-launched game starts and in an overview popup during the game.
+- Let a shared challenge link start the game directly while opening the overview once, so the player knows what the run contains without a separate preview screen.
+- Let Classic setup use an editable seed field so players can replay or share a specific run.
+- Compose the Challenge run brief from structured generator selections and the goal instead of using unrestricted free-form text; an optional player note should be short and length restricted.
+- Add effect search or filtering if the Challenge editor becomes unwieldy as the effect list grows; it is not required for the first editor.
+- Keep the game screen mostly unchanged, adding only a route back to the menu and access to the Challenge overview or run brief.
+- Keep the current result screen direction unless the visual mockups reveal a specific problem.
+- Use visual mockups to settle Heartrow's blue, white, pink, highlight, button, field, chip, and modal treatment before implementing the new screens; the mockups themselves do not need interaction.
+- Title screen styles (open): a first static concept (dusk sky, glossy extruded logo with a heart, drifting cards, chunky pink and blue buttons) was liked but judged too cute and kid-friendly, and its cards did not match the in-game cards. Keep it as one selectable style and explore others. Notes: use one typography for Classic and Challenge with consistent alignment and sizing, make Settings and About less timid, give Resume the same button style as the others, and use cards that look like the real ones. Ambient animation is optional. The heart as a letter in the logo is liked even if it does not read as an "a".
+- Title screen, second concept (liked): dark blue with gold accents, a simple gradient background, a gold letter-spaced tagline with gradient rules on both sides, and a heart as the crossbar of the capital A in the logo. The logo font is a detail to replace by hand. The menu buttons should sit at the bottom of the screen on phones so they are reachable with one hand. Open: the buttons are a little wild with a left tab, an icon and a right arrow; a pink Classic button hides the heart; the design is perhaps too minimal and could take a few background elements, corner ornaments, or more elaborate borders and lines. Resume should stay in the same style family but distinct and set apart.
+- Title screen, third iteration (liked with reservations): the dark blue and gold look may be a cliche but is new to this project; the gold-bordered Classic button does not fit the theme; the gradient line as a button's top border and the abstract background shapes are liked. The card row scrolls horizontally on phones and clips on small screens. A little fidget functionality on the home screen (for example scrolling or nudging the cards) is welcome. The in-game card theme is now the odd one out, so the next card theme could take its cue from this style.
+- Title screen, fourth concept (risograph poster, strong candidate): coherent and works in both light and dark themes; the logo is strong, with the heart wanted a bit bigger; the menu feels familiar from games. Its flat, minimal cards are another style to consider, but they flicker when the pointer sits on a card's lower edge (the hover lift moves the card out from under the pointer; the game already solved this) and they cannot hold multi-line effect text while keeping art visible.
+- Title screen direction (chosen for now): the risograph concept is the best candidate, kept flat (no gradient button borders) with both themes. A URL switch should let it show either its flat cards or the in-game card style, to see how the real cards look in it. Use `text-wrap: balance` for button subtitles, a slightly bigger logo heart that keeps the A readable, and no hover flicker on cards. Next test: design a second screen in the same style, either the custom generator editor or the game screen.
+- Light mode (open): decide whether to keep a light theme. The designer prefers dark but light is more legible in sunlight and some players like it. A mockup of a light variant would settle it.
+- Fanned or arced card layout for the game screen (open): the title screen shows tilted, gently floating cards in a slight arc, as most card games do. Consider it for the hand and the river, knowing it would disturb the current geometric CSS layout.
+- Use the View Transitions API for screen changes, with the screen sliding over an unmoving background; respect reduced-motion settings.
+- Add bots for challenge balancing after challenge definitions and playable presets exist.
 
 ### Interface and presentation
 
@@ -252,6 +287,14 @@ Keep proposed ideas in this document instead of implementation comments. Mark an
 - The Swap text was almost exactly as wide as a card (117.98 of 118 px), so tiny font differences could wrap the ⚔ alone onto a new line. It is now "Swap ● and ⚔".
 - Reward spending exactly all gold and power in a turn, for example a bonus heart or a free draw. It felt good in playtests (two turns in a row).
 - The piles overview shows card text larger than normal cards and wraps differently. Check the font scaling of the small card view.
+- Resume after a mobile tab discard (open, found on a phone in Brave): switching to another app and back reloads the page, and the run is lost. This is the browser discarding the background tab to free memory, so an offline mode or service worker would not prevent it. The fix is to persist the run in the web platform (localStorage or sessionStorage) and resume on load. Cheapest shape: store the config, seed and move list, and replay it through the pure core, which also gives undo for free. This is the same web-only resume already planned for the home screen's "Resume game".
+- Alternative phone skin (open, idea): bigger card text without effect descriptions, with keyword meanings in a help section or on long press. Styling is swappable on the web, unlike bitmap art, so this can be a skin rather than a rule change.
+- Large hands on phones (open, unproven): a hand of 12 or more cards makes tapping one card hard. Try a horizontally scrolling hand like the riso mockup. Playtest a long run on a phone first.
+- Riso game screen mockup edits (open, for later): on desktop, bundle all the stats into one bordered panel with Redraws and Piles as separate buttons outside it; remove the border around "your hand" and maybe give it a quiet shape behind the cards like the river has. Too many borders overall. On phones the cards are squeezed and the transparency on real-style cards looks bad.
+- Stats bar restyle (open, the one piece taken from the second riso attempt): coloured stat chips with an icon, a big number and a small label, with Redraws and Piles styled like the other buttons. Draw it in the style of today's cards (rounded corners, the card's header strip and pill badges, no riso hard shadows), not in the riso language. Keep the current fluid mobile-like layout that scales up to iPad portrait. Do not build a separate desktop layout today; the desktop riso layout (`game-1`) stays a candidate for a later redesign.
+- Mockup lessons (open, for any later mockup): keep the real card aspect ratio (118 x 175) instead of stretching cards, round the inner border corners, and never let descriptions overlap the border. Brief mockup agents with the real card CSS, not with a style name. Skip exile needs a place on narrow screens when the bottom action bar is crowded; the current layout lets it flow from the top. The scrolling hand is only a candidate, since long hands on phones are unproven.
+- Win check (open, from a playtest): a win earned by hearts during a turn was undone because ending the turn moved the river and an enemy escaped (−hearts), so the final total fell under the goal. Consider checking the goal after the end-turn effects that cannot lower hearts, or before the river moves, so reaching the goal during a turn counts. Decide whether that changes how escapes should feel near the goal.
+- Riso restyle, second attempt (open): keep the current cards as they are and take their look (flat fills, coloured header strips, pill badges, geometric patterns) as the source for the other UI elements. Give each stat its own icon and colour instead of a monotone row. A modest, less bold design that works with the current cards. The riso concepts stay saved in `local/mockups/` for later.
 
 ### Statistics and progression
 

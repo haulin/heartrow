@@ -151,6 +151,9 @@ describe('resources', () => {
         expect(state.hearts).toBe(2 * 2 + 2)
         expect(events.find((e) => e.type === 'reaped')).toMatchObject({ hearts: 6 })
         expect(state.reapGold + state.reapPower + state.gold + state.power).toBe(0)
+        // Only the remainders (7 mod 3 and 5 mod 2) count as wasted; the rest was turned into hearts.
+        expect(state.stats.wastedGold).toBe(1)
+        expect(state.stats.wastedPower).toBe(1)
     })
 
     it('swap runs after the card gains', () => {

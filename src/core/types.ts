@@ -2,6 +2,7 @@ import type { Streams } from './rng'
 
 export type Colour = 'moss' | 'ember' | 'tide'
 export type CardType = Colour | 'plain' | 'foe'
+export type GeneratorCardType = Colour | 'foe'
 export type CardKind = 'recruit' | 'enemy' | 'basic'
 export type Currency = 'gold' | 'power'
 
@@ -145,6 +146,7 @@ export interface DifficultyStep {
 export interface ModeConfig {
     id: string
     name: string
+    description?: string
     turns: number
     redrawEvery: number
     goal: number | null
@@ -152,9 +154,15 @@ export interface ModeConfig {
     steps: DifficultyStep[]
     lateFillerFromTurn: number | null
     starter: StarterSpec
+    generator?: GeneratorConfig
 }
 
 export interface StarterSpec {
     basicGold: number
     basicPower: number
+}
+
+export interface GeneratorConfig {
+    allowedTypes: GeneratorCardType[]
+    allowedEffects: EffectId[]
 }

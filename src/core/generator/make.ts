@@ -1,7 +1,7 @@
 import { EFFECT_BY_ID, EFFECTS, effectPrice } from '../effects'
 import { stepForTurn } from '../modes'
 import { chance, nextFloat, nextInt } from '../rng'
-import type { Card, CardType, Colour, Currency, EffectId, GameState } from '../types'
+import type { Card, CardType, Colour, Currency, EffectId, GameState, GeneratorCardType } from '../types'
 import {
     CHEAP_COST_MIN,
     CHEAP_COST_SPREAD,
@@ -31,9 +31,13 @@ import {
 } from './budget'
 
 const COLOURS: readonly Colour[] = ['moss', 'ember', 'tide']
+const DEFAULT_TYPES: readonly GeneratorCardType[] = [...COLOURS, 'foe']
 
-function effectPool(type: CardType, enemy: boolean, budget: number): EffectId[] {
-    const pool = EFFECTS.filter((e) => effectPrice(e.id) <= budget && (!enemy || e.enemies)).map((e) => e.id)
+function effectPool(state: GameState, type: CardType, enemy: boolean, budget: number): EffectId[] {
+    const allowed = state.config.generator?.allowedEffects
+    const pool = EFFECTS.filter(
+        (e) => effectPrice(e.id) <= budget && (!enemy || e.enemies) && (allowed === undefined || allowed.includes(e.id)),
+    ).map((e) => e.id)
     const lean = enemy ? [] : pool.filter((id) => EFFECT_BY_ID[id].lean.includes(type as Colour))
     const copies = Math.max(1, Math.round((LEAN_SHARE * (pool.length - lean.length)) / ((1 - LEAN_SHARE) * Math.max(1, lean.length))))
     for (let i = 1; i < copies; i++) pool.push(...lean)
@@ -47,8 +51,11 @@ export function makeCard(state: GameState, turn: number, attempt = 0): Card {
     const r = () => nextFloat(rng)
     const step = stepForTurn(config, turn)
     const t = Math.min(turn, config.difficultyCapTurn) / config.difficultyCapTurn
-    const enemy = chance(rng, step.foeChance)
-    const type: CardType = enemy ? 'foe' : (COLOURS[nextInt(rng, 3)] as Colour)
+    const allowedTypes = config.generator?.allowedTypes?.length ? config.generator.allowedTypes : DEFAULT_TYPES
+    const recruitTypes = allowedTypes.filter((type): type is Colour => COLOURS.includes(type as Colour))
+    const canMakeEnemy = allowedTypes.includes('foe')
+    const enemy = canMakeEnemy && (recruitTypes.length === 0 || chance(rng, step.foeChance))
+    const type: CardType = enemy ? 'foe' : (recruitTypes[nextInt(rng, recruitTypes.length)] as Colour)
 
     const lo = 2 + Math.round(t * 3) + step.costBonus
     const hi = 4 + Math.round(t * 5) + step.costBonus
@@ -75,7 +82,7 @@ export function makeCard(state: GameState, turn: number, attempt = 0): Card {
     const other: Currency = main === 'gold' ? 'power' : 'gold'
 
     if (chance(rng, type === 'tide' ? TIDE_EFFECT_CHANCE : EFFECT_CHANCE)) {
-        const pool = effectPool(type, enemy, budget)
+        const pool = effectPool(state, type, enemy, budget)
         if (pool.length > 0) {
             const id = pool[nextInt(rng, pool.length)] as EffectId
             const effect = EFFECT_BY_ID[id]

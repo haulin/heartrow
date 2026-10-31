@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { EFFECT_BY_ID, EFFECTS, LONG_MODE, makeCard, newGame, standardMode } from '../../src/core'
+import { EFFECT_BY_ID, EFFECTS, LONG_MODE, makeCard, newGame, SIMPLE_MODE, standardMode } from '../../src/core'
 import type { Card, ModeConfig } from '../../src/core'
 import { BOND_EXTRA_PRICE, RETAIN_PRICE } from '../../src/core/generator/budget'
 
@@ -70,5 +70,31 @@ describe('makeCard', () => {
         expect(maxCost(standardMode(0), 24)).toBeLessThanOrEqual(11)
         expect(maxCost(standardMode(0), 60)).toBeLessThanOrEqual(11)
         expect(maxCost(LONG_MODE, 40)).toBeGreaterThan(11)
+    })
+
+    it('makes only plain cards when no effects are allowed', () => {
+        const state = newGame(SIMPLE_MODE, 5).state
+        for (let turn = 1; turn <= 24; turn++) {
+            for (let i = 0; i < 200; i++) expect(makeCard(state, turn).fx).toEqual([])
+        }
+        expect(state.row.every((c) => c.fx.length === 0)).toBe(true)
+    })
+
+    it('never makes a banned card type, and makes only enemies when no recruit types are allowed', () => {
+        const noTide = newGame({ ...standardMode(0), generator: { allowedTypes: ['moss', 'ember', 'foe'], allowedEffects: [] } }, 5).state
+        const noFoes = newGame({ ...standardMode(0), generator: { allowedTypes: ['tide'], allowedEffects: [] } }, 5).state
+        const onlyFoes = newGame({ ...standardMode(0), generator: { allowedTypes: ['foe'], allowedEffects: [] } }, 5).state
+        for (let i = 0; i < 500; i++) {
+            expect(makeCard(noTide, 3).type).not.toBe('tide')
+            expect(makeCard(noFoes, 3).type).toBe('tide')
+            expect(makeCard(onlyFoes, 3).type).toBe('foe')
+        }
+    })
+
+    it('keeps the generated sequence the same for the same seed', () => {
+        const a = newGame(SIMPLE_MODE, 9).state
+        const b = newGame(SIMPLE_MODE, 9).state
+        expect(a.row.map((c) => c.id)).toEqual(b.row.map((c) => c.id))
+        expect(a.row).toEqual(b.row)
     })
 })
