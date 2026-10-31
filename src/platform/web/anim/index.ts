@@ -226,6 +226,7 @@ export function planAfter(frame: Frame, root: ParentNode): Effect[] {
                 })
                 break
             case 'drew':
+                changed.add('piles')
                 event.cardIds.forEach((id, order) => {
                     const slot = cardEls(root, 'hand', id)?.parentElement
                     if (slot) out.push({ kind: 'deal', el: slot, order })

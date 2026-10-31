@@ -10,7 +10,7 @@ Both comments and tests are cheap to generate and expensive to maintain. Push ba
 
 ## Comments: default to none
 
-- Put reasoning (why this number or shape) in `DESIGN.md`, not in code.
+- Put reasoning (why this number or shape) in `docs/design.md`, not in code.
 - Do not write dates, version numbers or "after pass X" notes. Git records history.
 - Do not point at other files ("see `foo.ts`", "matches `BAR`"). They go stale when files move.
 - Do not narrate the obvious. If code is unclear, rename or restructure it.

@@ -2,7 +2,7 @@
 
 A small roguelike deckbuilder for the browser. Five cards drift across a recruit row from left to right. Buy recruits with gold, defeat enemies with power, and collect hearts. An enemy that falls off the right edge costs you hearts. Every card is generated as it enters the row, so no two runs are alike.
 
-The game is an early work in progress. The rules and design decisions are in [`DESIGN.md`](DESIGN.md).
+The game is an early work in progress. The rules and design decisions are in [`docs/design.md`](docs/design.md).
 
 ## Run it
 

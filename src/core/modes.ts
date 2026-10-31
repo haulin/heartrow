@@ -14,7 +14,7 @@ const STARTER = { basicGold: 6, basicPower: 4 }
 
 export function standardMode(level: number): ModeConfig {
     return {
-        id: 'standard' + (level + 1),
+        id: 'standard',
         name: 'Level ' + (level + 1),
         turns: 24,
         redrawEvery: 3,
@@ -37,17 +37,6 @@ export const LONG_MODE: ModeConfig = {
     lateFillerFromTurn: 21,
     starter: STARTER,
 }
-
-// A Level 1 run where the generator may only make plain cards: direct gains and no worded effects.
-export const SIMPLE_MODE: ModeConfig = {
-    ...standardMode(0),
-    id: 'simple',
-    name: 'Simple Only',
-    description: 'Every card is plain gold, power or hearts. No effects.',
-    generator: { allowedTypes: ['moss', 'ember', 'tide', 'foe'], allowedResources: ['gold', 'power', 'hearts'], allowedEffects: [] },
-}
-
-export const MODES: ModeConfig[] = [standardMode(0), standardMode(1), standardMode(2), LONG_MODE, SIMPLE_MODE]
 
 export function stepForTurn(mode: ModeConfig, turn: number) {
     let found = mode.steps[0]!

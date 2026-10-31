@@ -83,7 +83,7 @@ describe('engine', () => {
         expect(state.hand).toHaveLength(5)
         expect(state.deck).toHaveLength(5)
         expect(state.row).toHaveLength(5)
-        expect([state.redraws, state.turn, state.hearts, state.goal, state.mode]).toEqual([1, 1, 0, 48, 'standard1'])
+        expect([state.redraws, state.turn, state.hearts, state.goal, state.mode]).toEqual([1, 1, 0, 48, 'standard'])
         const all = [...state.deck, ...state.hand]
         expect(all.filter((c) => c.gold === 1)).toHaveLength(6)
         expect(all.filter((c) => c.power === 1)).toHaveLength(4)

@@ -1,5 +1,4 @@
 import { describe, expect, it } from 'vite-plus/test'
-import { newGame, standardMode } from '../../src/core'
 import {
     CUSTOM_EFFECTS,
     CUSTOM_PRESETS,
@@ -8,13 +7,13 @@ import {
     DEFAULT_CUSTOM,
     customFromMode,
     customMode,
-    customQuery,
     customSummary,
-    effectName,
     effectiveEffects,
     effectiveTypes,
-    parseCustom,
-} from '../../src/platform/web/custom'
+    newGame,
+    standardMode,
+} from '../../src/core'
+import { customQuery, effectName, parseCustom } from '../../src/platform/web/custom'
 import { parseStartParams, shareQuery } from '../../src/platform/web/mode'
 
 describe('custom generator links', () => {
@@ -76,7 +75,7 @@ describe('custom generator links', () => {
     })
 
     it('leaves non-custom links alone and names effects readably', () => {
-        expect(shareQuery(standardMode(1), 5)).toBe('?seed=5&mode=standard2')
+        expect(shareQuery(standardMode(1), 5)).toBe('?seed=5&mode=standard&goal=2')
         expect(customQuery({ ...DEFAULT_CUSTOM, types: ['moss'], effects: [] })).toBe(
             'goal=1&types=moss&res=gold,power,hearts&sg=6&sp=4&fx=',
         )

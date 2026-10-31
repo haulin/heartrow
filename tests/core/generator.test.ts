@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { EFFECT_BY_ID, EFFECTS, LONG_MODE, makeCard, newGame, SIMPLE_MODE, standardMode, unmetNeeds } from '../../src/core'
+import { EFFECT_BY_ID, EFFECTS, LONG_MODE, makeCard, newGame, standardMode, unmetNeeds } from '../../src/core'
 import type { Card, GeneratorConfig, ModeConfig } from '../../src/core'
 import { BOND_EXTRA_PRICE, RETAIN_PRICE } from '../../src/core/generator/budget'
 
@@ -86,7 +86,7 @@ describe('makeCard', () => {
     })
 
     it('makes only plain cards when no effects are allowed', () => {
-        const state = newGame(SIMPLE_MODE, 5).state
+        const state = newGame(limited({ allowedEffects: [] }), 5).state
         for (let turn = 1; turn <= 24; turn++) {
             for (let i = 0; i < 200; i++) expect(makeCard(state, turn).fx).toEqual([])
         }
@@ -105,8 +105,8 @@ describe('makeCard', () => {
     })
 
     it('keeps the generated sequence the same for the same seed', () => {
-        const a = newGame(SIMPLE_MODE, 9).state
-        const b = newGame(SIMPLE_MODE, 9).state
+        const a = newGame(limited({ allowedEffects: [] }), 9).state
+        const b = newGame(limited({ allowedEffects: [] }), 9).state
         expect(a.row.map((c) => c.id)).toEqual(b.row.map((c) => c.id))
         expect(a.row).toEqual(b.row)
     })

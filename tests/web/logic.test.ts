@@ -228,15 +228,27 @@ describe('store and session', () => {
 describe('mode and url params', () => {
     it('maps ids', () => {
         expect(modeFromId('long')).toBe(LONG_MODE)
-        expect(modeFromId('standard3').goal).toBe(80)
-        expect(modeFromId('2').id).toBe('standard2')
-        expect(modeFromId('nonsense').id).toBe('standard1')
+        expect(modeFromId('standard', '3').goal).toBe(80)
+        expect(modeFromId('standard').goal).toBe(48)
+        expect(modeFromId('nonsense').id).toBe('standard')
+        expect(modeFromId('nonsense').goal).toBe(48)
     })
-    it('parses seed and mode', () => {
+    it('still reads older level ids, and lets goal win over them', () => {
+        expect(modeFromId('standard3').goal).toBe(80)
+        expect(modeFromId('level2').goal).toBe(64)
+        expect(modeFromId('2').goal).toBe(64)
+        expect(modeFromId('standard3', '1').goal).toBe(48)
+        expect(modeFromId('standard', '9').goal).toBe(48)
+        expect(modeFromId('long', '3')).toBe(LONG_MODE)
+    })
+    it('parses seed, mode and goal', () => {
         const p = parseStartParams('?seed=123&mode=long', () => 1)
         expect(p).toEqual({ config: LONG_MODE, seed: 123 })
         expect(parseStartParams('?seed=abc', () => 42).seed).toBe(42)
+        expect(parseStartParams('?seed=5&mode=standard&goal=2').config.goal).toBe(64)
         expect(shareQuery(LONG_MODE, 123)).toBe('?seed=123&mode=long')
+        expect(shareQuery(standardMode(2), 7)).toBe('?seed=7&mode=standard&goal=3')
+        expect(parseStartParams(shareQuery(standardMode(1), 7)).config.goal).toBe(64)
     })
 })
 

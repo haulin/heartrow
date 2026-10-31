@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks'
+import { DEFAULT_CUSTOM, customFromMode, customMode } from '../../core'
 import type { ModeConfig, Move } from '../../core'
-import { DEFAULT_CUSTOM, customFromMode, customMode } from './custom'
 import { AboutDialog, LogDialog, NewGameDialog, PilesDialog, SettingsDialog } from './Dialogs'
 import { GeneratorDialog } from './GeneratorDialog'
 import { Rich } from './Rich'

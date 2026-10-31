@@ -1,5 +1,6 @@
 export * from './types'
 export * from './modes'
+export * from './custom'
 export * from './rng'
 export { newGame, legalMoves, applyMove } from './moves'
 export { cardCost, canAfford, cloneState } from './state'

@@ -1,4 +1,15 @@
-import { ALL_PROFILE_IDS, MODES, PROFILE_IDS, aggregate, makeProfile, runBatch, standardMode } from '../src/core'
+import {
+    ALL_PROFILE_IDS,
+    CUSTOM_PRESETS,
+    GOALS,
+    LONG_MODE,
+    PROFILE_IDS,
+    aggregate,
+    customMode,
+    makeProfile,
+    runBatch,
+    standardMode,
+} from '../src/core'
 import type { ProfileId } from '../src/core'
 
 export function main(argv: string[]): void {
@@ -6,10 +17,13 @@ export function main(argv: string[]): void {
     for (let i = 0; i < argv.length; i += 2) args[argv[i]!.replace(/^--/, '')] = argv[i + 1] ?? ''
     const games = Number(args.games ?? 400)
     const seed = Number(args.seed ?? 1)
-    const modeId = args.mode ?? 'standard'
+    // `--mode standard|long`, `--goal 1|2|3` for Standard, and `--preset <id>` for a custom generator from the web presets.
+    const level = Math.min(Math.max(Math.round(Number(args.goal ?? 1)) - 1, 0), GOALS.length - 1)
+    const preset = args.preset ? CUSTOM_PRESETS.find((p) => p.id === args.preset) : undefined
+    if (args.preset && !preset) throw new Error(`Unknown preset "${args.preset}". Known: ${CUSTOM_PRESETS.map((p) => p.id).join(', ')}`)
+    const config = preset ? customMode({ ...preset.generator, goalLevel: level }) : args.mode === 'long' ? LONG_MODE : standardMode(level)
+    const modeId = preset ? `${preset.id}` : args.mode === 'long' ? 'long' : `std${level + 1}`
     const ids = (args.policies ?? PROFILE_IDS.join(',')).split(',') as ProfileId[]
-    const base = MODES.find((m) => m.id === modeId) ?? standardMode(0)
-    const config = args.goal ? { ...base, goal: Number(args.goal) } : base
     const goal = config.goal
     for (const id of ids) {
         if (!ALL_PROFILE_IDS.includes(id)) throw new Error(`Unknown policy "${id}". Known: ${ALL_PROFILE_IDS.join(', ')}`)

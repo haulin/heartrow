@@ -1,20 +1,21 @@
 import { useState } from 'preact/hooks'
-import { EFFECTS, GOALS, standardMode, unmetNeeds } from '../../core'
-import type { EffectId, GeneratorCardType, GeneratorResource } from '../../core'
 import {
     CUSTOM_EFFECTS,
     CUSTOM_PRESETS,
     CUSTOM_RESOURCES,
     CUSTOM_TYPES,
     DEFAULT_CUSTOM,
-    MAX_STARTER,
+    EFFECTS,
+    GOALS,
     customSummary,
-    effectName,
     effectiveEffects,
     effectiveTypes,
     generatorOf,
-} from './custom'
-import type { CustomGenerator } from './custom'
+    standardMode,
+    unmetNeeds,
+} from '../../core'
+import type { CustomGenerator, EffectId, GeneratorCardType, GeneratorResource } from '../../core'
+import { MAX_STARTER, effectName } from './custom'
 import { Modal } from './Dialogs'
 
 const TYPE_NAMES: Record<GeneratorCardType, string> = { moss: 'Moss', ember: 'Ember', tide: 'Tide', foe: 'Enemies' }
@@ -148,7 +149,11 @@ export function GeneratorDialog({
                         {RESOURCE_NAMES[resource]}
                     </label>
                 ))}
-                {starterInput('starterGold', 'Start with Basic ●', !hasGold)}
+            </fieldset>
+
+            <fieldset class="picks">
+                <legend>Start with</legend>
+                {starterInput('starterGold', 'Basic ●', !hasGold)}
                 {starterInput('starterPower', 'Basic ⚔', !hasPower)}
             </fieldset>
 

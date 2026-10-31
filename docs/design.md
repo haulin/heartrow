@@ -1,0 +1,153 @@
+# Heartrow design
+
+## Purpose
+
+Heartrow is a small, single-player roguelike deckbuilder. A run lasts a fixed number of turns. The player builds a deck of procedurally generated recruits, defeats enemies, and collects hearts.
+
+The working instructions are in [`AGENTS.md`](../AGENTS.md). This document holds the durable design decisions. Ideas that are not done are in [`ideas.md`](ideas.md). Finished work and playtest evidence are in [`history.md`](history.md).
+
+## Principles
+
+- Core and platform stay apart. `src/core` is the game: plain TypeScript with no platform dependencies. `applyMove(state, move)` returns a new state and a list of events, and all randomness comes from seeded streams stored in the state. A platform only draws the state and sends moves.
+- Modes, presets and generator limits are data, not code. A difference in numbers or names is a field. A difference in behaviour is a function-valued field on a small record. No inheritance and no `if (variant === 'x')` in shared code.
+- Seed stability. A seed makes the same run. Generator limits only redirect results and never change the random draws, so a generator that allows everything makes the same cards as no generator. Undo replays random outcomes identically.
+- Events carry presentation. `applyMove` returns `{ state, events }` with plain-data events. The web animation layer plays them as a queue, so the state is already final and animation is only presentation that can be skipped. The game log and statistics read the same events. Bots and the simulator ignore them.
+- Core hands out neutral data (type, cost, effect text). Colours, glyphs, layout and settings (theme, animation speed) belong to the platform and never to the game state.
+- Reasoning lives here, not in code comments. Do not implement an open question as if it were approved.
+- Prefer small changes that improve decisions or remove confusion.
+
+## Where things live
+
+- `src/core` is the game. It owns the rules, the card generator and its limits, modes, presets, the effect registry and the bots. Other platforms use only `src/core/index.ts`.
+- `src/platform/web` is the Preact front end. It owns links and the address bar, dialogs, animation, skins and styling. Reading and writing links (`mode.ts`, `custom.ts`) is web only; the data a link describes is core.
+- `tools/` holds the simulator. It uses core only.
+- `prototypes/` holds the original single-file prototypes. They are frozen references and history, not the specification. When the prototypes and the code disagree, the code and this document win.
+
+## Player experience
+
+The game should be playable without a tutorial. The player should understand the row, the two currencies, the edge penalty, and the current goal from the screen and the card text.
+
+The central decision is positional:
+
+- Five cards move from left to right.
+- A new card enters on the left.
+- Taking a card removes it and shifts the cards on its left toward the edge.
+- The card on the right leaves at the end of the turn.
+- An enemy that leaves the row removes its hearts from the player's score.
+
+This makes buying a card beside an enemy a meaningful choice. Buying the edge card also moves its left neighbour to the edge.
+
+## Rules
+
+- Gold buys recruits. Power defeats enemies. Hearts are the score.
+- Gold and power are turn-local. They do not carry over.
+- Recruits enter the discard pile. Enemies never enter the deck.
+- The starter deck has six Basic gold cards and four Basic power cards.
+- The hand normally draws five cards.
+- Retain cards stay in hand when unplayed.
+- Redraw replaces the four left cards and leaves the edge card in place.
+- Reaching the goal wins only when the turn ends.
+- “Play simple” plays cards without worded effects.
+- Exile is optional. The player can skip it. Forced exile was rejected.
+- Undo is permissive: any move except ending the turn can be undone, back to the start of the turn. Random outcomes replay identically, so undo cannot fish for luck.
+
+Cards are generated when they enter the row. Their type, resources, effects, and art come from the generator budget. There is no row deck.
+
+The exact order of events in a turn is defined by `endTurn` in `src/core/moves.ts` and its tests.
+
+### Modes
+
+Modes are data (`ModeConfig` in `src/core/modes.ts`), not code.
+
+- **Standard** lasts 24 turns. The goal is 48, 64, or 80 hearts (`goal` 1 to 3). `goal` is apart from the mode id.
+- **Custom** is Standard with a generator: which card types, resources and effects may appear, and how many Basic gold and power cards you start with. The settings are plain data (`CustomGenerator` in `src/core/custom.ts`) with a small library of presets (Standard, Simple only, Attack only, Pacifist). The web layer puts them in the link, so a run can be shared (`?mode=custom&goal=2&types=…&res=…&sg=…&sp=…&fx=…&seed=N`).
+- **Long Run** lasts 42 turns, postpones the win check, and reports final hearts as a high score. Turns 1–24 use the standard cost curve. Turns 25–36 add one cost step and use 40% enemy frequency. Turns 37–42 add a second cost step and use 45% enemy frequency. Late pure-resource filler is bounded and rerolled more often from turn 21 (`lateFillerFromTurn`), while utility cards stay eligible. The run grants one redraw every three turns; a four-turn cadence left too little row control late in the run.
+
+Links: `?seed=N&mode=standard&goal=2`, `?seed=N&mode=long`. Starting any new game rewrites the address, so a reload replays the same run.
+
+## Card generation
+
+- Recruit cost is a converted budget, not a direct value sum: a recruit with base cost `C` starts with `C × .85 + .3` budget. The row may display a lower current price when a recruit discount is active.
+- Direct gold and power each cost `1`, hearts cost `1.5`, and effects consume their listed budget. Integer resource gains can leave a fractional remainder below `1`; this is intentional. For example, a base-cost-12 card with `+2 ● +4 ⚔ +3 ♥` uses `10.5` budget exactly, while a base-cost-11 card with `+8 ● +1 ⚔` leaves `0.65`.
+- Enemy budget is the cost times `1.4`. The displayed cost is recomputed from the budget actually spent.
+- Draw is one scalable effect. It costs `1.5` budget per card, so a generated card can draw 1 to 4 cards when it has enough budget.
+- Retain costs `0.5` budget.
+- Scaled conditional effects should use simple magnitude pricing of roughly `3` budget per level; test the exact values for discounts and per-enemy effects before resolving them.
+- Direct `♥` resources are intentionally less common on Moss and Ember recruits than on Tide recruits; dedicated heart effects remain the stronger heart-building identity. Once a recruit gets a direct heart, generation favours another heart so multi-heart cards remain meaningful.
+- The two discard effects are `cycle`, which keeps Retain cards and costs more, and `purge`, which discards Retain cards too and costs less. Both lean Tide.
+- `swap` exchanges gold and power. It leans Moss and Ember and gives a gold engine an outlet for defeating enemies.
+- `exile` gets one extra selection weight on Moss and Ember recruits while Tide stays its strongest type.
+- `foes` counts the enemies in the row before the defeated enemy is replaced, including the enemy being defeated and excluding the newcomer.
+
+### Generator limits
+
+`GeneratorConfig` (on `ModeConfig`) lists the allowed card types (Moss, Ember, Tide, enemies), resources (gold, power, hearts) and effects. `generatorLimits` in `src/core/generator/limits.ts` turns it into what can really be made.
+
+- Plain gains, hearts and the Kin and Army currency are redirected to an allowed resource. Gold can be switched off too; the core falls back to gold only when no currency is allowed.
+- Enemies need power (to defeat) and hearts (to pay out), so they are off when either is.
+- `EffectDef.needs` lists what an effect requires (resources, enemies, colours, the exile effect). The generator skips an effect whose need is off. A tripwire test lists every effect's needs, so a new or changed effect is noticed.
+- The random draws are the same whatever the limits are. A test checks that "allow everything" equals no generator.
+
+## Interface conventions
+
+- The deck summary breaks effects down by what they give: gold, power, hearts, and other. Each effect counts once per card. Bond and same-type effects count as gold or power based on the card. Other covers draw, exile, discounts, swap, and discard effects.
+- Reaping uses a small heart pill on the gold or power stat box. It shows one heart per reaping card in play, displays `♥×4` above three cards, and explains the current heart total in the tooltip.
+- Retain uses a regular-weight `↺` line.
+- Text selection is disabled in the game area and enabled inside popups so the log can be copied.
+- Compact resource values use coloured `●` gold, `⚔` power, and `♥` hearts icons on cards and in the log. Explanatory labels and accessible names keep the resource words.
+- The fifth row card shows a lock marker because redraw replaces only the four cards to its left. The redraw log states that the right-edge card cannot be redrawn.
+- The log uses one copied line per entry instead of paragraph spacing.
+- Enemy defeat logs combine resolved direct heart payouts with the base enemy hearts and append any extra gold or power in the same compact resource line.
+- The game shows the package version (semver from `package.json`) in the About dialog.
+
+## Design boundaries
+
+- Keep the power colour red.
+- Keep enemies violet with dashed borders and `Defeat:` effect text.
+- Keep Moss, Ember, and Tide as the three gem types.
+- Keep the edge-slot outline and the fixed five-card geometry.
+- Keep the intentional hand overlap above five cards. Improve focus and semantic state instead of replacing the layout.
+- Keep the verbose, copyable log.
+- Keep pending actions and played-card state clear to assistive technology.
+- Do not add new effects before outside players test the current effect set.
+
+The next validation step is to let three to five people play without explanation. Fix problems that several players encounter. Avoid a long polish phase before that test.
+
+## External signals and guardrails
+
+Review research is evidence and inspiration, not a specification. These are things Heartrow should avoid becoming:
+
+- A thin deck should not be the automatic best strategy.
+- Mono-colour decks should remain viable without becoming an easy win; cross-colour choices should reward thought.
+- Turns should not collapse into “draw a pile, make huge resources, then buy the most expensive cards”.
+- A score target can remain the core of the short run, but some players will want modes or objectives with more texture than score attack alone.
+
+Players have also praised the source game's art, polish, and music. Those are quality signals, not a reason to copy its theme, presentation, or card content.
+
+## Rule decisions
+
+Some quirks come from the original prototype. The core keeps them unless listed here as changed.
+
+- **Goal undone by an escape (kept, undecided).** Win is checked when the turn ends, after enemies escape. An enemy that escapes on the last step can still undo a reached goal. See "Win check" in [`ideas.md`](ideas.md).
+- **Late filler reroll (kept).** In long mode, from turn 21 onward, a generated card that is only pure gold or power filler is rerolled more often. The turn-21 start was a side effect of an earlier remark, not a tuned value. It is a mode-config field, so it can be moved.
+- **Enemies can cost 0 (accepted).** After `weak` or discounts an enemy can cost 0 to defeat. Revisit a minimum cost if play data shows a problem (see "Free enemies" in the ideas).
+- **Undo (changed).** The prototype blocked undo after a draw, coin flip, cycle, take or redraw. The payoff of cheating is small, and being unable to undo a misplay is worse. The web session keeps a per-turn stack of snapshots: every accepted move except ending the turn can be undone. The RNG streams are part of the state, so a replayed move gives the same random result. Ending the turn clears the stack.
+- **Defeat log shows the base cost (kept).** The log line for a defeat shows the printed cost, not the discounted cost paid. Seeing full prices feels good. Revisit if it confuses players.
+- **Last-turn refill (kept).** The final `endTurn` still generates one row card before the game ends. It is harmless.
+
+## Bots and balance
+
+- Bots live in `src/core/ai`. A bot is a list of policies. Each policy scores every legal move, the scores are multiplied, and the bot picks a move. They give a relative balance signal, not a substitute for human play.
+- Current figures for the Long Run (400 games): Mixed about 67–70 hearts, Smart about 55, and the experimental `lookahead` about 82. Standard at goal 48 (400 games, seed 1): mixed 22%, smart 16%. These are balance signals, not targets.
+- The Long Run bot redraws before defeating an affordable right-edge enemy when another enemy sits to its left, so that left enemy does not become the new escape threat.
+- The core was checked against the original prototype over 100 seeds. The generator matches. The bots are 2–4% stronger than the prototype and that was accepted. The report is in `tools/baseline/V7_PARITY.md`.
+- Run the simulator with `npm run sim`.
+
+## Making changes
+
+1. Make one focused change.
+2. Run `npm run verify`.
+3. If generation or effects change, run `npm run sim` for crashes and large balance changes, in both modes.
+4. Test the page in a browser at about 360 px and 760 px wide.
+5. Check the row, seven-card hands, popups, redraws, Retain, exile, and undo.
+6. Record a design decision here before changing the rules.
