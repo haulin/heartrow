@@ -5,16 +5,17 @@ import * as core from '../../core'
 import type { Move } from '../../core'
 import { App } from './App'
 import { createLocalStorage } from './localStorageStore'
-import { modeFromId, parseStartParams } from './mode'
+import { modeFromId, shareQuery } from './mode'
+import { openStore, runOf } from './resume'
 import { applyTheme, loadSettings } from './settings'
 import { SKIN_IDS } from './skins'
-import { GameStore } from './store'
 
 const storage = createLocalStorage()
 applyTheme(document.documentElement, loadSettings(storage, SKIN_IDS).theme)
 
-const { config, seed } = parseStartParams(window.location.search)
-const store = new GameStore(config, seed)
+const { store, screen, started } = openStore(storage, window.location.search, __APP_VERSION__)
+// A game address always names its seed, so a reload (or a tab the browser dropped) finds the same run.
+if (screen === 'game') window.history.replaceState(null, '', shareQuery(store.getState().config, store.getState().seed))
 
 if (import.meta.env.DEV) {
     Object.assign(window, {
@@ -23,10 +24,12 @@ if (import.meta.env.DEV) {
             dispatch: (move: Move) => store.dispatch(move).events,
             newGame: (modeId: string, newSeed: number) => store.newGame(modeFromId(modeId), newSeed),
             legalMoves: () => core.legalMoves(store.getState()),
+            /** The saved-run record: the address and the accepted moves. Replaying it rebuilds this run. */
+            run: () => runOf(store, __APP_VERSION__),
             core,
         },
     })
 }
 
 const root = document.getElementById('app')
-if (root) render(<App store={store} storage={storage} />, root)
+if (root) render(<App store={store} storage={storage} initial={screen} started={started} />, root)

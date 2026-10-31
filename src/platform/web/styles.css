@@ -60,7 +60,13 @@ body {
         400 15px/1.35 'Bricolage Grotesque Variable',
         system-ui,
         sans-serif;
+    /* 100vh is taller than the visible page on a phone, where the address bar takes space, and made the home screen scroll. */
     min-height: 100vh;
+    min-height: 100dvh;
+}
+/* The card that leaves the river flies out to the right; that must not add a scrollbar. `clip` does not make a scroll container. */
+.app {
+    overflow-x: clip;
 }
 main {
     max-width: 760px;
@@ -348,6 +354,25 @@ button.b.small {
     padding: 3px 9px;
     font-size: 12px;
 }
+button.b.swap {
+    display: inline-grid;
+}
+button.b.swap > span {
+    grid-area: 1 / 1;
+}
+.tick {
+    width: 0.9em;
+    height: 0.9em;
+    vertical-align: -0.08em;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+button.b.swap > .gone {
+    visibility: hidden;
+}
 button.b:disabled {
     opacity: 0.4;
     cursor: default;
@@ -416,6 +441,27 @@ dialog::backdrop {
 }
 .dlg {
     padding: 14px;
+}
+/* The home screen is as wide as the play area, and its type and buttons grow with that width (the main element is the container). */
+.home {
+    padding-top: 6vh;
+}
+.home h1 {
+    font-size: clamp(36px, 10cqw, 76px);
+    line-height: 1.05;
+}
+.home .rules {
+    margin: 8px 0 clamp(18px, 4cqw, 32px);
+    font-size: clamp(13px, 2.4cqw, 18px);
+}
+.home .col {
+    gap: clamp(8px, 1.6cqw, 14px);
+}
+.home button.b {
+    font-size: clamp(15px, 3cqw, 22px);
+    padding: clamp(11px, 2.4cqw, 18px) clamp(14px, 3cqw, 22px);
+    border-radius: clamp(10px, 1.8cqw, 14px);
+    text-align: left;
 }
 .dlg-actions {
     margin-top: 12px;

@@ -11,7 +11,8 @@ Everything here is not done yet. Log each idea as one undated line, and mark its
 - Undo of a redraw lets the player peek at the next row for free. It is useful as a playtest tool; plan to block it soon. Undo of End turn has the same peek problem; decide the two together.
 - A recruit that only draws one card (a 2 ● Draw 1 with nothing else) appears again. An earlier rule said it should not. Decide later.
 - Cycle and purge discard order: they discard after drawing. Check how it looks in the UI.
-- Resume after a mobile tab discard (found on a phone in Brave): the browser drops the background tab and the run is lost. Persist the config, seed and move list in the web layer and replay it through the pure core. This is the same resume the home screen's "Resume game" needs.
+- The saved run has one slot only; several slots could come with saved generators.
+- Bond pricing (parked, feels a little off): Bond costs `0.5` plus `0, 0.7, 1.5` for +1, +2, +3, so +3 costs `2.0` budget, two thirds of a plain +3. A playtest card (4 ●, 1 ⚔, Bond +3 ⚔, Retain) felt cheap, since a Retained Bond card can wait until its type has been played, and a generator with few types makes that likelier. Counter-view: a buyer who plans on several cards of one colour will often miss, and the card's price works out about right against a guaranteed 4 (Bond +3 at 2.0 is 1 + 2 + 0.5 = 3.5 budget for the bonus part, against 3.7 for a cost-4 card). Making it miss would need about 0.9 per level, which may be too harsh. Leave it until more play data; changing it is an engine change, so bump the version then.
 - The piles overview shows card text larger than normal cards and wraps differently. Check the font scaling of the small card view.
 - Recheck every card for the 1 px icon shift. The "Extra slow" animation entry vanished once after a hot reload; check after a full reload.
 - Colour review after the icon change: the light theme looks weak, Enemy purple and Tide blue are too close, and unaffordable recruit cards (dimmed to 55%) look faded next to Basics. Decide in one pass over both themes.
@@ -61,7 +62,6 @@ Everything here is not done yet. Log each idea as one undated line, and mark its
 - Curated card pools or expansion sets instead of one diluted random pool.
 - Endless continuation after the normal run (goals, costs, escapes, scoreboards).
 - Long Run could take a goal of its own, so `goal` would apply to every mode.
-- Save and resume an unfinished run.
 - Saving generators: named slots in localStorage, with a Save button next to the preset list, only for Custom settings so built-in presets cannot be overwritten. Names stay in the browser and show as plain text, so no swearword filter is needed. If names ever travel in links or a public list, cap their length and show them as text only.
 - Real preset descriptions (today they are generated). Pacifist note: with 10 Basic gold cards you are guaranteed 5 ● every turn, so the run feels easy.
 - Bots for challenge balancing once challenge definitions and playable presets exist.
@@ -86,7 +86,7 @@ Candidate archetypes, not approved balance targets. Test constrained generators 
 
 ## Screens, modes and sharing
 
-- Home screen with Standard, Challenge, Settings and About; browser back and forward stay useful; links that start a mode with a seed keep working; a way back to the menu and a way to resume an in-memory game.
+- Home screen: a plain first version is built (see the design doc). Still open: its look (the title screen concepts below), setup as full screens instead of dialogs, and a Challenge entry.
 - Challenge: the player chooses a generator and tries to make it work. Custom challenges choose or ban types and effects, with several slots to save, edit and duplicate. Start with the Level 1–3 goals. Leave starter decks out of the first iteration.
 - Show the mode, difficulty, goal, seed and run brief before a menu-launched game and in an overview popup. A shared link starts the game directly and opens the overview once. Compose the brief from structured selections, with only a short length-limited player note.
 - Standard setup with an editable seed field.

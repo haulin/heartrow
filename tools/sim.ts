@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs'
 import {
     ALL_PROFILE_IDS,
     CUSTOM_PRESETS,
@@ -5,16 +6,45 @@ import {
     LONG_MODE,
     PROFILE_IDS,
     aggregate,
+    applyMove,
     customMode,
     makeProfile,
+    newGame,
     runBatch,
     standardMode,
 } from '../src/core'
-import type { ProfileId } from '../src/core'
+import type { Move, ProfileId } from '../src/core'
+// A saved run is a web record (its address is a link), so the replay reads it with the web layer's own parser.
+import { parseStartParams } from '../src/platform/web/mode'
+import { deckSummary } from '../src/platform/web/text'
+
+/** Replays a "Copy run" record (a saved run: address plus moves) and prints where it ends up. */
+function replay(path: string): void {
+    const run = JSON.parse(readFileSync(path, 'utf8')) as { version: string; query: string; moves: Move[] }
+    const { config, seed } = parseStartParams(run.query)
+    let state = newGame(config, seed).state
+    let rejected = 0
+    for (const move of run.moves) {
+        const out = applyMove(state, move)
+        if (out.events.some((e) => e.type === 'rejected')) rejected++
+        state = out.state
+    }
+    const d = deckSummary(state)
+    console.log(`run from version ${run.version}, ${run.moves.length} moves, ${rejected} rejected, seed ${seed}, ${config.id}`)
+    console.log(`turn ${state.turn}/${state.maxTurns}, status ${state.status}, hearts ${state.hearts}${state.goal ? `/${state.goal}` : ''}`)
+    console.log(`now: gold ${state.gold}, power ${state.power}, redraws ${state.redraws}`)
+    console.log(
+        `deck ${d.total} cards (draw ${state.deck.length}, hand ${state.hand.length}, discard ${state.discard.length}, exile ${state.exile.length})`,
+    )
+    console.log(`plain gains: ${d.gold} gold, ${d.power} power, ${d.hearts} hearts`)
+    console.log(`effects: ${d.fxGold} gold, ${d.fxPower} power, ${d.fxHearts} hearts, ${d.fxOther} other`)
+    console.log(`types: ${d.moss} Moss, ${d.ember} Ember, ${d.tide} Tide, ${d.plain} Basic`)
+}
 
 export function main(argv: string[]): void {
     const args: Record<string, string> = {}
     for (let i = 0; i < argv.length; i += 2) args[argv[i]!.replace(/^--/, '')] = argv[i + 1] ?? ''
+    if (args.replay) return replay(args.replay)
     const games = Number(args.games ?? 400)
     const seed = Number(args.seed ?? 1)
     // `--mode standard|long`, `--goal 1|2|3` for Standard, and `--preset <id>` for a custom generator from the web presets.

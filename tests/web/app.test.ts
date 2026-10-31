@@ -14,15 +14,22 @@ import { createMemoryStorage } from '../../src/platform/web/storage'
 let host: HTMLElement | null = null
 
 /** Tests run with animations off by default, so frames commit at once. */
-function mount(seed = 4, anim: AnimSpeed = 'off') {
+function mount(seed = 4, anim: AnimSpeed = 'off', initial: 'home' | 'game' = 'game') {
     host = document.createElement('div')
     document.body.append(host)
     const store = new GameStore(standardMode(0), seed)
     const storage = createMemoryStorage()
     saveSettings(storage, { ...DEFAULT_SETTINGS, anim })
-    void act(() => render(h(App, { store, storage }), host!))
+    void act(() => render(h(App, { store, storage, initial }), host!))
     return { store, storage, host }
 }
+
+const press = (host: HTMLElement, label: string) =>
+    void act(() =>
+        Array.from(host.querySelectorAll('button'))
+            .find((b) => b.textContent?.startsWith(label))!
+            .click(),
+    )
 
 afterEach(() => {
     if (host) render(null, host)
@@ -31,7 +38,39 @@ afterEach(() => {
     document.documentElement.removeAttribute('data-theme')
 })
 
+describe('App home screen', () => {
+    it('opens on the menu without a game, and offers no resume', () => {
+        const { host } = mount(4, 'off', 'home')
+        expect(host.querySelector('[data-zone="row"]')).toBeNull()
+        const labels = Array.from(host.querySelectorAll('nav button')).map((b) => b.textContent)
+        expect(labels).toEqual(['Standard', expect.stringMatching(/^Long Run/), 'Custom generator…', 'Settings', 'About'])
+    })
+
+    it('starts a Standard run from the menu, goes home, and resumes the same run', () => {
+        const { host, store } = mount(4, 'off', 'home')
+        press(host, 'Standard')
+        press(host, 'Level 2')
+        expect(host.querySelectorAll('[data-zone="row"] [data-card-id]')).toHaveLength(5)
+        expect(store.getState().goal).toBe(64)
+        const seed = store.getState().seed
+        press(host, '← Home')
+        expect(host.querySelector('[data-zone="row"]')).toBeNull()
+        press(host, 'Resume game')
+        expect(host.querySelector('[data-zone="row"]')).not.toBeNull()
+        expect(store.getState().seed).toBe(seed)
+    })
+})
+
 describe('App', () => {
+    it('names the mode in the header and shows the goal and seed in its dialog', () => {
+        const { host } = mount(4)
+        press(host, 'Standard')
+        const dialog = host.querySelector('dialog')!
+        expect(dialog.textContent).toContain('Level 1')
+        expect(dialog.textContent).toContain('Goal: 48 ♥ in 24 turns')
+        expect(dialog.textContent).toContain('seed 4')
+    })
+
     it('renders 5 row cards and 5 hand cards', () => {
         const { host } = mount()
         expect(host.querySelectorAll('[data-zone="row"] [data-card-id]')).toHaveLength(5)
@@ -57,15 +96,14 @@ describe('App', () => {
         expect(host.querySelector('[role="status"]')?.textContent).toMatch(/Need \d+ more/)
     })
 
-    it('changes the theme in the settings dialog, not in the button bar', () => {
+    it('keeps menu items out of the game bar and changes the theme in the settings dialog on the home screen', () => {
         const { host, storage } = mount()
         const buttons = () => Array.from(host.querySelectorAll('button'))
-        expect(buttons().some((b) => b.textContent?.startsWith('Theme'))).toBe(false)
-        void act(() =>
-            buttons()
-                .find((b) => b.textContent === 'Settings')!
-                .click(),
-        )
+        const labels = buttons().map((b) => b.textContent)
+        for (const menu of ['Settings', 'About', 'New game']) expect(labels).not.toContain(menu)
+        expect(labels).toContain('← Home')
+        press(host, '← Home')
+        press(host, 'Settings')
         const select = host.querySelector<HTMLSelectElement>('select')!
         select.value = 'light'
         void act(() => {

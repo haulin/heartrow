@@ -37,6 +37,24 @@ export function parseStartParams(search: string, fallbackSeed: () => number = ra
     return { config, seed: parsed ?? fallbackSeed() }
 }
 
+/** A link starts a run when it names a mode or a seed. An address with neither is the home screen. */
+export function hasRun(search: string): boolean {
+    const params = new URLSearchParams(search)
+    return params.has('mode') || params.has('seed')
+}
+
+export type Route = { screen: 'home' } | { screen: 'game'; start: StartParams | null }
+
+/**
+ * The screen an address shows. `runQuery` is the share query of the run in memory, or null when none was started.
+ * A game address that matches the run in memory resumes it (`start` is null); any other game address starts that run.
+ */
+export function routeFor(search: string, runQuery: string | null, fallbackSeed: () => number = randomSeed): Route {
+    if (!hasRun(search)) return { screen: 'home' }
+    if (runQuery !== null && search === runQuery) return { screen: 'game', start: null }
+    return { screen: 'game', start: parseStartParams(search, fallbackSeed) }
+}
+
 export function shareQuery(config: ModeConfig, seed: number): string {
     const custom = customFromMode(config)
     if (custom) return `?seed=${seed}&mode=${config.id}&${customQuery(custom)}`

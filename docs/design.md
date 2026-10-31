@@ -65,6 +65,16 @@ Modes are data (`ModeConfig` in `src/core/modes.ts`), not code.
 
 Links: `?seed=N&mode=standard&goal=2`, `?seed=N&mode=long`. Starting any new game rewrites the address, so a reload replays the same run.
 
+### Screens
+
+There are two screens, home and game, and the address says which. An address with no `mode` or `seed` is the home screen; one with either starts that run directly. The home screen lists Resume (only when a run is in memory), Standard, Long Run, Custom generator, Settings and About, and the setup for each mode is still a dialog. Starting a run from home adds a history entry, so Back returns to the menu; the Home button in the game does the same. An address that matches the run in memory resumes it, and any other game address starts that run. The screen state is web only; core knows nothing about screens.
+
+The game screen has only game actions in its button bar (End turn, Play simple, Redraw, Skip exile, Undo). Home sits at the top left; New game, Settings and About are on the home screen. The header's other button names the mode (Standard, Custom or Long Run, with an ⓘ) and opens a dialog with the level, goal, turns, the generator summary of a custom run, and the seed with its copy buttons.
+
+### Saved run
+
+The web layer saves the current run in `localStorage` after every accepted move, undo and new game. The save is the run's address (mode, goal, seed, generator settings), the accepted moves and the app version. The core is pure and its random streams live in the state, so replaying the moves rebuilds the exact run, including the undo stack of the current turn. A reload (for example when the browser drops a background tab) resumes it: an address that names the saved run replays it however far it got, and a plain home address offers Resume. A finished run stays resumable until a new game replaces it. Any other game address starts that run and replaces the save. A save from another version, or one the rules refuse to replay, is dropped. For that reason the version in `package.json` is bumped whenever engine behaviour changes. The log dialog's "Copy run" button copies the same record, so a run can be replayed for a bug report (`npm run sim -- --replay <file>`). A real played run is kept as a reference (`tests/fixtures/reference-run.json`); a test replays it and checks the end state, so a change to engine behaviour cannot slip through unnoticed.
+
 ## Card generation
 
 - Recruit cost is a converted budget, not a direct value sum: a recruit with base cost `C` starts with `C × .85 + .3` budget. The row may display a lower current price when a recruit discount is active.

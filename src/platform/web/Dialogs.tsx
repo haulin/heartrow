@@ -1,7 +1,7 @@
 import type { ComponentChildren } from 'preact'
-import { useEffect, useRef } from 'preact/hooks'
-import { LONG_MODE, standardMode } from '../../core'
-import type { Card, GameState, ModeConfig } from '../../core'
+import { useEffect, useRef, useState } from 'preact/hooks'
+import { GOALS } from '../../core'
+import type { Card, GameState } from '../../core'
 import { Rich } from './Rich'
 import { ANIM_SPEEDS, THEMES } from './settings'
 import type { Settings } from './settings'
@@ -37,61 +37,106 @@ export function Modal({ onClose, children }: { onClose: () => void; children: Co
     )
 }
 
-const GOALS_LABEL = (level: number): string => {
-    const m = standardMode(level)
-    return `Level ${level + 1}: ${m.goal} ♥ in ${m.turns} turns`
+/** Copies text. The clipboard API only exists on secure pages (not on a phone that opens the dev server by its address), so fall back to the old way. */
+async function copy(text: string): Promise<boolean> {
+    try {
+        await globalThis.navigator.clipboard.writeText(text)
+        return true
+    } catch {
+        try {
+            const box = document.createElement('textarea')
+            box.value = text
+            box.style.position = 'fixed'
+            box.style.opacity = '0'
+            document.body.append(box)
+            box.select()
+            const ok = document.execCommand('copy')
+            box.remove()
+            return ok
+        } catch {
+            return false
+        }
+    }
 }
 
-export function NewGameDialog({
-    onPick,
-    onCustom,
-    onClose,
-}: {
-    onPick: (config: ModeConfig) => void
-    onCustom: () => void
-    onClose: () => void
-}) {
+/** A button that copies `text` and says so for a moment: "Copied", or "Not copied" when the browser refuses. */
+export function CopyButton({ label, text, title }: { label: string; text: () => string; title?: string }) {
+    const [result, setResult] = useState<'copied' | 'failed' | null>(null)
+    const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+    useEffect(() => () => clearTimeout(timer.current), [])
+    const click = async () => {
+        setResult((await copy(text())) ? 'copied' : 'failed')
+        clearTimeout(timer.current)
+        timer.current = setTimeout(() => setResult(null), 1500)
+    }
+    // All three texts share one grid cell and the inactive ones are hidden, so the button keeps the width of the widest and nothing moves
+    // when the text changes. The check mark is drawn, not typed: the bundled font has no such glyph, so a typed one would come from a system font.
+    const shown = result ?? 'idle'
     return (
-        <Modal onClose={onClose}>
-            <h2>New game</h2>
-            <div class="col">
-                {[0, 1, 2].map((level) => (
-                    <button key={level} type="button" class="b alt" onClick={() => onPick(standardMode(level))}>
-                        <Rich text={GOALS_LABEL(level)} />
-                    </button>
-                ))}
-                <hr />
-                <button type="button" class="b alt" onClick={() => onPick(LONG_MODE)}>
-                    <Rich text={`Long Run: highest hearts after ${LONG_MODE.turns} turns`} />
-                </button>
-                <button type="button" class="b alt" onClick={onCustom}>
-                    Custom generator…
-                </button>
-            </div>
-        </Modal>
+        <button type="button" class="b alt small swap" title={title} onClick={click}>
+            <span class={shown === 'idle' ? '' : 'gone'}>{label}</span>
+            <span class={shown === 'copied' ? '' : 'gone'}>
+                Copied{' '}
+                <svg class="tick" viewBox="0 0 12 12" aria-hidden="true">
+                    <path d="M2 6.5l3 3 5-6" />
+                </svg>
+            </span>
+            <span class={shown === 'failed' ? '' : 'gone'}>Not copied</span>
+        </button>
     )
 }
 
-const copy = (text: string): void => {
-    void globalThis.navigator?.clipboard?.writeText(text).catch(() => undefined)
-}
-
-export function SeedLine({ state }: { state: GameState }) {
+/** `run` gives the saved-run record (the address and the moves) as text, for a bug report: replaying it rebuilds the run. */
+export function SeedLine({ state, run }: { state: GameState; run?: () => string }) {
     const link = `${globalThis.location?.origin ?? ''}${globalThis.location?.pathname ?? ''}${shareQuery(state.config, state.seed)}`
     return (
         <p class="rules">
-            Mode <code>{state.mode}</code>, seed <code>{state.seed}</code>{' '}
-            <button type="button" class="b alt small" onClick={() => copy(String(state.seed))}>
-                Copy seed
-            </button>{' '}
-            <button type="button" class="b alt small" onClick={() => copy(link)}>
-                Copy link
-            </button>
+            Mode <code>{state.mode}</code>, seed <code>{state.seed}</code> <CopyButton label="Copy seed" text={() => String(state.seed)} />{' '}
+            <CopyButton label="Copy link" text={() => link} />
+            {run ? (
+                <>
+                    {' '}
+                    <CopyButton
+                        label="Copy run"
+                        text={run}
+                        title="Copies the link and every move of this run, to replay it for a bug report."
+                    />
+                </>
+            ) : null}
         </p>
     )
 }
 
-export function AboutDialog({ state, onClose }: { state: GameState; onClose: () => void }) {
+/** The short mode name shown on the game screen. */
+export function modeLabel(id: string): string {
+    return id === 'long' ? 'Long Run' : id === 'custom' ? 'Custom' : 'Standard'
+}
+
+/** What kind of run this is: the mode, its goal and length, the generator settings of a custom run, and the seed. */
+export function RunDialog({ state, run, onClose }: { state: GameState; run: () => string; onClose: () => void }) {
+    const level = state.goal === null ? -1 : GOALS.indexOf(state.goal)
+    return (
+        <Modal onClose={onClose}>
+            <h2>
+                {modeLabel(state.config.id)}
+                {state.config.id !== 'long' && level >= 0 ? ` · Level ${level + 1}` : ''}
+            </h2>
+            <p>
+                <Rich
+                    text={
+                        state.goal === null
+                            ? `${state.maxTurns} turns, the highest hearts wins.`
+                            : `Goal: ${state.goal} ♥ in ${state.maxTurns} turns.`
+                    }
+                />
+            </p>
+            {state.config.description ? <p class="rules">Generator: {state.config.description}.</p> : null}
+            <SeedLine state={state} run={run} />
+        </Modal>
+    )
+}
+
+export function AboutDialog({ state, onClose }: { state?: GameState | undefined; onClose: () => void }) {
     return (
         <Modal onClose={onClose}>
             <h2>About Heartrow</h2>
@@ -109,16 +154,26 @@ export function AboutDialog({ state, onClose }: { state: GameState; onClose: () 
                 Every card is generated as it appears. Moss leans gold and rewards a larger deck, Ember leans power and enemies, Tide leans
                 draw, exile, and hearts.
             </p>
-            <SeedLine state={state} />
+            {state ? <SeedLine state={state} /> : null}
         </Modal>
     )
 }
 
-export function LogDialog({ state, history, onClose }: { state: GameState; history: string[]; onClose: () => void }) {
+export function LogDialog({
+    state,
+    history,
+    run,
+    onClose,
+}: {
+    state: GameState
+    history: string[]
+    run: () => string
+    onClose: () => void
+}) {
     return (
         <Modal onClose={onClose}>
             <h2>Log (newest first)</h2>
-            <SeedLine state={state} />
+            <SeedLine state={state} run={run} />
             <div class="logbox">
                 {history
                     .slice()

@@ -1,12 +1,14 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks'
 import { DEFAULT_CUSTOM, customFromMode, customMode } from '../../core'
 import type { ModeConfig, Move } from '../../core'
-import { AboutDialog, LogDialog, NewGameDialog, PilesDialog, SettingsDialog } from './Dialogs'
+import { AboutDialog, LogDialog, PilesDialog, RunDialog, SettingsDialog, modeLabel } from './Dialogs'
 import { GeneratorDialog } from './GeneratorDialog'
+import { Home, StandardDialog } from './Home'
 import { Rich } from './Rich'
 import { Stats } from './Stats'
 import { browserReducedMotion, createPresenter } from './anim/presenter'
-import { randomSeed, shareQuery } from './mode'
+import { randomSeed, routeFor, shareQuery } from './mode'
+import { runOf } from './resume'
 import { applyTheme, loadSettings, saveSettings } from './settings'
 import { SKIN_IDS, getSkin } from './skins'
 import type { GameStore } from './store'
@@ -14,11 +16,16 @@ import type { AppStorage } from './storage'
 import { spoken, statusMessage } from './text'
 import { buildCardView } from './view/cardView'
 
-type DialogName = 'about' | 'log' | 'piles' | 'new' | 'custom' | 'settings'
+type DialogName = 'about' | 'log' | 'piles' | 'run' | 'standard' | 'custom' | 'settings'
+type Screen = 'home' | 'game'
 
 export interface AppProps {
     store: GameStore
     storage: AppStorage
+    /** `game` when the address starts a run, `home` otherwise. */
+    initial: Screen
+    /** Whether a run is already in memory (the default is that one exists when the app opens on the game). */
+    started?: boolean
 }
 
 /** The session the view draws. It can trail the latest one while an animation plays. */
@@ -28,11 +35,14 @@ function useShownSession(store: GameStore) {
     return store.getShown()
 }
 
-export function App({ store, storage }: AppProps) {
+export function App({ store, storage, initial, started: startedAtOpen = initial === 'game' }: AppProps) {
     const session = useShownSession(store)
     const { state } = session
     const [settings, setSettings] = useState(() => loadSettings(storage, SKIN_IDS))
     const [dialog, setDialog] = useState<DialogName | null>(null)
+    const [screen, setScreen] = useState<Screen>(initial)
+    // The store always holds a game, but a run only counts once it was started from a link or the menu.
+    const [started, setStarted] = useState(startedAtOpen)
     const rootRef = useRef<HTMLDivElement>(null)
     const settingsRef = useRef(settings)
     settingsRef.current = settings
@@ -86,7 +96,8 @@ export function App({ store, storage }: AppProps) {
     useEffect(() => {
         const onKey = (e: KeyboardEvent) => {
             const target = e.target as Element | null
-            if (e.code !== 'Space' || target?.closest?.('button, select, input, textarea, dialog, [role="button"]')) return
+            if (screen !== 'game' || e.code !== 'Space' || target?.closest?.('button, select, input, textarea, dialog, [role="button"]'))
+                return
             e.preventDefault()
             autoplay()
         }
@@ -94,12 +105,48 @@ export function App({ store, storage }: AppProps) {
         return () => window.removeEventListener('keydown', onKey)
     })
 
+    // Back and forward move between the home screen and the run in memory, or start the run a game address names.
+    useEffect(() => {
+        const onPop = () => {
+            const run = started ? shareQuery(store.getState().config, store.getState().seed) : null
+            const route = routeFor(window.location.search, run)
+            setDialog(null)
+            if (route.screen === 'home') return setScreen('home')
+            if (route.start) {
+                store.newGame(route.start.config, route.start.seed)
+                setStarted(true)
+            }
+            setScreen('game')
+        }
+        window.addEventListener('popstate', onPop)
+        return () => window.removeEventListener('popstate', onPop)
+    })
+
+    /** From the home screen a run is a new history entry, so Back returns to the menu. Inside a run it replaces the entry. */
+    const go = (query: string) => {
+        if (screen === 'home') globalThis.history?.pushState(null, '', query)
+        else globalThis.history?.replaceState(null, '', query)
+    }
+
     const startNew = (config: ModeConfig) => {
         const seed = randomSeed()
         setDialog(null)
         store.newGame(config, seed)
         // Keep the address in step with the run, so a reload or a copied address gives the same game.
-        globalThis.history?.replaceState(null, '', shareQuery(config, seed))
+        go(shareQuery(config, seed))
+        setStarted(true)
+        setScreen('game')
+    }
+
+    const goHome = () => {
+        setDialog(null)
+        globalThis.history?.pushState(null, '', window.location.pathname)
+        setScreen('home')
+    }
+
+    const resume = () => {
+        globalThis.history?.pushState(null, '', shareQuery(state.config, state.seed))
+        setScreen('game')
     }
 
     const over = statusMessage(state)
@@ -110,24 +157,66 @@ export function App({ store, storage }: AppProps) {
     const overlap = n > 5 ? (n - 5) / (n - 1) : 0
     const close = () => setDialog(null)
 
+    const dialogs = (
+        <>
+            {dialog === 'about' ? <AboutDialog state={screen === 'game' ? state : undefined} onClose={close} /> : null}
+            {dialog === 'log' ? (
+                <LogDialog
+                    state={state}
+                    history={session.history}
+                    run={() => JSON.stringify(runOf(store, __APP_VERSION__))}
+                    onClose={close}
+                />
+            ) : null}
+            {dialog === 'run' ? (
+                <RunDialog state={state} run={() => JSON.stringify(runOf(store, __APP_VERSION__))} onClose={close} />
+            ) : null}
+            {dialog === 'piles' ? <PilesDialog state={state} skin={skin} onClose={close} /> : null}
+            {dialog === 'standard' ? <StandardDialog onPick={startNew} onClose={close} /> : null}
+            {dialog === 'custom' ? (
+                <GeneratorDialog
+                    initial={(started ? customFromMode(state.config) : null) ?? DEFAULT_CUSTOM}
+                    onStart={(def) => startNew(customMode(def))}
+                    onClose={close}
+                />
+            ) : null}
+            {dialog === 'settings' ? <SettingsDialog settings={settings} onChange={changeSettings} onClose={close} /> : null}
+        </>
+    )
+
+    if (screen === 'home') {
+        return (
+            <div ref={rootRef} class="app">
+                <Home
+                    canResume={started}
+                    onResume={resume}
+                    onStandard={() => setDialog('standard')}
+                    onLong={startNew}
+                    onCustom={() => setDialog('custom')}
+                    onSettings={() => setDialog('settings')}
+                    onAbout={() => setDialog('about')}
+                />
+                {dialogs}
+            </div>
+        )
+    }
+
     return (
         <div ref={rootRef} class="app">
             <main>
                 <header>
-                    <h1>Heartrow</h1>
-                    <span class="stat">
-                        {state.goal === null ? (
-                            `Long Run: ${state.maxTurns} turns`
-                        ) : (
-                            <>
-                                Goal:{' '}
-                                <span class="h">
-                                    <Rich text={`${state.goal} ♥`} />
-                                </span>{' '}
-                                in {state.maxTurns} turns
-                            </>
-                        )}
-                    </span>
+                    <button type="button" class="b alt" onClick={goHome} title="Back to the menu. The run stays in memory.">
+                        ← Home
+                    </button>
+                    <button
+                        type="button"
+                        class="b alt"
+                        onClick={() => setDialog('run')}
+                        aria-haspopup="dialog"
+                        title="Mode, goal, seed and settings of this run"
+                    >
+                        {modeLabel(state.config.id)} ⓘ
+                    </button>
                 </header>
                 <Stats
                     state={{ ...state, ...store.getHolds() }}
@@ -211,30 +300,10 @@ export function App({ store, storage }: AppProps) {
                     >
                         Undo
                     </button>
-                    <button type="button" class="b alt" onClick={() => setDialog('new')}>
-                        New game
-                    </button>
-                    <button type="button" class="b alt" onClick={() => setDialog('settings')}>
-                        Settings
-                    </button>
-                    <button type="button" class="b alt" onClick={() => setDialog('about')}>
-                        About
-                    </button>
                 </div>
             </main>
 
-            {dialog === 'about' ? <AboutDialog state={state} onClose={close} /> : null}
-            {dialog === 'log' ? <LogDialog state={state} history={session.history} onClose={close} /> : null}
-            {dialog === 'piles' ? <PilesDialog state={state} skin={skin} onClose={close} /> : null}
-            {dialog === 'new' ? <NewGameDialog onPick={startNew} onCustom={() => setDialog('custom')} onClose={close} /> : null}
-            {dialog === 'custom' ? (
-                <GeneratorDialog
-                    initial={customFromMode(state.config) ?? DEFAULT_CUSTOM}
-                    onStart={(def) => startNew(customMode(def))}
-                    onClose={close}
-                />
-            ) : null}
-            {dialog === 'settings' ? <SettingsDialog settings={settings} onChange={changeSettings} onClose={close} /> : null}
+            {dialogs}
         </div>
     )
 }
