@@ -44,7 +44,7 @@ export const SIMPLE_MODE: ModeConfig = {
     id: 'simple',
     name: 'Simple Only',
     description: 'Every card is plain gold, power or hearts. No effects.',
-    generator: { allowedTypes: ['moss', 'ember', 'tide', 'foe'], allowedEffects: [] },
+    generator: { allowedTypes: ['moss', 'ember', 'tide', 'foe'], allowedResources: ['gold', 'power', 'hearts'], allowedEffects: [] },
 }
 
 export const MODES: ModeConfig[] = [standardMode(0), standardMode(1), standardMode(2), LONG_MODE, SIMPLE_MODE]

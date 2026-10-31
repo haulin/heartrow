@@ -1,5 +1,5 @@
 import type { Rng } from '../rng'
-import type { Card, Colour, Currency, EffectId, GameEvent, GameState } from '../types'
+import type { Card, Colour, Currency, EffectId, EffectNeed, GameEvent, GameState } from '../types'
 
 export interface EffectContext {
     state: GameState
@@ -21,6 +21,8 @@ export interface EffectDef {
     price: number
     perDrawCard?: true
     text: string
+    /** What a generator must allow for the effect to make sense. The generator skips the effect when any need is off. */
+    needs?: readonly EffectNeed[]
     /** Allowed as an enemy defeat effect. */
     enemies: boolean
     /** Colours whose effect pool favours this effect. */

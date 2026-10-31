@@ -1,10 +1,12 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks'
 import type { ModeConfig, Move } from '../../core'
+import { DEFAULT_CUSTOM, customFromMode, customMode } from './custom'
 import { AboutDialog, LogDialog, NewGameDialog, PilesDialog, SettingsDialog } from './Dialogs'
+import { GeneratorDialog } from './GeneratorDialog'
 import { Rich } from './Rich'
 import { Stats } from './Stats'
 import { browserReducedMotion, createPresenter } from './anim/presenter'
-import { randomSeed } from './mode'
+import { randomSeed, shareQuery } from './mode'
 import { applyTheme, loadSettings, saveSettings } from './settings'
 import { SKIN_IDS, getSkin } from './skins'
 import type { GameStore } from './store'
@@ -12,7 +14,7 @@ import type { AppStorage } from './storage'
 import { spoken, statusMessage } from './text'
 import { buildCardView } from './view/cardView'
 
-type DialogName = 'about' | 'log' | 'piles' | 'new' | 'settings'
+type DialogName = 'about' | 'log' | 'piles' | 'new' | 'custom' | 'settings'
 
 export interface AppProps {
     store: GameStore
@@ -93,8 +95,11 @@ export function App({ store, storage }: AppProps) {
     })
 
     const startNew = (config: ModeConfig) => {
+        const seed = randomSeed()
         setDialog(null)
-        store.newGame(config, randomSeed())
+        store.newGame(config, seed)
+        // Keep the address in step with the run, so a reload or a copied address gives the same game.
+        globalThis.history?.replaceState(null, '', shareQuery(config, seed))
     }
 
     const over = statusMessage(state)
@@ -221,7 +226,14 @@ export function App({ store, storage }: AppProps) {
             {dialog === 'about' ? <AboutDialog state={state} onClose={close} /> : null}
             {dialog === 'log' ? <LogDialog state={state} history={session.history} onClose={close} /> : null}
             {dialog === 'piles' ? <PilesDialog state={state} skin={skin} onClose={close} /> : null}
-            {dialog === 'new' ? <NewGameDialog onPick={startNew} onClose={close} /> : null}
+            {dialog === 'new' ? <NewGameDialog onPick={startNew} onCustom={() => setDialog('custom')} onClose={close} /> : null}
+            {dialog === 'custom' ? (
+                <GeneratorDialog
+                    initial={customFromMode(state.config) ?? DEFAULT_CUSTOM}
+                    onStart={(def) => startNew(customMode(def))}
+                    onClose={close}
+                />
+            ) : null}
             {dialog === 'settings' ? <SettingsDialog settings={settings} onChange={changeSettings} onClose={close} /> : null}
         </div>
     )

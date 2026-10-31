@@ -5,6 +5,7 @@ export const cheap: EffectDef = {
     price: 1.5,
     text: 'Recruits cost 1 less ● this turn',
     enemies: true,
+    needs: ['gold'],
     lean: ['tide'],
     apply({ state }) {
         state.recruitDiscount++

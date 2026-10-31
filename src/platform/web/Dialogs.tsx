@@ -42,7 +42,15 @@ const GOALS_LABEL = (level: number): string => {
     return `Level ${level + 1}: ${m.goal} ♥ in ${m.turns} turns`
 }
 
-export function NewGameDialog({ onPick, onClose }: { onPick: (config: ModeConfig) => void; onClose: () => void }) {
+export function NewGameDialog({
+    onPick,
+    onCustom,
+    onClose,
+}: {
+    onPick: (config: ModeConfig) => void
+    onCustom: () => void
+    onClose: () => void
+}) {
     return (
         <Modal onClose={onClose}>
             <h2>New game</h2>
@@ -55,6 +63,9 @@ export function NewGameDialog({ onPick, onClose }: { onPick: (config: ModeConfig
                 <hr />
                 <button type="button" class="b alt" onClick={() => onPick(LONG_MODE)}>
                     <Rich text={`Long Run: highest hearts after ${LONG_MODE.turns} turns`} />
+                </button>
+                <button type="button" class="b alt" onClick={onCustom}>
+                    Custom generator…
                 </button>
             </div>
         </Modal>

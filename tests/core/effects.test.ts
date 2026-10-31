@@ -15,6 +15,31 @@ describe('effect registry', () => {
         expect(EFFECT_BY_ID.draw.perDrawCard).toBe(true)
         expect(EFFECTS.filter((e) => !e.enemies).map((e) => e.id)).toEqual(['all3', 'bond', 'kin', 'army'])
     })
+
+    // A tripwire: a new or changed effect fails here until its needs are decided on purpose. The generator and the custom
+    // generator dialog read `needs`, so a wrong table means dead effects (or missing ones) in limited generators.
+    it('declares what each effect needs from a generator', () => {
+        expect(Object.fromEntries(EFFECTS.map((e) => [e.id, e.needs ?? []]))).toEqual({
+            draw: [],
+            coin: ['gold'],
+            exile: [],
+            cheap: ['gold'],
+            foes: ['foe', 'power'],
+            all3: ['moss', 'ember', 'tide', 'hearts'],
+            vault: ['exile', 'hearts'],
+            basics: ['gold'],
+            pile: ['power'],
+            bond: [],
+            kin: [],
+            weak: ['foe', 'power'],
+            army: [],
+            cycle: [],
+            purge: [],
+            swap: ['gold', 'power'],
+            reapG: ['gold', 'hearts'],
+            reapP: ['power', 'hearts'],
+        })
+    })
 })
 
 describe('type effects', () => {

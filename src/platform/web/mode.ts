@@ -1,5 +1,6 @@
 import { LONG_MODE, MODES, standardMode } from '../../core'
 import type { ModeConfig } from '../../core'
+import { CUSTOM_ID, customFromMode, customMode, customQuery, parseCustom } from './custom'
 
 export function modeFromId(id: string | null | undefined): ModeConfig {
     if (!id) return standardMode(0)
@@ -28,9 +29,11 @@ export function parseStartParams(search: string, fallbackSeed: () => number = ra
     const params = new URLSearchParams(search)
     const raw = params.get('seed')
     const parsed = raw !== null && /^-?\d+$/.test(raw) ? Number(raw) >>> 0 : null
-    return { config: modeFromId(params.get('mode')), seed: parsed ?? fallbackSeed() }
+    const config = params.get('mode')?.toLowerCase() === CUSTOM_ID ? customMode(parseCustom(params)) : modeFromId(params.get('mode'))
+    return { config, seed: parsed ?? fallbackSeed() }
 }
 
 export function shareQuery(config: ModeConfig, seed: number): string {
-    return `?seed=${seed}&mode=${config.id}`
+    const custom = customFromMode(config)
+    return `?seed=${seed}&mode=${config.id}${custom ? '&' + customQuery(custom) : ''}`
 }

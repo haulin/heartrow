@@ -5,6 +5,7 @@ export const pile: EffectDef = {
     price: 1.5,
     text: '+1 ⚔ per 3 cards in your discard',
     enemies: true,
+    needs: ['power'],
     lean: ['ember'],
     retainable: true,
     apply({ state, gain }) {

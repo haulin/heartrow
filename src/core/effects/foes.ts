@@ -5,6 +5,7 @@ export const foes: EffectDef = {
     price: 2,
     text: '+1 ⚔ per enemy in the recruit row',
     enemies: true,
+    needs: ['foe', 'power'],
     lean: ['ember'],
     retainable: true,
     apply({ state, source, rowEnemies, gain }) {

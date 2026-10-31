@@ -1,9 +1,22 @@
 import { describe, expect, it } from 'vitest'
-import { EFFECT_BY_ID, EFFECTS, LONG_MODE, makeCard, newGame, SIMPLE_MODE, standardMode } from '../../src/core'
-import type { Card, ModeConfig } from '../../src/core'
+import { EFFECT_BY_ID, EFFECTS, LONG_MODE, makeCard, newGame, SIMPLE_MODE, standardMode, unmetNeeds } from '../../src/core'
+import type { Card, GeneratorConfig, ModeConfig } from '../../src/core'
 import { BOND_EXTRA_PRICE, RETAIN_PRICE } from '../../src/core/generator/budget'
 
 const PER_TURN = 400
+
+/** A Level 1 mode whose generator allows everything except what the test overrides. */
+function limited(generator: Partial<GeneratorConfig>): ModeConfig {
+    return {
+        ...standardMode(0),
+        generator: {
+            allowedTypes: ['moss', 'ember', 'tide', 'foe'],
+            allowedResources: ['gold', 'power', 'hearts'],
+            allowedEffects: EFFECTS.map((e) => e.id),
+            ...generator,
+        },
+    }
+}
 
 function spentBudget(card: Card): number {
     let spent = card.gold + card.power + card.hearts * 1.5
@@ -81,9 +94,9 @@ describe('makeCard', () => {
     })
 
     it('never makes a banned card type, and makes only enemies when no recruit types are allowed', () => {
-        const noTide = newGame({ ...standardMode(0), generator: { allowedTypes: ['moss', 'ember', 'foe'], allowedEffects: [] } }, 5).state
-        const noFoes = newGame({ ...standardMode(0), generator: { allowedTypes: ['tide'], allowedEffects: [] } }, 5).state
-        const onlyFoes = newGame({ ...standardMode(0), generator: { allowedTypes: ['foe'], allowedEffects: [] } }, 5).state
+        const noTide = newGame(limited({ allowedTypes: ['moss', 'ember', 'foe'], allowedEffects: [] }), 5).state
+        const noFoes = newGame(limited({ allowedTypes: ['tide'], allowedEffects: [] }), 5).state
+        const onlyFoes = newGame(limited({ allowedTypes: ['foe'], allowedEffects: [] }), 5).state
         for (let i = 0; i < 500; i++) {
             expect(makeCard(noTide, 3).type).not.toBe('tide')
             expect(makeCard(noFoes, 3).type).toBe('tide')
@@ -96,5 +109,62 @@ describe('makeCard', () => {
         const b = newGame(SIMPLE_MODE, 9).state
         expect(a.row.map((c) => c.id)).toEqual(b.row.map((c) => c.id))
         expect(a.row).toEqual(b.row)
+    })
+
+    it('makes the same cards with no generator as with a generator that allows everything', () => {
+        const plain = newGame(standardMode(0), 21).state
+        const open = newGame(limited({}), 21).state
+        for (let turn = 1; turn <= 24; turn++) {
+            for (let i = 0; i < 100; i++) expect(makeCard(open, turn)).toEqual(makeCard(plain, turn))
+        }
+    })
+
+    it('makes no power and no enemies when power is off, and no hearts on recruits when hearts are off', () => {
+        const noPower = newGame(limited({ allowedResources: ['gold', 'hearts'] }), 4).state
+        const noHearts = newGame(limited({ allowedResources: ['gold', 'power'] }), 4).state
+        for (let turn = 1; turn <= 24; turn++) {
+            for (let i = 0; i < 100; i++) {
+                const a = makeCard(noPower, turn)
+                expect(a.power).toBe(0)
+                expect(a.kind).toBe('recruit')
+                expect(a.kinCurrency ?? 'gold').toBe('gold')
+                const b = makeCard(noHearts, turn)
+                expect(b.hearts).toBe(0)
+                expect(b.kind).toBe('recruit')
+            }
+        }
+    })
+
+    it('can make a power-only deck: no gold on cards, only enemies when only enemies are allowed', () => {
+        const noGold = newGame(limited({ allowedResources: ['power', 'hearts'] }), 4).state
+        const attackOnly = newGame(limited({ allowedTypes: ['foe'], allowedResources: ['power', 'hearts'] }), 4).state
+        for (let turn = 1; turn <= 24; turn++) {
+            for (let i = 0; i < 100; i++) {
+                const a = makeCard(noGold, turn)
+                expect(a.gold).toBe(0)
+                expect(a.kinCurrency ?? 'power').toBe('power')
+                const b = makeCard(attackOnly, turn)
+                expect(b.kind).toBe('enemy')
+                expect(b.gold).toBe(0)
+            }
+        }
+    })
+
+    it('skips effects whose needs are off', () => {
+        const rolled = (generator: Partial<GeneratorConfig>) => {
+            const state = newGame(limited(generator), 6).state
+            const ids = new Set<string>()
+            for (let turn = 1; turn <= 24; turn++) for (let i = 0; i < 300; i++) for (const id of makeCard(state, turn).fx) ids.add(id)
+            return ids
+        }
+        const noPower = rolled({ allowedResources: ['gold', 'hearts'] })
+        for (const id of ['swap', 'pile', 'reapP', 'foes', 'weak']) expect(noPower.has(id)).toBe(false)
+        expect(noPower.has('reapG')).toBe(true)
+        const noEmber = rolled({ allowedTypes: ['moss', 'tide', 'foe'] })
+        expect(noEmber.has('all3')).toBe(false)
+        const noExile = rolled({ allowedEffects: EFFECTS.map((e) => e.id).filter((id) => id !== 'exile') })
+        expect(noExile.has('vault')).toBe(false)
+        expect(unmetNeeds({ allowedTypes: ['moss'], allowedResources: ['gold'], allowedEffects: [] }, 'swap')).toEqual(['power'])
+        expect(unmetNeeds(undefined, 'swap')).toEqual([])
     })
 })

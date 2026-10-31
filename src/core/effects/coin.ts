@@ -6,6 +6,7 @@ export const coin: EffectDef = {
     price: 2.5,
     text: 'Flip: +2 or +4 ●',
     enemies: true,
+    needs: ['gold'],
     lean: ['moss'],
     apply({ state, events }) {
         const gold = chance(state.streams.flip, 0.5) ? 2 : 4

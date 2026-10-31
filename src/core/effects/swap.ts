@@ -5,6 +5,7 @@ export const swap: EffectDef = {
     price: 1.5,
     text: 'Swap ● and ⚔',
     enemies: true,
+    needs: ['gold', 'power'],
     lean: ['moss', 'ember'],
     retainable: true,
     apply({ state, events }) {

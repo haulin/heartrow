@@ -6,6 +6,7 @@ export const basics: EffectDef = {
     price: 1.5,
     text: '+1 ● per 4 basic cards in your deck',
     enemies: true,
+    needs: ['gold'],
     lean: ['moss'],
     apply({ state, gain }) {
         gain('gold', Math.floor(ownedCards(state).filter((card) => card.kind === 'basic').length / 4))

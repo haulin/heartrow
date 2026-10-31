@@ -5,6 +5,7 @@ export const weak: EffectDef = {
     price: 1.5,
     text: 'Enemies cost 1 less ⚔ this turn',
     enemies: true,
+    needs: ['foe', 'power'],
     lean: ['ember'],
     apply({ state }) {
         state.enemyDiscount++

@@ -3,6 +3,9 @@ import type { Streams } from './rng'
 export type Colour = 'moss' | 'ember' | 'tide'
 export type CardType = Colour | 'plain' | 'foe'
 export type GeneratorCardType = Colour | 'foe'
+export type GeneratorResource = Currency | 'hearts'
+/** What a generator must allow for an effect to be worth rolling. `exile` means the exile effect itself is allowed. */
+export type EffectNeed = GeneratorResource | GeneratorCardType | 'exile'
 export type CardKind = 'recruit' | 'enemy' | 'basic'
 export type Currency = 'gold' | 'power'
 
@@ -164,5 +167,7 @@ export interface StarterSpec {
 
 export interface GeneratorConfig {
     allowedTypes: GeneratorCardType[]
+    /** What cards and effects may give. Gold is always treated as allowed when nothing else is, because recruits cost gold. */
+    allowedResources: GeneratorResource[]
     allowedEffects: EffectId[]
 }

@@ -431,6 +431,58 @@ dialog::backdrop {
     align-items: center;
     justify-content: space-between;
 }
+.picks {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+    margin: 12px 0 0;
+    padding: 8px 10px;
+    border: 0;
+    border-radius: 10px;
+    background: var(--panel);
+}
+.picks legend {
+    padding: 0 6px;
+}
+.pick {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    width: 8.5em;
+}
+.pick.wide {
+    width: auto;
+}
+.picks input[type='number'] {
+    width: 3.5em;
+    font: inherit;
+    background: var(--bg);
+    color: var(--ink);
+    border: 0;
+    border-radius: 6px;
+    padding: 3px 6px;
+}
+.pick.moss {
+    color: var(--moss);
+}
+.pick.ember {
+    color: var(--ember);
+}
+.pick.tide {
+    color: var(--tide);
+}
+.pick.foe {
+    color: var(--foe);
+}
+/* A switched-off choice loses its colour as well as brightness, so it never has to be compared with the other greys. */
+.picks .pick.off {
+    color: var(--ink);
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+.picks input:disabled {
+    cursor: not-allowed;
+}
 select {
     font: inherit;
     background: var(--panel);

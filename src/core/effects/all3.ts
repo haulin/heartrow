@@ -5,6 +5,7 @@ export const all3: EffectDef = {
     price: 2,
     text: '+2 ♥ if you played all 3 types this turn',
     enemies: false,
+    needs: ['moss', 'ember', 'tide', 'hearts'],
     lean: ['tide'],
     retainable: true,
     apply({ state, source }) {

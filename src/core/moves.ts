@@ -19,7 +19,11 @@ export function newGame(config: ModeConfig, seed: number): StepResult {
             steps: config.steps.map((step) => ({ ...step })),
             starter: { ...config.starter },
             ...(config.generator && {
-                generator: { allowedTypes: [...config.generator.allowedTypes], allowedEffects: [...config.generator.allowedEffects] },
+                generator: {
+                    allowedTypes: [...config.generator.allowedTypes],
+                    allowedResources: [...config.generator.allowedResources],
+                    allowedEffects: [...config.generator.allowedEffects],
+                },
             }),
         },
         seed,
