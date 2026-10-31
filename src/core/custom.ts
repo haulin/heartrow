@@ -66,6 +66,41 @@ export const CUSTOM_PRESETS: readonly CustomPreset[] = [
             starterPower: 0,
         },
     },
+    {
+        id: 'moss',
+        name: 'Moss economy',
+        generator: {
+            ...DEFAULT_CUSTOM,
+            types: ['moss'],
+            resources: ['gold', 'hearts'],
+            effects: ['draw', 'coin', 'exile', 'cheap', 'basics', 'bond', 'kin', 'reapG'],
+            starterGold: STARTER.basicGold + STARTER.basicPower,
+            starterPower: 0,
+        },
+    },
+    {
+        id: 'tide',
+        name: 'Tide hearts',
+        generator: {
+            ...DEFAULT_CUSTOM,
+            types: ['tide'],
+            resources: ['gold', 'hearts'],
+            effects: ['draw', 'exile', 'cheap', 'vault', 'bond', 'kin', 'cycle', 'purge'],
+            starterGold: STARTER.basicGold + STARTER.basicPower,
+            starterPower: 0,
+        },
+    },
+    {
+        id: 'ember',
+        name: 'Ember combat',
+        generator: {
+            ...DEFAULT_CUSTOM,
+            types: ['ember', 'foe'],
+            effects: ['draw', 'coin', 'exile', 'foes', 'pile', 'bond', 'kin', 'weak', 'army', 'swap', 'reapP'],
+            starterGold: 7,
+            starterPower: 3,
+        },
+    },
 ]
 
 export function customMode(def: CustomGenerator): ModeConfig {
@@ -108,6 +143,12 @@ export function customSummary(def: CustomGenerator): string {
             ? []
             : [`start with ${def.starterGold} ● and ${def.starterPower} ⚔ Basics`]),
     ].join('; ')
+}
+
+/** The generator settings any mode amounts to, as a starting point for editing: a custom run's own, otherwise the defaults at its goal. */
+export function customOfMode(config: ModeConfig): CustomGenerator {
+    const goalLevel = Math.max(0, GOALS.indexOf(config.goal ?? GOALS[0]!))
+    return customFromMode(config) ?? { ...DEFAULT_CUSTOM, goalLevel }
 }
 
 /** Reads a custom generator back out of a running custom mode, so a platform can reuse it. */
