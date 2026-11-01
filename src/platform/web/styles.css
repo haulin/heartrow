@@ -246,6 +246,13 @@ button.stat {
 .hand .slot + .slot {
     margin-left: calc(var(--k, 0) * -1 * (var(--cw) + 6px));
 }
+.hand.large {
+    min-height: calc(var(--cw) * 175 / 118 + var(--cw) * 175 / 236 + 6px);
+    align-items: flex-start;
+}
+.hand.large .slot:nth-child(even) {
+    translate: 0 calc(var(--cw) * 175 / 236);
+}
 .hand .slot:hover,
 .hand .slot:has(:focus-visible),
 .row .slot:hover,

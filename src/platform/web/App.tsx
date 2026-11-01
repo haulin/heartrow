@@ -304,7 +304,7 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                 </div>
 
                 <h2>Your hand</h2>
-                <div class="cards hand" data-zone="hand" style={{ '--k': overlap }}>
+                <div class={`cards hand${n >= 10 ? ' large' : ''}`} data-zone="hand" style={{ '--k': overlap }}>
                     {state.hand.map((card, i) => (
                         <div class="slot" key={card.id}>
                             <skin.Card view={buildCardView(card, 'hand', i, state)} onActivate={() => handCard(card.id)} />

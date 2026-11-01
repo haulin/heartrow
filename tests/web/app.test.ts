@@ -142,6 +142,23 @@ describe('App', () => {
         expect(host.querySelector('#msg')?.textContent).toContain('Click hand cards')
     })
 
+    it('switches to the staggered hand layout at ten cards', () => {
+        const { host, store } = mount()
+        const state = store.getState()
+        state.hand.push(
+            ...Array.from({ length: 5 }, (_, i) => ({
+                ...state.hand[i % state.hand.length]!,
+                id: 10000 + i,
+                fx: [...state.hand[i % state.hand.length]!.fx],
+                played: false,
+            })),
+        )
+        void act(() => {
+            store.dispatch({ type: 'play', handIndex: 0 })
+        })
+        expect(host.querySelector('[data-zone="hand"]')?.classList).toContain('large')
+    })
+
     it('plays a hand card on click and enables undo', () => {
         const { host, store } = mount()
         const before = store.getState().hand.map((c) => c.played)
