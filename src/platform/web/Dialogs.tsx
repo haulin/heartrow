@@ -37,25 +37,32 @@ export function Modal({ onClose, children }: { onClose: () => void; children: Co
     )
 }
 
-/** Copies text. The clipboard API only exists on secure pages (not on a phone that opens the dev server by its address), so fall back to the old way. */
-async function copy(text: string): Promise<boolean> {
+/** Copies text. A LAN page over HTTP is not a secure context, so it cannot promise that the browser clipboard was updated. */
+export async function copy(text: string): Promise<boolean> {
+    const secure = globalThis.isSecureContext === true
     try {
-        await globalThis.navigator.clipboard.writeText(text)
-        return true
-    } catch {
-        try {
-            const box = document.createElement('textarea')
-            box.value = text
-            box.style.position = 'fixed'
-            box.style.opacity = '0'
-            document.body.append(box)
-            box.select()
-            const ok = document.execCommand('copy')
-            box.remove()
-            return ok
-        } catch {
-            return false
+        if (secure && globalThis.navigator.clipboard) {
+            await globalThis.navigator.clipboard.writeText(text)
+            return true
         }
+    } catch {
+        // Try the legacy path below. A browser may expose the API but still reject this write.
+    }
+    try {
+        const box = document.createElement('textarea')
+        box.value = text
+        box.style.position = 'fixed'
+        box.style.opacity = '0'
+        document.body.append(box)
+        box.focus()
+        box.select()
+        box.setSelectionRange(0, box.value.length)
+        document.execCommand('copy')
+        box.remove()
+        // The legacy command can return true without making the system clipboard available.
+        return false
+    } catch {
+        return false
     }
 }
 

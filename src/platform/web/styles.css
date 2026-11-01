@@ -475,7 +475,7 @@ dialog::backdrop {
     gap: clamp(8px, 1.6cqw, 14px);
 }
 .levels button.b.level {
-    min-height: clamp(96px, 22cqw, 150px);
+    min-height: clamp(88px, 18cqw, 126px);
     display: grid;
     grid-template-columns: 1fr auto;
     grid-template-areas:
@@ -498,6 +498,9 @@ dialog::backdrop {
 .level.l2 {
     --tint: 30%;
 }
+.level.l3 {
+    --tint: 42%;
+}
 .level .lv {
     grid-area: lv;
     align-self: end;
@@ -512,7 +515,7 @@ dialog::backdrop {
 }
 .level .goal {
     grid-area: goal;
-    font-size: clamp(40px, 12cqw, 84px);
+    font-size: clamp(36px, 10.5cqw, 76px);
     font-weight: 800;
     line-height: 1;
 }

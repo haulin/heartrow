@@ -1,4 +1,4 @@
-import { LONG_MODE, standardMode } from '../../core'
+import { GOALS, LONG_MODE, standardMode } from '../../core'
 import type { ModeConfig } from '../../core'
 import { Rich } from './Rich'
 
@@ -27,7 +27,7 @@ export function StandardScreen({
             </p>
             {replaces ? <p class="replaces">Picking a level starts a new run and replaces the one in progress.</p> : null}
             <nav class="levels" aria-label="Levels">
-                {[0, 1, 2].map((level) => {
+                {GOALS.map((_, level) => {
                     const m = standardMode(level)
                     return (
                         <button key={level} type="button" class={`b level l${level}`} onClick={() => onPick(m)}>

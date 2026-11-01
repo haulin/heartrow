@@ -12,6 +12,7 @@ Everything here is not done yet. Log each idea as one undated line, and mark its
 - A recruit that only draws one card (a 2 ● Draw 1 with nothing else) appears again. An earlier rule said it should not. Decide later.
 - Cycle and purge discard order: they discard after drawing. Check how it looks in the UI.
 - The saved run has one slot only; several slots could come with saved generators.
+- Copy run on a phone over an insecure LAN address shows “Not copied” because the modern Clipboard API is unavailable and the legacy fallback cannot be confirmed. Try HTTPS or a more useful “Copy attempted” state.
 - Bond pricing (parked, feels a little off): Bond costs `0.5` plus `0, 0.7, 1.5` for +1, +2, +3, so +3 costs `2.0` budget, two thirds of a plain +3. A playtest card (4 ●, 1 ⚔, Bond +3 ⚔, Retain) felt cheap, since a Retained Bond card can wait until its type has been played, and a generator with few types makes that likelier. Counter-view: a buyer who plans on several cards of one colour will often miss, and the card's price works out about right against a guaranteed 4 (Bond +3 at 2.0 is 1 + 2 + 0.5 = 3.5 budget for the bonus part, against 3.7 for a cost-4 card). Making it miss would need about 0.9 per level, which may be too harsh. Leave it until more play data; changing it is an engine change, so bump the version then.
 - Recheck every card for the 1 px icon shift. The "Extra slow" animation entry vanished once after a hot reload; check after a full reload.
 - Colour review after the icon change: the light theme looks weak, Enemy purple and Tide blue are too close, and unaffordable recruit cards (dimmed to 55%) look faded next to Basics. Decide in one pass over both themes.
@@ -34,6 +35,7 @@ Everything here is not done yet. Log each idea as one undated line, and mark its
 - Enemy cost minimum of one after discounts (see free enemies).
 - Reprice `weak`. Add a `redraw` effect (probably enemies only), a duplicate-rightmost-unused-card effect, and a `haste` effect that resolves a recruit's effect when recruited.
 - Count recruiting as playing a type. Let draw-only cards count as simple. Cap stacked Retain cards.
+- Kin as a heart source (open): Kin currently copies a card's gold or power output, but a Tide-flavoured version could copy hearts. Decide whether that makes Tide more coherent or makes Kin too flexible for every colour.
 - Reward rare runs of identical recruit cards as an achievement; prevent redraw farming.
 - If Basics are removed, test starter compositions such as 3 Moss / 3 Ember / 3 Tide.
 - Parametrised effects (open question): `foes`, `pile`, `all3`, `vault`, `cheap`, `basics` and `weak` are fixed text today. Possible parameters: the currency, the divisor and the amount. Each would need a price per step. Generator settings must not change rolled parameters except through the allowed resources and types.
@@ -108,7 +110,7 @@ Candidate archetypes, not approved balance targets. Test constrained generators 
 - Riso game screen edits (for later): on desktop, bundle all stats into one bordered panel with Redraws and Piles outside it; drop the border around the hand; too many borders overall. On phones the cards are squeezed and the transparency on real-style cards looks bad.
 - Mockup lessons: keep the real card ratio (118 × 175), round the inner border corners, never let descriptions overlap the border, brief mockup agents with the real card CSS and not a style name. Skip exile needs a place on narrow screens.
 - Alternative phone skin: bigger card text without effect descriptions, with keyword meanings in a help section or on long press. Styling is swappable on the web, so it can be a skin.
-- Large hands on phones (unproven): try a horizontally scrolling hand; playtest a long run on a phone first. Improve access to cards deep in an overlapped hand.
+- Large hands on phones (confirmed awkward): an 11-card hand required clicking off the hand and aiming precisely at a card. From 10 cards, try offsetting every other card down by about half a card height; this should overlap only every second card and avoid overlap through nine cards. Prove the idea on a phone before keeping it.
 - Draw cards even larger and shrink them more, and test large system text on a phone.
 - Animation ideas, all optional: overlap recruiting, refilling the river, exile and the hand closing up; a shuffle animation counting the piles box (0 / 9 to 9 / 0); the piles number changing colour on a pulse; a new hand dealing while the old one flies away; a "−2 ●" flying out of the box on a spend; the status line changing on the click and not mid-animation.
 - Defeated tally as a visible count (add it when the first effect uses it).

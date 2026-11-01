@@ -1,11 +1,12 @@
 // @vitest-environment happy-dom
 import { h, render } from 'preact'
 import { act } from 'preact/test-utils'
-import { afterEach, describe, expect, it } from 'vite-plus/test'
+import { afterEach, describe, expect, it, vi } from 'vite-plus/test'
 import { standardMode } from '../../src/core'
 import { App } from '../../src/platform/web/App'
 import { planAfter, planBefore, resolveSpeed } from '../../src/platform/web/anim'
 import { createPresenter } from '../../src/platform/web/anim/presenter'
+import { copy } from '../../src/platform/web/Dialogs'
 import { DEFAULT_SETTINGS, saveSettings } from '../../src/platform/web/settings'
 import type { AnimSpeed } from '../../src/platform/web/settings'
 import { GameStore } from '../../src/platform/web/store'
@@ -66,7 +67,8 @@ describe('App level picker screen', () => {
         const { host } = mount(4, 'off', 'home')
         press(host, 'Standard')
         expect(window.location.search).toBe('?screen=standard')
-        expect(host.querySelectorAll('.levels button')).toHaveLength(3)
+        expect(host.querySelectorAll('.levels button')).toHaveLength(4)
+        expect(host.querySelector('.levels button:last-child')?.textContent).toContain('96')
         expect(host.querySelector('dialog')).toBeNull()
         window.history.replaceState(null, '', '/?screen=standard')
         press(host, '← Back')
@@ -193,6 +195,44 @@ describe('animation module', () => {
         else expect(planBefore(take, host).map((e) => e.kind)).toContain('flyCard')
     })
 
+    it('flies hearts from a Vault-only card with no printed gain badge', () => {
+        const { host, store } = mount()
+        const card = store.getState().hand[0]!
+        Object.assign(card, { gold: 0, power: 0, hearts: 0, fx: ['vault'], main: 'gold' })
+        store.getState().exile.push(card, card, card)
+        host.querySelector<HTMLElement>(`[data-card-id="${card.id}"]`)
+            ?.querySelectorAll('.bd b')
+            .forEach((badge) => badge.remove())
+        const body = host.querySelector<HTMLElement>(`[data-card-id="${card.id}"] .bd`)!
+        const effect = document.createElement('i')
+        effect.textContent = 'Vault'
+        body.append(effect)
+        const play = store.dispatch({ type: 'play', handIndex: 0 })
+        const flight = planBefore(play, host).find((effect) => effect.kind === 'fly' && effect.gain?.stat === 'hearts')
+        expect(flight).toBeDefined()
+        expect(flight?.gain?.amount).toBe(1)
+        expect(flight?.el.tagName).toBe('I')
+    })
+
+    it('flies gains from a Basics-only card with no printed gain badge', () => {
+        const { host, store } = mount()
+        const card = store.getState().hand[0]!
+        Object.assign(card, { gold: 0, power: 0, hearts: 0, fx: ['basics'], main: 'gold' })
+        store.getState().exile = store.getState().deck.splice(0, 3)
+        host.querySelector<HTMLElement>(`[data-card-id="${card.id}"]`)
+            ?.querySelectorAll('.bd b')
+            .forEach((badge) => badge.remove())
+        const body = host.querySelector<HTMLElement>(`[data-card-id="${card.id}"] .bd`)!
+        const effect = document.createElement('i')
+        effect.textContent = 'Basics'
+        body.append(effect)
+        const play = store.dispatch({ type: 'play', handIndex: 0 })
+        const flight = planBefore(play, host).find((effect) => effect.kind === 'fly' && effect.gain?.stat === 'gold')
+        expect(flight).toBeDefined()
+        expect(flight?.gain?.amount).toBe(1)
+        expect(flight?.el.tagName).toBe('I')
+    })
+
     it('flies every card that leaves the hand to the piles when the turn ends', () => {
         const { host, store } = mount()
         const before = store.getState().hand
@@ -247,6 +287,25 @@ describe('animation module', () => {
             presenter.dispose()
         } finally {
             proto.animate = saved
+        }
+    })
+})
+
+describe('clipboard helper', () => {
+    it('does not claim success for a legacy copy on an insecure page', async () => {
+        const secure = Object.getOwnPropertyDescriptor(window, 'isSecureContext')
+        const originalExecCommand = Object.getOwnPropertyDescriptor(document, 'execCommand')
+        Object.defineProperty(window, 'isSecureContext', { configurable: true, value: false })
+        const execCommand = vi.fn().mockReturnValue(true)
+        Object.defineProperty(document, 'execCommand', { configurable: true, value: execCommand })
+        try {
+            expect(await copy('run')).toBe(false)
+            expect(execCommand).toHaveBeenCalledWith('copy')
+        } finally {
+            if (originalExecCommand) Object.defineProperty(document, 'execCommand', originalExecCommand)
+            else delete (document as unknown as { execCommand?: unknown }).execCommand
+            if (secure) Object.defineProperty(window, 'isSecureContext', secure)
+            else delete (window as unknown as { isSecureContext?: boolean }).isSecureContext
         }
     })
 })

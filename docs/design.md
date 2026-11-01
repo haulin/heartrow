@@ -59,7 +59,7 @@ The exact order of events in a turn is defined by `endTurn` in `src/core/moves.t
 
 Modes are data (`ModeConfig` in `src/core/modes.ts`), not code.
 
-- **Standard** lasts 24 turns. The goal is 48, 64, or 80 hearts (`goal` 1 to 3). `goal` is apart from the mode id.
+- **Standard** lasts 24 turns. The goal is 48, 64, 80 or 96 hearts (`goal` 1 to 4). `goal` is apart from the mode id.
 - **Custom** is Standard with a generator: which card types, resources and effects may appear, and how many Basic gold and power cards you start with. The settings are plain data (`CustomGenerator` in `src/core/custom.ts`) with a small library of presets (Standard, Simple only, Attack only, Pacifist, Moss economy, Tide hearts, Ember combat). The web layer puts them in the link, so a run can be shared (`?mode=custom&goal=2&types=…&res=…&sg=…&sp=…&fx=…&seed=N`).
 - **Long Run** lasts 42 turns, postpones the win check, and reports final hearts as a high score. Turns 1–24 use the standard cost curve. Turns 25–36 add one cost step and use 40% enemy frequency. Turns 37–42 add a second cost step and use 45% enemy frequency. Late pure-resource filler is bounded and rerolled more often from turn 21 (`lateFillerFromTurn`), while utility cards stay eligible. The run grants one redraw every three turns; a four-turn cadence left too little row control late in the run.
 
@@ -67,7 +67,7 @@ Links: `?seed=N&mode=standard&goal=2`, `?seed=N&mode=long`. Starting any new gam
 
 ### Screens
 
-There are four screens, home, game, the level picker and the generator editor, and the address says which. An address with no `mode` or `seed` is the home screen; one with either starts that run directly; `?screen=custom` plus the generator settings is the editor and `?screen=standard` is the level picker, and neither starts a run by itself. The home screen lists Resume (only when a run is in memory), Standard, Long Run, Custom generator, Settings and About. The level picker is three big buttons (Level 1 to 3, each with its goal and turn limit) that share the screen. Every screen change adds a history entry, so Back returns to the screen you came from. An address that matches the run in memory resumes it, and any other game address starts that run.
+There are four screens, home, game, the level picker and the generator editor, and the address says which. An address with no `mode` or `seed` is the home screen; one with either starts that run directly; `?screen=custom` plus the generator settings is the editor and `?screen=standard` is the level picker, and neither starts a run by itself. The home screen lists Resume (only when a run is in memory), Standard, Long Run, Custom generator, Settings and About. The level picker is four big buttons (Level 1 to 4, each with its goal and turn limit) that share the screen. Every screen change adds a history entry, so Back returns to the screen you came from. An address that matches the run in memory resumes it, and any other game address starts that run.
 
 The editor keeps its settings in the address as you change them, so a reload or a copied address gives the same editor. It opens from the home screen (with the settings of the last run, if there is one) and from the run dialog's "Open in the generator editor" button (with the settings of the run on screen; a Standard run opens with the defaults at its goal). Back from the editor returns to where you came from, for example the run; Start begins a new custom run and replaces the one in memory. The screen state is web only; core knows nothing about screens.
 

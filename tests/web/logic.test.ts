@@ -235,6 +235,7 @@ describe('mode and url params', () => {
     })
     it('still reads older level ids, and lets goal win over them', () => {
         expect(modeFromId('standard3').goal).toBe(80)
+        expect(modeFromId('standard4').goal).toBe(96)
         expect(modeFromId('level2').goal).toBe(64)
         expect(modeFromId('2').goal).toBe(64)
         expect(modeFromId('standard3', '1').goal).toBe(48)

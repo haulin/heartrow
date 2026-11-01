@@ -73,12 +73,16 @@ const GAIN_STATS = [
     ['hearts', 'h', '♥'],
 ] as const
 
-/** One flight per currency, showing the total the move gained. It starts from the card's badge (or any badge when the card has none for it). */
+/** One flight per currency, showing the total the move gained. It starts from a gain badge, an effect label, or the card as a last resort. */
 function gainFlights(root: ParentNode, card: HTMLElement | null, gains: Gains): Effect[] {
     const out: Effect[] = []
     for (const [currency, cls] of GAIN_STATS) {
         if (gains[currency] <= 0) continue
-        const from = card?.querySelector<HTMLElement>(`.bd b.${cls}`) ?? card?.querySelector<HTMLElement>('.bd b')
+        const from =
+            card?.querySelector<HTMLElement>(`.bd b.${cls}`) ??
+            card?.querySelector<HTMLElement>('.bd b') ??
+            card?.querySelector<HTMLElement>('.bd i') ??
+            card
         const to = statEl(root, currency)
         if (from && to) out.push({ kind: 'fly', el: from, to, gain: { amount: gains[currency], cls, stat: currency } })
     }
@@ -368,6 +372,8 @@ function setGain(clone: HTMLElement, gain: { amount: number; cls: GainClass }): 
     ico.className = `ico ${gain.cls}`
     ico.textContent = sym
     clone.className = gain.cls
+    clone.style.fontStyle = 'normal'
+    clone.style.fontWeight = '700'
     clone.replaceChildren(`+${gain.amount} `, ico)
 }
 
@@ -399,7 +405,9 @@ function fly(effect: Effect, to: HTMLElement, duration: number, wholeSlot: boole
         if (effect.gain) setGain(clone, effect.gain)
         clone.style.width = 'auto'
         clone.style.height = `${a.height}px`
-        clone.style.fontSize = `${parseFloat(getComputedStyle(from).fontSize) * scale}px`
+        const sourceSize = parseFloat(getComputedStyle(from).fontSize)
+        const gainSize = from.tagName === 'I' ? sourceSize * 1.25 : sourceSize
+        clone.style.fontSize = `${gainSize * scale}px`
         clone.style.whiteSpace = 'nowrap'
     }
     from.ownerDocument.body.append(clone)

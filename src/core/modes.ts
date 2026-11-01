@@ -1,6 +1,6 @@
 import type { ModeConfig } from './types'
 
-export const GOALS = [48, 64, 80]
+export const GOALS = [48, 64, 80, 96]
 
 const STANDARD_STEPS = [{ fromTurn: 1, costBonus: 0, foeChance: 0.35, cheapChance: 0.15 }]
 
