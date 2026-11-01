@@ -169,9 +169,7 @@ export function AboutDialog({ state, onClose }: { state?: GameState | undefined;
             <h2>About Heartrow</h2>
             <p class="rules">Version {__APP_VERSION__}</p>
             <p>
-                Click a hand card to play it, or a recruit row card to buy it. Recruits cost gold ●, go to your discard and work whenever
-                you draw them. Enemies cost power ⚔: defeating one gives its hearts ♥ and effects once, and if one falls off the right edge
-                you lose that many.
+                <Rich text="Heartrow is a small, single-player roguelike deckbuilder. Click a hand card to play it, or a recruit row card to buy it. Recruits cost gold ●, go to your discard and work whenever you draw them. Enemies cost power ⚔: defeating one gives its hearts ♥ and effects once, and if one falls off the right edge you lose that many." />
             </p>
             <p>
                 Standard levels last 24 turns. Long Run lasts 42 turns and records a high score instead of ending when you reach a heart

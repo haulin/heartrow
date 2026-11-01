@@ -47,6 +47,17 @@ describe('App home screen', () => {
         expect(labels).toEqual(['Standard', expect.stringMatching(/^Long Run/), 'Custom generator…', 'Settings', 'About'])
     })
 
+    it('describes the game and draws resource icons in About', () => {
+        const { host } = mount(4, 'off', 'home')
+        press(host, 'About')
+        const about = host.querySelector('dialog')!
+        expect(about.textContent).toContain('roguelike deckbuilder')
+        expect(about.querySelectorAll('.ico')).toHaveLength(3)
+        expect(about.querySelector('.ico.g')).not.toBeNull()
+        expect(about.querySelector('.ico.p')).not.toBeNull()
+        expect(about.querySelector('.ico.h')).not.toBeNull()
+    })
+
     it('starts a Standard run from the menu, goes home, and resumes the same run', () => {
         const { host, store } = mount(4, 'off', 'home')
         press(host, 'Standard')
