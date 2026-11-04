@@ -23,13 +23,28 @@ export function runOf(store: GameStore, version: string): SavedRun {
 }
 
 const isMove = (m: unknown): m is Move => typeof m === 'object' && m !== null && typeof (m as { type?: unknown }).type === 'string'
+const isSavedRun = (raw: unknown, version: string): raw is SavedRun =>
+    typeof raw === 'object' &&
+    raw !== null &&
+    (raw as { version?: unknown }).version === version &&
+    typeof (raw as { query?: unknown }).query === 'string' &&
+    Array.isArray((raw as { moves?: unknown }).moves) &&
+    (raw as { moves: unknown[] }).moves.every(isMove)
+
+/** Parses a pasted or uploaded saved-run record. */
+export function parseRunText(text: string, version: string): SavedRun | null {
+    try {
+        const raw: unknown = JSON.parse(text)
+        return isSavedRun(raw, version) ? { version: raw.version, query: raw.query, moves: raw.moves } : null
+    } catch {
+        return null
+    }
+}
 
 /** The saved run, or null when there is none, it is malformed, or it came from another version of the game. */
 export function loadRun(storage: AppStorage, version: string): SavedRun | null {
     const raw = storage.get<Partial<SavedRun> | null>(KEY, null)
-    if (!raw || raw.version !== version || typeof raw.query !== 'string' || !Array.isArray(raw.moves) || !raw.moves.every(isMove))
-        return null
-    return { version, query: raw.query, moves: raw.moves }
+    return isSavedRun(raw, version) ? { version: raw.version, query: raw.query, moves: raw.moves } : null
 }
 
 export interface Opened {

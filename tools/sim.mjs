@@ -6,7 +6,7 @@ const server = await createServer({
     root: process.cwd(),
     appType: 'custom',
     logLevel: 'error',
-    server: { middlewareMode: true, hmr: false, watch: null },
+    server: { middlewareMode: true, hmr: false, ws: false, watch: null },
     optimizeDeps: { noDiscovery: true, include: [] },
 })
 try {

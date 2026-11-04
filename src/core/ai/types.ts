@@ -10,6 +10,8 @@ export interface PickOptions {
     mode: 'sample' | 'greedy'
     /** Greedy mode only: the chance of picking a uniformly random legal move instead of the best one. */
     epsilon: number
+    /** Sample mode only: raises weights before sampling, so ordinary policy factors can still express clear priorities. */
+    samplePower?: number
 }
 
 /** A bot personality. Policies can hold per-game memory, so build a fresh profile for each game. */

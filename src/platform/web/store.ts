@@ -27,6 +27,9 @@ export class GameStore {
     private epoch = 0
     private holds: Holds = {}
     private moves: Move[] = []
+    private replayMoves: Move[] | null = null
+    private replayIndex = 0
+    private replayUndo: Session[] = []
     private readonly listeners = new Set<() => void>()
 
     constructor(config: ModeConfig, seed: number) {
@@ -40,6 +43,10 @@ export class GameStore {
      */
     getMoves = (): Move[] => this.moves
 
+    /** The loaded bot replay and its current position, or null during an ordinary run. */
+    getReplayProgress = (): { done: number; total: number } | null =>
+        this.replayMoves ? { done: this.replayIndex, total: this.replayMoves.length } : null
+
     /** Plays `moves` on the current run at once, without animation. Returns false (and changes nothing) if the rules reject one of them. */
     replay = (moves: Move[]): boolean => {
         let session = this.session
@@ -48,9 +55,44 @@ export class GameStore {
             if (outcome.rejected) return false
             session = outcome.session
         }
+        this.replayMoves = null
+        this.replayIndex = 0
+        this.replayUndo = []
         this.moves = [...moves]
         this.jumpTo(session)
         return true
+    }
+
+    /** Loads a validated bot replay at its starting state so the UI can step through it. */
+    loadReplay = (config: ModeConfig, seed: number, moves: Move[]): boolean => {
+        let session = startSession(config, seed)
+        for (const move of moves) {
+            const outcome = stepSession(session, move)
+            if (outcome.rejected) return false
+            session = outcome.session
+        }
+        this.replayMoves = [...moves]
+        this.replayIndex = 0
+        this.replayUndo = []
+        this.moves = []
+        this.jumpTo(startSession(config, seed))
+        return true
+    }
+
+    /** Applies the next move in a loaded replay and presents it like a normal move. */
+    replayNext = (): Frame | null => {
+        const move = this.replayMoves?.[this.replayIndex]
+        if (!move) return null
+        const before = this.session
+        this.replayIndex++
+        const frame = this.step(move)
+        if (frame.rejected) {
+            this.replayMoves = null
+            this.replayUndo = []
+        } else {
+            this.replayUndo.push(before)
+        }
+        return frame
     }
 
     /** The latest session. */
@@ -64,6 +106,8 @@ export class GameStore {
 
     /** Counts undo and new-game jumps. A presenter drops its work when this changes. */
     getEpoch = (): number => this.epoch
+
+    canUndo = (): boolean => (this.replayMoves ? this.replayUndo.length > 0 : this.session.undo.length > 0)
 
     /** Resource numbers the view keeps showing at their old value while a flight is still carrying the change to its stat box. */
     getHolds = (): Holds => this.holds
@@ -109,7 +153,7 @@ export class GameStore {
         }
     }
 
-    dispatch = (move: Move): Frame => {
+    private step = (move: Move): Frame => {
         const before = this.session
         const outcome = stepSession(before, move)
         this.session = outcome.session
@@ -120,15 +164,32 @@ export class GameStore {
         return frame
     }
 
+    dispatch = (move: Move): Frame => {
+        this.replayMoves = null
+        this.replayIndex = 0
+        this.replayUndo = []
+        return this.step(move)
+    }
+
     undo = (): void => {
+        if (this.replayMoves) {
+            const previous = this.replayUndo.pop()
+            if (!previous) return
+            this.replayIndex--
+            this.moves = this.moves.slice(0, -1)
+            this.jumpTo(previous)
+            return
+        }
         const next = undoSession(this.session)
         if (next === this.session) return
-        // Undo only reaches back to a move that was not End turn, so it always undoes the last accepted move.
         this.moves = this.moves.slice(0, -1)
         this.jumpTo(next)
     }
 
     newGame = (config: ModeConfig, seed: number): void => {
+        this.replayMoves = null
+        this.replayIndex = 0
+        this.replayUndo = []
         this.moves = []
         this.jumpTo(startSession(config, seed))
     }

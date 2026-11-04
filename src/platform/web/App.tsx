@@ -2,14 +2,14 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/ho
 import { DEFAULT_CUSTOM, customMode, customOfMode } from '../../core'
 import type { CustomGenerator, ModeConfig, Move } from '../../core'
 import { editorQuery } from './custom'
-import { AboutDialog, LogDialog, PilesDialog, RunDialog, SettingsDialog, modeLabel } from './Dialogs'
+import { AboutDialog, LoadRunDialog, LogDialog, PilesDialog, RunDialog, SettingsDialog, modeLabel } from './Dialogs'
 import { GeneratorScreen } from './GeneratorScreen'
 import { Home, StandardScreen } from './Home'
 import { Rich } from './Rich'
 import { Stats } from './Stats'
 import { browserReducedMotion, createPresenter } from './anim/presenter'
-import { randomSeed, routeFor, shareQuery } from './mode'
-import { runOf } from './resume'
+import { parseStartParams, randomSeed, routeFor, shareQuery } from './mode'
+import { parseRunText, runOf } from './resume'
 import { applyTheme, loadSettings, saveSettings } from './settings'
 import { SKIN_IDS, getSkin } from './skins'
 import type { GameStore } from './store'
@@ -17,7 +17,7 @@ import type { AppStorage } from './storage'
 import { spoken, statusMessage } from './text'
 import { buildCardView } from './view/cardView'
 
-type DialogName = 'about' | 'log' | 'piles' | 'run' | 'settings'
+type DialogName = 'about' | 'load' | 'log' | 'piles' | 'run' | 'settings'
 type Screen = 'home' | 'game' | 'custom' | 'standard'
 
 export interface AppProps {
@@ -169,6 +169,18 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
         setScreen('standard')
     }
 
+    const loadReplay = (text: string): string | null => {
+        const saved = parseRunText(text, __APP_VERSION__)
+        if (!saved) return 'This is not a valid replay for this game version.'
+        const start = parseStartParams(saved.query)
+        if (!store.loadReplay(start.config, start.seed, saved.moves)) return 'The replay contains a move the rules reject.'
+        setDialog(null)
+        push(shareQuery(start.config, start.seed))
+        setStarted(true)
+        setScreen('game')
+        return null
+    }
+
     /** Leaves the editor or the level picker the way the browser's Back would. Without an entry of ours behind it (a pasted address), it goes to the menu. */
     const leaveEditor = () => {
         if (globalThis.history?.state?.in) return globalThis.history.back()
@@ -182,6 +194,7 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
 
     const n = state.hand.length
     const overlap = n > 5 ? (n - 5) / (n - 1) : 0
+    const replay = store.getReplayProgress()
     const close = () => setDialog(null)
 
     const dialogs = (
@@ -199,10 +212,12 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                 <RunDialog
                     state={state}
                     run={() => JSON.stringify(runOf(store, __APP_VERSION__))}
+                    onLoad={() => setDialog('load')}
                     onEdit={() => openEditor(customOfMode(state.config))}
                     onClose={close}
                 />
             ) : null}
+            {dialog === 'load' ? <LoadRunDialog onLoad={loadReplay} onClose={close} /> : null}
             {dialog === 'piles' ? <PilesDialog state={state} skin={skin} onClose={close} /> : null}
             {dialog === 'settings' ? <SettingsDialog settings={settings} onChange={changeSettings} onClose={close} /> : null}
         </>
@@ -313,6 +328,15 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                 </div>
 
                 <div class="bar">
+                    {replay ? (
+                        replay.done < replay.total ? (
+                            <button type="button" class="b alt" onClick={() => store.replayNext()}>
+                                Next move {replay.done + 1}/{replay.total}
+                            </button>
+                        ) : (
+                            <span class="rules">Replay complete · {replay.total} moves</span>
+                        )
+                    ) : null}
                     <button type="button" class="b" disabled={!playing || state.pendingExile} onClick={() => dispatch({ type: 'endTurn' })}>
                         End turn
                     </button>
@@ -342,8 +366,10 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                     <button
                         type="button"
                         class="b alt"
-                        disabled={session.undo.length === 0}
-                        title="Undo your last move this turn. Random outcomes replay the same way."
+                        disabled={!store.canUndo()}
+                        title={
+                            replay ? 'Undo the last replay move.' : 'Undo your last move this turn. Random outcomes replay the same way.'
+                        }
                         onClick={store.undo}
                     >
                         Undo

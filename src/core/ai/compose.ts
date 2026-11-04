@@ -20,7 +20,7 @@ function clean(weight: number): number {
 
 const DEFAULT_PICK: PickOptions = { mode: 'sample', epsilon: 0 }
 
-/** Weighted random choice with the bot's own rng. Falls back to a uniform choice when every weight is 0. Returns null when there are no moves. */
+/** Chooses with the bot's own rng. Sampled weights can be raised by `samplePower`; zero weights stay vetoes. */
 export function pickMove(
     state: GameState,
     moves: readonly Move[],
@@ -31,7 +31,11 @@ export function pickMove(
     if (moves.length === 0) return null
     const uniform = () => moves[nextInt(rng, moves.length)]!
     if (options.mode === 'greedy' && options.epsilon > 0 && nextFloat(rng) < options.epsilon) return uniform()
-    const weights = moves.map((move) => clean(policy.weight(state, move, moves)))
+    const samplePower = options.samplePower ?? 1
+    const weights = moves.map((move) => {
+        const weight = clean(policy.weight(state, move, moves))
+        return options.mode === 'sample' ? Math.pow(weight, samplePower) : weight
+    })
     if (options.mode === 'greedy') {
         let best = -1
         let bestWeight = 0

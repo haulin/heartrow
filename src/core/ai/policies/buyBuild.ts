@@ -6,7 +6,7 @@ export function buyBuild(untilTurn = 9): Policy {
     return {
         id: 'buyBuild',
         weight(state, move) {
-            return rowCard(state, move)?.kind === 'enemy' && state.turn < untilTurn ? 0.01 : 1
+            return rowCard(state, move)?.kind === 'enemy' && state.turn < untilTurn ? 0.25 : 1
         },
     }
 }

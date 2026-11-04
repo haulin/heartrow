@@ -33,6 +33,8 @@ export interface GameSummary {
 
 export interface GameResult {
     state: GameState
+    /** The accepted moves chosen by the bot, oldest first. */
+    moves: Move[]
     summary: GameSummary
 }
 
@@ -57,6 +59,7 @@ export function playGame(
     let turnMoves = 0
     let turn = state.turn
     let heartsT24: number | null = null
+    const chosenMoves: Move[] = []
     while (state.status === 'playing' && moves < maxMoves) {
         if (state.turn !== turn) {
             turn = state.turn
@@ -69,12 +72,14 @@ export function playGame(
         if (!move) break
         if (move.type === 'endTurn' && state.turn === 24) heartsT24 = state.hearts
         state = applyMove(state, move).state
+        chosenMoves.push(move)
         moves++
         turnMoves++
     }
     const goal = state.goal
     return {
         state,
+        moves: chosenMoves,
         summary: {
             hearts: state.hearts,
             goalHit: goal !== null && state.hearts >= goal,

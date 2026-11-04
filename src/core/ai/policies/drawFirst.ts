@@ -1,5 +1,5 @@
 import type { Policy } from '../types'
-import { handCard } from './util'
+import { handCard, STRONG_WEIGHT } from './util'
 
 /**
  * Plays draw cards early, to see more of the deck. The exception: a Pile card in hand counts the discard, and a draw that has to reshuffle
@@ -14,10 +14,10 @@ export function drawFirst(): Policy {
             const pileInHand = state.hand.some((c) => c.fx.includes('pile'))
             if (card.fx.includes('draw')) {
                 const reshuffles = (card.drawCount ?? 1) > state.deck.length
-                return pileInHand && reshuffles ? 1 : 1e6
+                return pileInHand && reshuffles ? 1 : STRONG_WEIGHT
             }
             if (card.fx.includes('pile') && state.hand.some((c) => c.fx.includes('draw') && (c.drawCount ?? 1) > state.deck.length))
-                return 1e6
+                return STRONG_WEIGHT
             return 1
         },
     }

@@ -7,8 +7,9 @@ Everything here is not done yet. Log each idea as one undated line, and mark its
 - Win check (open): the river shifts as part of End turn, so ending the turn exactly on the goal can lose hearts to an escape and undo the win. It is rare (about every tenth enemy escape, not measured), and the player can avoid it by picking kills or rerolling. Options: keep it and warn near the goal, or check the goal after the reap and before the escape. Measure the bots before changing it. Undecided.
 - Carry on after the goal: today "End your turn to win, or keep going" only means keep playing the current turn. A real choice could be a mode option where ending the turn does not win and a separate "Claim win" move does, with the run scored by final hearts.
 - Stop early or carry on: when the goal is reached, let the player stop or continue to the full turn limit.
+- Undo peeking at random outcomes (open): free undo supports resource planning, but undo after redraw, draw, cycle, purge or take can reveal an alternate random branch without spending the resource. Prefer to keep undo free for solo play; if competitive modes arrive, consider a no-undo or undo-flagged mode instead of making undo a resource.
+- Redraw placement order (high priority, open): place the four newly generated cards right to left so the first generated card lands on the right and the fourth lands on the left, matching single-card refills and preserving the expected RNG order.
 - Free enemies (open): stacked `weak` makes the discount larger than any enemy cost, so enemies cost 0 and the run can become infinite. `cardCost` floors enemy cost at 0. Options: a floor of 1, a cap on stacking, or keep it as a degenerate case in the preset library. Same question for `cheap` on recruits.
-- Undo of a redraw lets the player peek at the next row for free. It is useful as a playtest tool; plan to block it soon. Undo of End turn has the same peek problem; decide the two together.
 - A recruit that only draws one card (a 2 ● Draw 1 with nothing else) appears again. An earlier rule said it should not. Decide later.
 - Cycle and purge discard order: they discard after drawing. Check how it looks in the UI.
 - The saved run has one slot only; several slots could come with saved generators.
@@ -34,6 +35,8 @@ Everything here is not done yet. Log each idea as one undated line, and mark its
 - Three enemy effect variants that, when defeated, double the selection weight of non-lean effects for future Moss, Ember or Tide recruits for the rest of the run (2× weight, not "+200%").
 - Enemy cost minimum of one after discounts (see free enemies).
 - Reprice `weak`. Add a `redraw` effect (probably enemies only), a duplicate-rightmost-unused-card effect, and a `haste` effect that resolves a recruit's effect when recruited.
+- Untap effect (open): replay a selected played card to give Ember a way to reuse scarce gold without Swap, but suppress the selected card's Untap effect during the replay so Untap cards cannot recurse.
+- Effect density for narrow pools (open): when a generator allows only a few effects, adjust effect frequency or expose a density setting so an Exile-only pool does not put Exile on nearly every eligible card.
 - Count recruiting as playing a type. Let draw-only cards count as simple. Cap stacked Retain cards.
 - Kin as a heart source (open): Kin currently copies a card's gold or power output, but a Tide-flavoured version could copy hearts. Decide whether that makes Tide more coherent or makes Kin too flexible for every colour.
 - Reward rare runs of identical recruit cards as an achievement; prevent redraw farming.
@@ -65,6 +68,7 @@ Everything here is not done yet. Log each idea as one undated line, and mark its
 - Endless continuation after the normal run (goals, costs, escapes, scoreboards).
 - Long Run could take a goal of its own, so `goal` would apply to every mode.
 - Saving generators: named slots in localStorage, with a Save button next to the preset list, only for Custom settings so built-in presets cannot be overwritten. Names stay in the browser and show as plain text, so no swearword filter is needed. If names ever travel in links or a public list, cap their length and show them as text only.
+- Starter ratio benchmark (open): compare the default 6G / 4X starter with a gold-heavier 7G / 3X starter using the same bot seeds, goals, purchases, escapes and final hearts before changing Standard.
 - Moss economy as the beginner preset (open): one human run won Level 3 with it and found few decisions per turn. Repeat it a few times before promoting it, and decide where a beginner would find it (a "Start here" entry, or the first preset in the editor list).
 - Real preset descriptions (today they are generated). Pacifist note: with 10 Basic gold cards you are guaranteed 5 ● every turn, so the run feels easy.
 - Bots for challenge balancing once challenge definitions and playable presets exist.
@@ -75,7 +79,7 @@ Candidate archetypes, not approved balance targets. Test constrained generators 
 
 - Tide heart engine: draw, discard, Retain, exile and direct hearts (a Tide-heavy run has won).
 - Exile vault: exile Basics and use `+1 ♥ per 3 cards in exile`. Depends on exile availability.
-- Ember combat: power, `foes`, `weak`, discard-pile power and enemy rewards. Pure Ember is unproven.
+- Ember combat: power, `foes`, `weak`, discard-pile power and enemy rewards. Pure Ember has one Level 4 win; repeat it before treating it as reliable.
 - Moss economy: `coin`, Basic-count gold, gold Reaping, expensive recruits, Swap as an outlet. Pure Moss is unproven.
 - Swap converter: generate one resource and exchange it. Probably a bridge, not an archetype.
 - Discard-pile engine: cycle or purge to grow the discard, then `+1 ⚔ per 3 cards in discard`. An Ember/Tide hybrid.
@@ -86,17 +90,26 @@ Candidate archetypes, not approved balance targets. Test constrained generators 
 - Micro-deck: four or five efficient cards. Does consistency make up for lost flexibility?
 - Draw engine: enough Draw, cycle, purge and Retain for reliable resources. Possibly shared by several colours.
 - Hoarder engine: roughly `+1` resource per 6 cards in the deck. Decide which resource, what the count includes, and whether it scales per card or per threshold.
+- Bot policy ladder (open): build benchmark bots from random by adding policies one at a time, compare greedy and sampled selection, and keep strategic rules such as early resources or exile targets as explicit profile hypotheses.
+- Bot outlier analysis (open): report the best run's seed and replayable context, then compare its sampled decisions with the greedy run on the same game to learn when randomness finds a stronger line.
+- Late redraw (open): remove the generic final-two-turn redraw veto because late costs are scaled up; compare named greedy bots and restore the veto only if the extra redraws reduce hearts.
+- Human-style bot (open): value early gold, power above the deck's best power card, up to three diminishing exiles, varied effects, late hearts, right-side enemy kills except when Foes benefits from leaving enemies, and a short Swap plan that targets an affordable river card.
+- Human bot readiness rules (open): estimate current-hand gold with Coin worth 3 expected gold, deprioritise early Reaping but reconsider ReapG and ReapP as late Heart candidates, value first Draw, Exile and Cycle/Purge copies, require setup for Bond, Army, Kin, all3, Pile and Vault, and use one effect-value policy instead of one permanent policy per effect.
+- Human bot play order (open): play plain resource gains first, make Cycle/Purge the main effect exception, and ignore unsupported conditional effects such as all3, Kin, Army and Bond unless a dedicated build bot can evaluate them.
 
 ## Screens, modes and sharing
 
 - Home screen: a plain first version is built (see the design doc). Still open: its look (the title screen concepts below), the look of the level picker, and a Challenge entry.
 - Challenge entry (later): "Custom generator…" is a scary label and screen for a casual player (30 checkboxes, two dropdowns, two number fields). A Challenge screen should list presets with a level pick, and the editor should be one option on it, not the front door.
+- Simple preset with Exile (open): allow Exile in the beginner card pool as a deliberate exception to “Simple only,” then consider renaming it to “Simple start” or “Plain cards.”
+- Sequential Standard unlocks (open): keep Level 1 available, unlock each later level after the player wins the previous one, and show locked buttons such as “Win Level 1 to unlock.”
 - Level names (open): "Easy, Medium, Hard" for Levels 1 to 3 wait for evidence, since the designer struggled with Level 1 early on yet has won Level 3 twice. Revisit with feedback from new players.
 - Long Run starts a new run at once from home and replaces the run in progress without a warning. Decide whether it needs a confirm or the same note as the level picker and editor.
 - Challenge: the player chooses a generator and tries to make it work. Custom challenges choose or ban types and effects, with several slots to save, edit and duplicate. Start with the Level 1–3 goals. Leave starter decks out of the first iteration.
 - Show the mode, difficulty, goal, seed and run brief before a menu-launched game and in an overview popup. A shared link starts the game directly and opens the overview once. Compose the brief from structured selections, with only a short length-limited player note.
 - Standard setup with an editable seed field.
 - Keep the game screen mostly unchanged: a route back to the menu and access to the overview.
+- Compendium (open): add a mobile-friendly reference that lists every effect, resource and card type with plain-language descriptions, and links the generator instead of pretending the procedural pool is a fixed card set.
 - Use the View Transitions API for screen changes, with the screen sliding over an unmoving background; respect reduced motion.
 - Visual mockups first (blue, white, pink, buttons, fields, chips, modals); they need no interaction. Sketch code is on `feat/game_screens_sketch`, mockups in `local/mockups/`.
 - Title screen: the risograph concept is the best candidate for now, flat (no gradient button borders), in both themes. A URL switch could show flat cards or in-game cards. Use `text-wrap: balance` for button subtitles, a slightly bigger heart that keeps the A readable, no hover flicker, a bit of fidget on the home screen, and menu buttons at the bottom on phones. Next test: a second screen in the same style (the generator editor or the game screen).
@@ -111,6 +124,7 @@ Candidate archetypes, not approved balance targets. Test constrained generators 
 - Mockup lessons: keep the real card ratio (118 × 175), round the inner border corners, never let descriptions overlap the border, brief mockup agents with the real card CSS and not a style name. Skip exile needs a place on narrow screens.
 - Alternative phone skin: bigger card text without effect descriptions, with keyword meanings in a help section or on long press. Styling is swappable on the web, so it can be a skin.
 - Large hands on phones (confirmed awkward): an 11-card hand required clicking off the hand and aiming precisely at a card. From 10 cards, try offsetting every other card down by about half a card height; this should overlap only every second card and avoid overlap through nine cards. Prove the idea on a phone before keeping it.
+- Whole-hand resource preview (open): show the calculated totals for unplayed cards after the "Your hand" label, including effects such as Vault. Recalculate after each play because the board state can change.
 - Draw cards even larger and shrink them more, and test large system text on a phone.
 - Animation ideas, all optional: overlap recruiting, refilling the river, exile and the hand closing up; a shuffle animation counting the piles box (0 / 9 to 9 / 0); the piles number changing colour on a pulse; a new hand dealing while the old one flies away; a "−2 ●" flying out of the box on a spend; the status line changing on the click and not mid-animation.
 - Defeated tally as a visible count (add it when the first effect uses it).
@@ -145,10 +159,13 @@ The working title stays Heartrow until something clearly better turns up. The re
 ## Statistics and progression
 
 - Contribution statistics that attribute gold, power and hearts to the card or enemy that produced them. Decide grouping by definition or instance, and owners for Reap and enemy payouts.
+- Between-run progression loop (open): add collectible out-of-run resources, such as gems, from completed runs and let players buy and equip limited lucky charms that alter the generator, for example making Draw twice as likely; decide whether rewards come from wins, final hearts, kills, or a capped combination, and protect core balance with slots and trade-offs.
 - Achievements, run statistics, cloud support, leaderboards, unlockable effects and progression after the core run is stable.
 
 ## Bots
 
+- Human bot cycle readiness (open): refine the expected-resource comparison with effect budgets as a small value prior; direct gains from the Cycle/Purge card now count, and the estimate still needs to cover the draw pile and discard reshuffle.
+- Deck-relative buying value (open): compare a recruit's expected gain with the post-purchase average of the non-exiled deck, require roughly 10% average uplift, and use a diminishing smooth score so 2, 3, 4, 5 and 6 gains are ranked fluidly rather than by fixed bands; Coin counts as 3 expected Gold.
 - Gold and power balance (open): a recruit's main currency follows its colour (Ember always power, Moss always gold, Tide half and half), so a deck heavy in one colour can be short of the other and wastes what it has. Look at whether Standard needs a gold-or-power correction, using bot data over many seeds.
 - Better bot (open): combine `mixed` buying with `smartRedraw` as a new profile (not a change to `mixed`, which is the v7 baseline). Evidence is in the history file.
 - Tutorial mode (open): a predefined seed with a status bar that explains more, as the way in for new players, since Standard is where they will go first and the Moss economy and Ember combat presets have fewer or more decisions than it does.

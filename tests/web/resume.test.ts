@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vite-plus/test'
 import { standardMode } from '../../src/core'
 import type { Move } from '../../src/core'
 import { shareQuery } from '../../src/platform/web/mode'
-import { loadRun, openStore, runOf } from '../../src/platform/web/resume'
+import { loadRun, openStore, parseRunText, runOf } from '../../src/platform/web/resume'
 import { createMemoryStorage } from '../../src/platform/web/storage'
 import { GameStore } from '../../src/platform/web/store'
 
@@ -45,6 +45,42 @@ describe('GameStore moves', () => {
         expect(b.getSession().undo.length).toBe(a.getSession().undo.length)
     })
 
+    it('loads a bot replay at the start and steps it back to the recorded state', () => {
+        const source = new GameStore(standardMode(0), 11)
+        play(source, 2)
+        const replay = new GameStore(standardMode(0), 11)
+        expect(replay.loadReplay(standardMode(0), 11, source.getMoves())).toBe(true)
+        expect(replay.getReplayProgress()).toEqual({ done: 0, total: source.getMoves().length })
+        replay.replayNext()
+        expect(replay.getReplayProgress()).toEqual({ done: 1, total: source.getMoves().length })
+        replay.undo()
+        expect(replay.getReplayProgress()).toEqual({ done: 0, total: source.getMoves().length })
+        while (replay.replayNext()) {
+            // Step through the complete trace.
+        }
+        expect(replay.getState()).toEqual(source.getState())
+        expect(replay.getReplayProgress()).toEqual({ done: source.getMoves().length, total: source.getMoves().length })
+    })
+
+    it('can undo End turn while stepping a replay', () => {
+        const source = new GameStore(standardMode(0), 11)
+        source.dispatch({ type: 'endTurn' })
+        const replay = new GameStore(standardMode(0), 11)
+        expect(replay.loadReplay(standardMode(0), 11, source.getMoves())).toBe(true)
+        expect(replay.canUndo()).toBe(false)
+
+        replay.replayNext()
+        expect(replay.getState().turn).toBe(2)
+        expect(replay.canUndo()).toBe(true)
+        replay.undo()
+
+        expect(replay.getState().turn).toBe(1)
+        expect(replay.getReplayProgress()).toEqual({ done: 0, total: 1 })
+        expect(replay.canUndo()).toBe(false)
+        replay.replayNext()
+        expect(replay.getState()).toEqual(source.getState())
+    })
+
     it('refuses moves the rules reject and changes nothing', () => {
         const store = new GameStore(standardMode(0), 5)
         const before = store.getState()
@@ -55,6 +91,14 @@ describe('GameStore moves', () => {
         expect(store.replay(bad)).toBe(false)
         expect(store.getState()).toBe(before)
         expect(store.getMoves()).toEqual([])
+    })
+})
+
+describe('pasted run records', () => {
+    it('accepts the saved-run shape and rejects a different version', () => {
+        const record = runOf(new GameStore(standardMode(0), 11), V)
+        expect(parseRunText(JSON.stringify({ ...record, bot: { profile: 'mixed' } }), V)).toEqual(record)
+        expect(parseRunText(JSON.stringify(record), '2.0.0')).toBeNull()
     })
 })
 

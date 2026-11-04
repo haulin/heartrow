@@ -1,15 +1,15 @@
 import { cardCost } from '../../state'
 import type { Card, GameState } from '../../types'
 import type { Policy } from '../types'
-import { handCard, HEART_FX, rowCard, turnsLeft } from './util'
+import { handCard, HEART_FX, rowCard, scoreWeight, turnsLeft } from './util'
 
 const isHeart = (card: Card) => card.hearts > 0 || card.fx.some((fx) => HEART_FX[fx])
 
 function playTier(card: Card): number {
-    if (isHeart(card)) return 1e3
-    if (card.fx.includes('purge')) return 100
-    if (card.gold > 0) return 10
-    if (card.fx.length && !card.fx.includes('cycle')) return 3
+    if (isHeart(card)) return 8
+    if (card.fx.includes('purge')) return 6
+    if (card.gold > 0) return 4
+    if (card.fx.length && !card.fx.includes('cycle')) return 2
     return card.fx.length ? 1 : 0
 }
 
@@ -32,7 +32,7 @@ export function pacifist(): Policy {
             if (hand) return playTier(hand)
             const card = rowCard(state, move)
             if (!card) return 1
-            return turnsLeft(state) < 3 ? 0 : Math.max(0, buyScore(state, card))
+            return turnsLeft(state) < 3 ? 0 : scoreWeight(buyScore(state, card), 20)
         },
     }
 }

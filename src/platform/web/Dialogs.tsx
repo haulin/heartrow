@@ -123,11 +123,13 @@ export function modeLabel(id: string): string {
 export function RunDialog({
     state,
     run,
+    onLoad,
     onEdit,
     onClose,
 }: {
     state: GameState
     run: () => string
+    onLoad: () => void
     onEdit: () => void
     onClose: () => void
 }) {
@@ -158,7 +160,40 @@ export function RunDialog({
                     Open in the generator editor…
                 </button>
             </p>
+            <p>
+                <button type="button" class="b alt" onClick={onLoad} title="Replaces this run with a pasted saved or bot replay.">
+                    Paste replay…
+                </button>
+            </p>
             <SeedLine state={state} run={run} />
+        </Modal>
+    )
+}
+
+export function LoadRunDialog({ onLoad, onClose }: { onLoad: (text: string) => string | null; onClose: () => void }) {
+    const [text, setText] = useState('')
+    const [error, setError] = useState<string | null>(null)
+    const submit = () => {
+        const nextError = onLoad(text)
+        setError(nextError)
+    }
+    return (
+        <Modal onClose={onClose}>
+            <h2>Paste replay</h2>
+            <p class="rules">Paste a saved run or bot replay as JSON. This replaces the run in progress.</p>
+            <textarea
+                aria-label="Replay JSON"
+                rows={8}
+                value={text}
+                onInput={(e) => setText(e.currentTarget.value)}
+                placeholder='{"version":"…","query":"?…","moves":[…]}'
+            />
+            {error ? <p class="replaces">{error}</p> : null}
+            <p>
+                <button type="button" class="b" onClick={submit} disabled={!text.trim()}>
+                    Load replay
+                </button>
+            </p>
         </Modal>
     )
 }

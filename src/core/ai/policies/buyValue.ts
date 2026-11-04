@@ -1,6 +1,6 @@
 import { cardCost } from '../../state'
 import type { Policy } from '../types'
-import { rowCard, turnsLeft } from './util'
+import { rowCard, scoreWeight, turnsLeft } from './util'
 
 /** Recruits weigh more when they cost more, and none are bought in the last two turns because they would not come back around. */
 export function buyValue(): Policy {
@@ -9,7 +9,7 @@ export function buyValue(): Policy {
         weight(state, move) {
             const card = rowCard(state, move)
             if (card?.kind !== 'recruit') return 1
-            return turnsLeft(state) < 3 ? 0 : 10 + cardCost(state, card) + card.hearts * 2
+            return turnsLeft(state) < 3 ? 0 : scoreWeight(cardCost(state, card) + card.hearts * 2, 2)
         },
     }
 }
