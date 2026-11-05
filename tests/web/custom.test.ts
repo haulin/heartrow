@@ -51,6 +51,11 @@ describe('custom generator links', () => {
         })
     })
 
+    it('ignores removed gain controls', () => {
+        const def = parseCustom(new URLSearchParams('fx=draw&gmin=2&gmax=4&eg=1'))
+        expect(def).toEqual({ ...DEFAULT_CUSTOM, effects: ['draw'] })
+    })
+
     it('ignores unknown names and bad numbers, and never allows zero card types or an empty starter', () => {
         const def = parseCustom(new URLSearchParams('goal=9&types=nope&res=nope&sg=0&sp=0&fx=draw,nope,exile'))
         expect(def).toEqual({ ...DEFAULT_CUSTOM, effects: ['draw', 'exile'] })

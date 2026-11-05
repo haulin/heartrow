@@ -39,7 +39,7 @@ describe('formatEvent', () => {
             ],
             [{ type: 'drew', cardIds: [1], requested: 2, cause: 'effect' }, 'Drew 2 cards.'],
             [{ type: 'drew', cardIds: [1], requested: 1, cause: 'effect' }, 'Drew 1 card.'],
-            [{ type: 'coinFlipped', gold: 4 }, 'Coin flip: +4 ●.'],
+            [{ type: 'coinFlipped', currency: 'gold', amount: 4 }, 'Coin flip: +4 ●.'],
             [{ type: 'swapped' }, 'Swapped ● and ⚔.'],
             [{ type: 'cycled', count: 3, purge: false }, 'Cycled 3 cards.'],
             [{ type: 'exiled', card: card('moss') }, 'Exiled a Moss card.'],
@@ -129,15 +129,22 @@ describe('formatEvents', () => {
 describe('effectText', () => {
     it('substitutes templates', () => {
         const fx = (ids: EffectId[], extra: Partial<Card> = {}) => effectText(card('tide', { fx: ids, ...extra }))
-        expect(fx(['draw'], { drawCount: 3 })).toEqual(['Draw 3'])
+        expect(fx(['draw'], { fxParams: { drawCount: 3 } })).toEqual(['Draw 3'])
         expect(fx(['draw'])).toEqual(['Draw 1'])
-        expect(fx(['bond'], { bondCount: 2, main: 'power' })).toEqual(['Bond: +2 ⚔ if you played Tide earlier this turn'])
-        expect(fx(['kin', 'army'], { kinCurrency: 'power' })).toEqual([
+        expect(fx(['bond'], { fxParams: { bondCount: 2 }, main: 'power' })).toEqual(['Bond: +2 ⚔ if you played Tide earlier this turn'])
+        expect(fx(['kin', 'army'], { fxParams: { currency: 'power' } })).toEqual([
             '+1 ⚔ per other Tide card played this turn',
             '+1 ⚔ per 4 Tide cards in your deck',
         ])
         expect(fx(['kin'])).toEqual(['+1 ● per other Tide card played this turn'])
+        expect(fx(['basics', 'pile', 'coin'], { fxParams: { currency: 'power' } })).toEqual([
+            '+1 ⚔ per 4 basic cards in your deck',
+            '+1 ⚔ per 3 cards in your discard',
+            'Flip: +2 or +4 ⚔',
+        ])
+        expect(fx(['kin'], { type: 'tide', fxParams: { currency: 'hearts' } })).toEqual(['+1 ♥ per other Tide card played this turn'])
         expect(fx(['swap'], { retain: true })).toEqual(['Swap ● and ⚔', '↺ Retain: stays in hand if unplayed'])
+        expect(fx(['exile'])).toEqual(['Exile a card or river recruit'])
     })
 
     it('prefixes enemy effects with Defeat', () => {

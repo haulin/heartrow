@@ -11,6 +11,7 @@ import {
     RECRUIT_MIN_COST,
 } from '../../generator/budget'
 import type { Card, EffectId, GameState, Move } from '../../types'
+import type { Policy } from '../types'
 
 export const HEART_FX: Partial<Record<EffectId, number>> = { all3: 10, vault: 8, reapG: 8, reapP: 8 }
 
@@ -29,11 +30,25 @@ export function scoreWeight(score: number, scale: number): number {
 }
 
 export function handCard(state: GameState, move: Move): Card | undefined {
-    return move.type === 'play' || move.type === 'exile' ? state.hand[move.handIndex] : undefined
+    if (move.type === 'play') return state.hand[move.handIndex]
+    return move.type === 'exile' && 'handIndex' in move ? state.hand[move.handIndex] : undefined
+}
+
+export function exileCard(state: GameState, move: Move): Card | undefined {
+    if (move.type !== 'exile') return undefined
+    return 'handIndex' in move ? state.hand[move.handIndex] : state.row[move.rowIndex]
 }
 
 export function rowCard(state: GameState, move: Move): Card | undefined {
     return move.type === 'take' ? state.row[move.rowIndex] : undefined
+}
+
+export type GainResource = 'gold' | 'power'
+
+/** A card's plain gain of one resource, counting Coin's +3 when it pays that resource. */
+export function expectedGain(card: Card, resource: GainResource): number {
+    const coinGain = card.fxParams?.currency === resource && card.fx.includes('coin') ? 3 : 0
+    return resource === 'gold' ? card.gold + coinGain : card.power + coinGain
 }
 
 export function turnsLeft(state: GameState): number {
@@ -63,6 +78,11 @@ export function hasReasonableResources(state: GameState): boolean {
         (canGenerate(state, 'recruit') && state.gold > expectedCardCost(state, 'recruit') - costAllowance) ||
         (canGenerate(state, 'enemy') && state.power > expectedCardCost(state, 'enemy') - costAllowance)
     )
+}
+
+/** True when some legal take is a card none of the given buying policies vetoes. With no buyers, any take counts. */
+export function wantsToBuy(state: GameState, moves: readonly Move[], buyers: readonly Policy[]): boolean {
+    return moves.some((move) => move.type === 'take' && buyers.every((buyer) => buyer.weight(state, move, moves) > 0))
 }
 
 function canGenerate(state: GameState, kind: 'recruit' | 'enemy'): boolean {

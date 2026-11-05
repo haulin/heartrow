@@ -69,8 +69,10 @@ export function DefaultCard({ view, onActivate }: CardSkinProps) {
             class={cls}
             data-card-id={view.id}
             aria-label={view.label}
-            aria-disabled={view.zone === 'row' ? (!view.affordable ? 'true' : undefined) : view.played ? 'true' : undefined}
-            aria-describedby={view.pendingExile ? 'msg' : undefined}
+            aria-disabled={
+                view.exileBlocked || (!view.pendingExile && (view.zone === 'row' ? !view.affordable : view.played)) ? 'true' : undefined
+            }
+            aria-describedby={view.pendingExile || view.exileBlocked ? 'msg' : undefined}
             title={view.title || undefined}
             onClick={onActivate}
         >

@@ -22,8 +22,9 @@ function spentBudget(card: Card): number {
     let spent = card.gold + card.power + card.hearts * 1.5
     for (const id of card.fx) {
         const effect = EFFECT_BY_ID[id]
-        spent += effect.perDrawCard ? effect.price * (card.drawCount ?? 1) : effect.price
-        if (id === 'bond') spent += BOND_EXTRA_PRICE[(card.bondCount ?? 1) - 1]!
+        const resourceMultiplier = card.fxParams?.currency === 'hearts' ? 1.5 : 1
+        spent += effect.perDrawCard ? effect.price * (card.fxParams?.drawCount ?? 1) : effect.price * resourceMultiplier
+        if (id === 'bond') spent += BOND_EXTRA_PRICE[(card.fxParams?.bondCount ?? 1) - 1]!
     }
     return spent + (card.retain ? RETAIN_PRICE : 0)
 }
@@ -41,13 +42,13 @@ function check(mode: ModeConfig, turns: number): number {
             const budgetAt = (cost: number) => (enemy ? cost * 1.4 : cost * 0.85 + 0.3) + 1e-6
             const minCost = enemy ? 1 : 2
             if (card.cost > minCost) {
-                // An enemy always gets one free heart after its budget is spent, so only recruits are held to the upper bound.
                 if (!enemy) expect(spent).toBeLessThanOrEqual(budgetAt(card.cost))
                 expect(spent).toBeGreaterThan(budgetAt(card.cost - 1))
             }
             if (enemy) {
                 expect(card.hearts).toBeGreaterThanOrEqual(1)
-                expect([card.gold, card.power, card.retain]).toEqual([0, 0, undefined])
+                expect(card.gold + card.power).toBeLessThanOrEqual(Math.max(1, Math.floor(card.cost * 0.4)))
+                expect(card.retain).toBeUndefined()
                 expect(card.type).toBe('foe')
             } else {
                 expect(card.gold + card.power + card.hearts + card.fx.length).toBeGreaterThan(0)
@@ -58,11 +59,18 @@ function check(mode: ModeConfig, turns: number): number {
                 if (enemy) expect(EFFECT_BY_ID[id].enemies).toBe(true)
                 if (card.retain) expect(EFFECT_BY_ID[id].retainable).toBe(true)
             }
-            if (card.drawCount !== undefined) expect(card.drawCount).toBeLessThanOrEqual(4)
-            if (card.bondCount !== undefined) expect(card.fx).toEqual(['bond'])
-            if (card.kinCurrency !== undefined) expect(['kin', 'army']).toContain(card.fx[0])
+            if (card.fxParams?.drawCount !== undefined) expect(card.fxParams.drawCount).toBeLessThanOrEqual(4)
+            if (card.fxParams?.bondCount !== undefined) expect(card.fx).toEqual(['bond'])
+            if (card.fxParams?.currency !== undefined) expect(['kin', 'army', 'basics', 'pile', 'coin']).toContain(card.fx[0])
         }
     }
+    return count
+}
+
+function effectCount(generator: Partial<GeneratorConfig>): number {
+    const state = newGame(limited(generator), 17).state
+    let count = 0
+    for (let i = 0; i < 4000; i++) if (makeCard(state, 24).fx.length > 0) count++
     return count
 }
 
@@ -91,6 +99,30 @@ describe('makeCard', () => {
             for (let i = 0; i < 200; i++) expect(makeCard(state, turn).fx).toEqual([])
         }
         expect(state.row.every((c) => c.fx.length === 0)).toBe(true)
+    })
+
+    it('reduces effect density for a narrow effect pool', () => {
+        const all = effectCount({})
+        const narrow = effectCount({ allowedEffects: ['exile'] })
+        expect(all).toBeGreaterThan(1200)
+        expect(narrow).toBeGreaterThan(300)
+        expect(narrow).toBeLessThan(all / 2)
+    })
+
+    it('occasionally gives enemies a scaled alternate resource', () => {
+        const state = newGame(
+            limited({
+                allowedTypes: ['foe'],
+                allowedResources: ['gold', 'power', 'hearts'],
+                allowedEffects: [],
+            }),
+            23,
+        ).state
+        const cards = Array.from({ length: 2000 }, () => makeCard(state, 24))
+        const alternate = cards.filter((card) => card.gold + card.power > 0)
+        expect(alternate.length).toBeGreaterThan(200)
+        expect(alternate.length).toBeLessThan(400)
+        for (const card of alternate) expect(card.gold + card.power).toBe(Math.max(1, Math.floor(card.cost * 0.4)))
     })
 
     it('never makes a banned card type, and makes only enemies when no recruit types are allowed', () => {
@@ -127,7 +159,7 @@ describe('makeCard', () => {
                 const a = makeCard(noPower, turn)
                 expect(a.power).toBe(0)
                 expect(a.kind).toBe('recruit')
-                expect(a.kinCurrency ?? 'gold').toBe('gold')
+                expect(['gold', 'hearts']).toContain(a.fxParams?.currency ?? 'gold')
                 const b = makeCard(noHearts, turn)
                 expect(b.hearts).toBe(0)
                 expect(b.kind).toBe('recruit')
@@ -142,7 +174,7 @@ describe('makeCard', () => {
             for (let i = 0; i < 100; i++) {
                 const a = makeCard(noGold, turn)
                 expect(a.gold).toBe(0)
-                expect(a.kinCurrency ?? 'power').toBe('power')
+                expect(['power', 'hearts']).toContain(a.fxParams?.currency ?? 'power')
                 const b = makeCard(attackOnly, turn)
                 expect(b.kind).toBe('enemy')
                 expect(b.gold).toBe(0)
@@ -158,7 +190,7 @@ describe('makeCard', () => {
             return ids
         }
         const noPower = rolled({ allowedResources: ['gold', 'hearts'] })
-        for (const id of ['swap', 'pile', 'reapP', 'foes', 'weak']) expect(noPower.has(id)).toBe(false)
+        for (const id of ['swap', 'reapP', 'foes', 'weak']) expect(noPower.has(id)).toBe(false)
         expect(noPower.has('reapG')).toBe(true)
         const noEmber = rolled({ allowedTypes: ['moss', 'tide', 'foe'] })
         expect(noEmber.has('all3')).toBe(false)

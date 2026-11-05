@@ -1,19 +1,20 @@
 import { lookahead } from './lookahead'
 import type { PickOptions, Policy, Profile } from './types'
 import {
+    DEFAULT_PHASE_THRESHOLDS,
     buyBuild,
     buyEnemies,
     buyValue,
-    deckCurveBuy,
     drawFirst,
+    edgeFollowUp,
     effectCardsFirst,
     endTurnWhenDone,
+    exileByAverage,
     exileChoices,
     humanPlayOrder,
     noRecruits,
     pacifist,
     phaseBuy,
-    phaseRedraw,
     playsFirst,
     protectEdge,
     redrawMemory,
@@ -27,7 +28,7 @@ import type { PhaseThresholds } from './policies'
 
 export const PROFILE_IDS = ['random', 'mixed', 'none', 'build', 'rush', 'pacifist', 'smart'] as const
 /** The six named personalities plus a uniform random control. `lookahead` is an experiment and is not part of the normal baseline. */
-export const LAB_PROFILE_IDS = ['lab-random', 'lab-play', 'lab-retain', 'lab-draw', 'lab-human', 'lab-human-curve'] as const
+export const LAB_PROFILE_IDS = ['lab-random', 'lab-play', 'lab-retain', 'lab-draw', 'lab-human'] as const
 export type SelectionMode = 'sample' | 'greedy'
 export type ProfileId = (typeof PROFILE_IDS)[number] | (typeof LAB_PROFILE_IDS)[number] | 'lookahead'
 export const ALL_PROFILE_IDS: readonly ProfileId[] = [...PROFILE_IDS, ...LAB_PROFILE_IDS, 'lookahead']
@@ -49,8 +50,12 @@ const turnOrder = (): Policy[] => [playsFirst(), retainAware(), drawFirst()]
 
 export function makeProfile(id: ProfileId, selection?: SelectionMode, options?: ProfileOptions): Profile {
     const memory = redrawMemory()
-    const fighter = (): Policy[] => [...turnOrder(), exileChoices(), effectCardsFirst(), buyEnemies()]
-    const tail = (): Policy[] => [redrawWhenStuck(memory), endTurnWhenDone()]
+    const fighter = (): Policy[] => [...turnOrder(), exileChoices(), effectCardsFirst()]
+    /** Redraw and end turn ask the buying policies whether any card in the row is worth taking. */
+    const tail = (buyers: readonly Policy[], lateStart?: number): Policy[] => [
+        redrawWhenStuck(memory, { lateStart, buyers }),
+        endTurnWhenDone(buyers),
+    ]
     let policies: Policy[]
     switch (id) {
         case 'random':
@@ -67,46 +72,48 @@ export function makeProfile(id: ProfileId, selection?: SelectionMode, options?: 
         case 'lab-draw':
             policies = [playsFirst(), retainAware(), drawFirst()]
             break
-        case 'lab-human':
+        case 'lab-human': {
+            const buyers = [buyEnemies(), phaseBuy(options?.phase)]
             policies = [
                 ...turnOrder(),
                 humanPlayOrder(),
-                exileChoices(),
-                buyEnemies(),
-                phaseBuy(options?.phase),
-                phaseRedraw(options?.phase),
-                ...tail(),
+                exileByAverage(),
+                edgeFollowUp(memory, buyers),
+                ...buyers,
+                ...tail(buyers, (options?.phase ?? DEFAULT_PHASE_THRESHOLDS).lateStart),
             ]
             break
-        case 'lab-human-curve':
-            policies = [
-                ...turnOrder(),
-                humanPlayOrder(),
-                exileChoices(),
-                buyEnemies(),
-                deckCurveBuy(options?.phase),
-                phaseRedraw(options?.phase),
-                ...tail(),
-            ]
+        }
+        case 'mixed': {
+            const buyers = [buyEnemies(), buyValue()]
+            policies = [...fighter(), edgeFollowUp(memory, buyers), ...buyers, protectEdge(memory), ...tail(buyers)]
             break
-        case 'mixed':
-            policies = [...fighter(), buyValue(), protectEdge(memory), ...tail()]
+        }
+        case 'none': {
+            const buyers = [buyEnemies(), noRecruits()]
+            policies = [...fighter(), ...buyers, ...tail(buyers)]
             break
-        case 'none':
-            policies = [...fighter(), noRecruits(), ...tail()]
+        }
+        case 'build': {
+            const buyers = [buyEnemies(), buyBuild(), buyValue()]
+            policies = [...fighter(), edgeFollowUp(memory, buyers), ...buyers, ...tail(buyers)]
             break
-        case 'build':
-            policies = [...fighter(), buyBuild(), buyValue(), ...tail()]
+        }
+        case 'rush': {
+            const buyers = [buyEnemies(), buyValue(), rush()]
+            policies = [...fighter(), ...buyers, ...tail(buyers)]
             break
-        case 'rush':
-            policies = [...fighter(), buyValue(), rush(), ...tail()]
+        }
+        case 'pacifist': {
+            const buyers = [pacifist()]
+            policies = [...turnOrder(), exileChoices({ pacifist: true }), ...buyers, ...tail(buyers)]
             break
-        case 'pacifist':
-            policies = [...turnOrder(), exileChoices({ pacifist: true }), pacifist(), ...tail()]
+        }
+        case 'smart': {
+            const buyers = [smartBuy()]
+            policies = [...turnOrder(), exileChoices(), ...buyers, smartRedraw(memory), protectEdge(memory), endTurnWhenDone(buyers)]
             break
-        case 'smart':
-            policies = [...turnOrder(), exileChoices(), smartBuy(), smartRedraw(memory), protectEdge(memory), endTurnWhenDone()]
-            break
+        }
         case 'lookahead':
             policies = [...turnOrder(), exileChoices(), effectCardsFirst(), lookahead(() => makeProfile('mixed'))]
             break

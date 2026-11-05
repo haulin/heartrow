@@ -55,11 +55,19 @@ const moveKey = (move: Move): string => JSON.stringify(move)
 
 function moveLabel(state: GameState, move: Move): string {
     if (move.type === 'redraw' || move.type === 'endTurn' || move.type === 'skipExile') return move.type
-    const card = move.type === 'take' ? state.row[move.rowIndex] : state.hand[move.handIndex]
+    let index: number
+    let card: GameState['hand'][number] | undefined
+    if (move.type === 'take' || (move.type === 'exile' && 'rowIndex' in move)) {
+        index = move.rowIndex
+        card = state.row[index]
+    } else {
+        index = move.handIndex
+        card = state.hand[index]
+    }
     const cardText = card
         ? `${card.kind} ${card.type} cost ${card.cost}, +${card.gold}G +${card.power}P +${card.hearts}H${card.fx.length ? ` [${card.fx.join(',')}]` : ''}`
         : 'missing card'
-    return `${move.type} ${move.type === 'take' ? move.rowIndex : move.handIndex}: ${cardText}`
+    return `${move.type} ${index}: ${cardText}`
 }
 
 /** Explains the policy factors and selected move at one step of a saved bot replay. */
@@ -127,20 +135,7 @@ interface UndoPeekStats {
 }
 
 const cardKey = (card: Card): string =>
-    JSON.stringify([
-        card.type,
-        card.kind,
-        card.cost,
-        card.gold,
-        card.power,
-        card.hearts,
-        card.fx,
-        card.main,
-        card.kinCurrency,
-        card.retain,
-        card.drawCount,
-        card.bondCount,
-    ])
+    JSON.stringify([card.type, card.kind, card.cost, card.gold, card.power, card.hearts, card.fx, card.main, card.fxParams, card.retain])
 
 const percent = (value: number, total: number): string => `${((value / total) * 100).toFixed(1)}%`
 
@@ -342,6 +337,8 @@ export function main(argv: string[]): void {
             s.medianHearts,
             'p10',
             s.p10Hearts,
+            'p90',
+            s.p90Hearts,
             s.meanHeartsT24 === null ? '' : 'T24 avg ' + f(s.meanHeartsT24),
             '| kills',
             f(s.meanKills),
@@ -363,7 +360,9 @@ export function main(argv: string[]): void {
             f(s.meanWastedGold),
             'power',
             f(s.meanWastedPower),
-            '| best',
+            '| worst',
+            s.worstHearts + ' ♥',
+            'best',
             s.bestHearts + ' ♥',
             s.capped ? `| CAPPED ${s.capped}` : '',
         )

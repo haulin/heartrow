@@ -1,4 +1,4 @@
-import type { Card, CardType, EffectId, GameEvent, GameState, Gains } from './types'
+import type { Card, CardType, EffectId, GameEvent, GameState, Gains, GeneratorResource } from './types'
 
 export interface FormatContext {
     turn: number
@@ -15,14 +15,14 @@ export const TYPE_NAMES: Record<CardType, string> = {
 
 const EFFECT_TEMPLATES: Record<EffectId, string> = {
     draw: 'Draw {n}',
-    coin: 'Flip: +2 or +4 ●',
-    exile: 'Exile a card from hand',
+    coin: 'Flip: +2 or +4 {c}',
+    exile: 'Exile a card or river recruit',
     cheap: 'Recruits cost 1 less ● this turn',
     foes: '+1 ⚔ per enemy in the recruit row',
     all3: '+2 ♥ if you played all 3 types this turn',
     vault: '+1 ♥ per 3 cards in exile',
-    basics: '+1 ● per 4 basic cards in your deck',
-    pile: '+1 ⚔ per 3 cards in your discard',
+    basics: '+1 {c} per 4 basic cards in your deck',
+    pile: '+1 {c} per 3 cards in your discard',
     bond: 'Bond: +{n} {m} if you played {T} earlier this turn',
     kin: '+1 {k} per other {T} card played this turn',
     weak: 'Enemies cost 1 less ⚔ this turn',
@@ -36,14 +36,16 @@ const EFFECT_TEMPLATES: Record<EffectId, string> = {
 
 const RETAIN_TEXT = '↺ Retain: stays in hand if unplayed'
 
-const symbol = (currency: 'gold' | 'power' | undefined): string => (currency === 'power' ? '⚔' : '●')
+const symbol = (currency: GeneratorResource | undefined): string => (currency === 'power' ? '⚔' : currency === 'hearts' ? '♥' : '●')
 
 export function effectText(card: Card): string[] {
     const lines = card.fx.map((id) => {
-        const n = id === 'draw' ? (card.drawCount ?? 1) : (card.bondCount ?? 1)
+        const n = id === 'draw' ? (card.fxParams?.drawCount ?? 1) : (card.fxParams?.bondCount ?? 1)
+        const outputCurrency = card.fxParams?.currency ?? (id === 'pile' ? 'power' : id === 'kin' || id === 'army' ? card.main : 'gold')
         const text = EFFECT_TEMPLATES[id]
             .replaceAll('{m}', symbol(card.main))
-            .replaceAll('{k}', symbol(card.kinCurrency))
+            .replaceAll('{k}', symbol(outputCurrency))
+            .replaceAll('{c}', symbol(outputCurrency))
             .replaceAll('{n}', String(n))
             .replaceAll('{T}', TYPE_NAMES[card.type])
         return card.kind === 'enemy' ? `Defeat: ${text}` : text
@@ -78,6 +80,7 @@ export function formatEvent(event: GameEvent, ctx: FormatContext): string | null
         case 'rejected':
             if (event.reason === 'alreadyPlayed') return 'That card is already played this turn.'
             if (event.reason === 'pendingExile') return 'Choose a card to exile, or skip the exile.'
+            if (event.reason === 'cannotExile') return 'Only recruits in the first four river slots can be exiled.'
             if (event.reason === 'gameOver') return 'The run is over. Start a new game.'
             if (event.reason === 'noRedraws') return 'No redraws left.'
             if (event.reason === 'cannotAfford' && event.short !== undefined) {
@@ -89,7 +92,7 @@ export function formatEvent(event: GameEvent, ctx: FormatContext): string | null
         case 'drew':
             return event.cause === 'effect' && event.requested > 0 ? `Drew ${event.requested} card${plural(event.requested)}.` : null
         case 'coinFlipped':
-            return `Coin flip: +${event.gold} ●.`
+            return `Coin flip: +${event.amount} ${symbol(event.currency)}.`
         case 'swapped':
             return 'Swapped ● and ⚔.'
         case 'cycled':

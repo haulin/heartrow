@@ -15,10 +15,10 @@ export const bond: EffectDef = {
         const left = budget - BASE_PRICE
         let n = 1 + nextInt(rng, BOND_MAX)
         while (n > 1 && (BOND_EXTRA_PRICE[n - 1] as number) > left) n--
-        card.bondCount = n
+        card.fxParams = { ...card.fxParams, bondCount: n }
         return BASE_PRICE + (BOND_EXTRA_PRICE[n - 1] as number)
     },
     apply({ state, card, source, hadType }) {
-        if (source === 'play' && hadType) state[card.main] += card.bondCount ?? 1
+        if (source === 'play' && hadType) state[card.main] += card.fxParams?.bondCount ?? 1
     },
 }

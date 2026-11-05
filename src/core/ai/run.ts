@@ -126,6 +126,7 @@ export interface BatchStats {
     meanHearts: number
     medianHearts: number
     p10Hearts: number
+    p90Hearts: number
     meanKills: number
     meanLost: number
     meanTurns: number
@@ -138,6 +139,7 @@ export interface BatchStats {
     meanWastedPower: number
     meanHeartsT24: number | null
     bestHearts: number
+    worstHearts: number
     capped: number
 }
 
@@ -152,6 +154,7 @@ export function aggregate(results: readonly GameSummary[]): BatchStats {
         meanHearts: mean((r) => r.hearts),
         medianHearts: sorted[n >> 1]!,
         p10Hearts: sorted[Math.floor(n * 0.1)]!,
+        p90Hearts: sorted[Math.floor(n * 0.9)]!,
         meanKills: mean((r) => r.kills),
         meanLost: mean((r) => r.lostToEscapes),
         meanTurns: mean((r) => r.turns),
@@ -164,6 +167,7 @@ export function aggregate(results: readonly GameSummary[]): BatchStats {
         meanWastedPower: mean((r) => r.wastedPower),
         meanHeartsT24: t24.length ? t24.reduce((sum, r) => sum + r.heartsT24!, 0) / t24.length : null,
         bestHearts: sorted[n - 1]!,
+        worstHearts: sorted[0]!,
         capped: results.filter((r) => r.capped).length,
     }
 }

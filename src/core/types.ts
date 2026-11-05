@@ -9,6 +9,12 @@ export type EffectNeed = GeneratorResource | GeneratorCardType | 'exile'
 export type CardKind = 'recruit' | 'enemy' | 'basic'
 export type Currency = 'gold' | 'power'
 
+export interface EffectParams {
+    currency?: GeneratorResource
+    drawCount?: number
+    bondCount?: number
+}
+
 export type EffectId =
     | 'draw'
     | 'coin'
@@ -39,9 +45,7 @@ export interface Card {
     hearts: number
     fx: EffectId[]
     main: Currency
-    kinCurrency?: Currency
-    drawCount?: number
-    bondCount?: number
+    fxParams?: EffectParams
     retain?: boolean
     played?: boolean
 }
@@ -90,6 +94,7 @@ export interface GameState {
 export type Move =
     | { type: 'play'; handIndex: number }
     | { type: 'exile'; handIndex: number }
+    | { type: 'exile'; rowIndex: number }
     | { type: 'skipExile' }
     | { type: 'take'; rowIndex: number }
     | { type: 'redraw' }
@@ -107,6 +112,7 @@ export type RejectReason =
     | 'gameOver'
     | 'pendingExile'
     | 'alreadyPlayed'
+    | 'cannotExile'
     | 'cannotAfford'
     | 'noRedraws'
     | 'noSuchCard'
@@ -118,7 +124,7 @@ export type GameEvent =
     | { type: 'played'; card: Card; gains: Gains }
     | { type: 'drew'; cardIds: number[]; requested: number; cause: DrawCause }
     | { type: 'reshuffled' }
-    | { type: 'coinFlipped'; gold: number }
+    | { type: 'coinFlipped'; currency: GeneratorResource; amount: number }
     | { type: 'swapped' }
     | { type: 'cycled'; count: number; purge: boolean }
     | { type: 'exiled'; card: Card }
@@ -167,7 +173,7 @@ export interface StarterSpec {
 
 export interface GeneratorConfig {
     allowedTypes: GeneratorCardType[]
-    /** What cards and effects may give. Gold is always treated as allowed when nothing else is, because recruits cost gold. */
+    /** What cards and effects may give. Gold is treated as allowed when nothing else is, because recruits cost gold. */
     allowedResources: GeneratorResource[]
     allowedEffects: EffectId[]
 }

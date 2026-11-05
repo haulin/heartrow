@@ -214,6 +214,10 @@ export function AboutDialog({ state, onClose }: { state?: GameState | undefined;
                 Every card is generated as it appears. Moss leans gold and rewards a larger deck, Ember leans power and enemies, Tide leans
                 draw, exile, and hearts.
             </p>
+            <p class="rules">
+                Standard can produce 8,888 distinct recruits and 138 distinct enemies. Custom generators change the card pool and its
+                variety.
+            </p>
             {state ? <SeedLine state={state} /> : null}
         </Modal>
     )

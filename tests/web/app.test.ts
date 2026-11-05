@@ -52,6 +52,9 @@ describe('App home screen', () => {
         press(host, 'About')
         const about = host.querySelector('dialog')!
         expect(about.textContent).toContain('roguelike deckbuilder')
+        expect(about.textContent).toContain('8,888 distinct recruits')
+        expect(about.textContent).toContain('138 distinct enemies')
+        expect(about.textContent).not.toContain('100,000')
         expect(about.querySelectorAll('.ico')).toHaveLength(3)
         expect(about.querySelector('.ico.g')).not.toBeNull()
         expect(about.querySelector('.ico.p')).not.toBeNull()
@@ -179,6 +182,26 @@ describe('App', () => {
         expect(store.getState().hand[0]!.played).toBe(true)
         expect(host.querySelector('[data-zone="hand"] button.card')?.getAttribute('aria-disabled')).toBe('true')
         expect(store.getSession().history[0]).toMatch(/^T1 · Played/)
+    })
+
+    it('keeps Skip exile after Undo in the action bar', () => {
+        const { host, store } = mount()
+        store.getState().hand[0]!.fx = ['exile']
+        void act(() => host.querySelector<HTMLButtonElement>('[data-zone="hand"] button.card')!.click())
+        const labels = Array.from(host.querySelectorAll('.bar button')).map((button) => button.textContent)
+        expect(labels.at(-1)).toBe('Skip exile')
+        expect(labels.indexOf('Undo')).toBeLessThan(labels.indexOf('Skip exile'))
+    })
+
+    it('shakes a river card that cannot be exiled', () => {
+        const { host, store } = mount()
+        store.getState().hand[0]!.fx = ['exile']
+        void act(() => host.querySelector<HTMLButtonElement>('[data-zone="hand"] button.card')!.click())
+        const edge = host.querySelector<HTMLButtonElement>('[data-zone="row"] .slot:last-child button.card')!
+        void act(() => edge.click())
+        expect(store.getState().pendingExile).toBe(true)
+        expect(store.getState().stats.exiled).toBe(0)
+        expect(edge.getAttribute('data-rejected')).toBe('')
     })
 
     it('shows a rejection message when a recruit is unaffordable', () => {

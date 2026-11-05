@@ -28,6 +28,7 @@ export interface CardView {
     played: boolean
     edge: 'rim' | 'enemy' | null
     pendingExile: boolean
+    exileBlocked: boolean
     art: ArtShape[]
     label: string
     title: string
@@ -59,11 +60,15 @@ export function buildCardView(card: Card, zone: CardZone, index: number, state: 
     const isEdge = zone === 'row' && index === state.row.length - 1
     const typeName = TYPE_NAMES[card.type]
     const played = zone === 'hand' && card.played === true
+    const canExile = zone === 'hand' || (card.kind === 'recruit' && !isEdge)
 
     const body = [...gains.map((g) => g.text), ...lines, ...(retain ? [retain] : [])].join(' ')
     const prefix = zone === 'row' ? `${card.kind === 'enemy' ? 'Enemy' : 'Recruit'} ` : ''
     const buy = zone === 'row' ? `${card.kind === 'recruit' ? 'gold ●' : 'power ⚔'} to ${card.kind === 'recruit' ? 'buy' : 'defeat'}. ` : ''
-    const label = spoken(`${prefix}${typeName} card. ${buy}${body}${played ? ' Already played this turn.' : ''}`.replace(/\s+/g, ' '))
+    const exileLabel = state.pendingExile ? (canExile ? ' Select to exile.' : ' Cannot be exiled now.') : ''
+    const label = spoken(
+        `${prefix}${typeName} card. ${buy}${body}${played ? ' Already played this turn.' : ''}${exileLabel}`.replace(/\s+/g, ' '),
+    )
 
     return {
         id: card.id,
@@ -80,9 +85,18 @@ export function buildCardView(card: Card, zone: CardZone, index: number, state: 
         affordable,
         played,
         edge: isEdge ? (card.kind === 'enemy' ? 'enemy' : 'rim') : null,
-        pendingExile: zone === 'hand' && state.pendingExile,
+        pendingExile: state.pendingExile && canExile,
+        exileBlocked: state.pendingExile && !canExile,
         art: cardArt(card),
         label,
-        title: zone === 'row' ? (card.kind === 'enemy' ? ROW_TITLES.enemy : ROW_TITLES.recruit) : '',
+        title: state.pendingExile
+            ? canExile
+                ? 'Click to exile this card.'
+                : 'This card cannot be exiled.'
+            : zone === 'row'
+              ? card.kind === 'enemy'
+                  ? ROW_TITLES.enemy
+                  : ROW_TITLES.recruit
+              : '',
     }
 }

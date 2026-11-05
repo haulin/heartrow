@@ -84,9 +84,14 @@ describe('redraw and rejections', () => {
     it('replaces the four left cards, keeps the edge card and spends a redraw', () => {
         const s = blank()
         const edge = s.row[4]!
+        const generated = cloneState(s)
+        const expected = Array.from({ length: 4 }, () => makeCard(generated, generated.turn))
+            .map((card) => card.id)
+            .reverse()
         const { state, events } = applyMove(s, { type: 'redraw' })
         expect(state.redraws).toBe(0)
         expect(state.row[4]).toEqual(edge)
+        expect(state.row.slice(0, 4).map((card) => card.id)).toEqual(expected)
         expect(state.row.slice(0, 4).every((c, i) => c.id !== s.row[i]!.id)).toBe(true)
         expect(eventTypes(events)).toEqual(['rowRedrawn'])
         expect(applyMove(state, { type: 'redraw' }).events).toEqual([{ type: 'rejected', reason: 'noRedraws' }])
@@ -121,5 +126,30 @@ describe('redraw and rejections', () => {
             { type: 'redraw' },
             { type: 'endTurn' },
         ])
+    })
+
+    it('exiles a recruit from the river and refills the left edge', () => {
+        const s = blank()
+        const first = mk({ id: 101 })
+        const target = mk({ id: 102 })
+        const middleEnemy = enemy({ id: 103 })
+        const fourth = mk({ id: 104 })
+        const edge = enemy({ id: 105 })
+        s.pendingExile = true
+        s.row = [first, target, middleEnemy, fourth, edge]
+        const expected = makeCard(cloneState(s), s.turn)
+
+        expect(legalMoves(s)).toEqual([
+            { type: 'exile', rowIndex: 0 },
+            { type: 'exile', rowIndex: 1 },
+            { type: 'exile', rowIndex: 3 },
+            { type: 'skipExile' },
+        ])
+        const result = applyMove(s, { type: 'exile', rowIndex: 1 })
+        expect(result.state.exile.map((card) => card.id)).toEqual([target.id])
+        expect(result.state.row).toEqual([expected, first, middleEnemy, fourth, edge])
+        expect(eventTypes(result.events)).toEqual(['exiled', 'rowRefilled'])
+        expect(applyMove(s, { type: 'exile', rowIndex: 2 }).events).toEqual([{ type: 'rejected', reason: 'cannotExile' }])
+        expect(applyMove(s, { type: 'exile', rowIndex: 4 }).events).toEqual([{ type: 'rejected', reason: 'cannotExile' }])
     })
 })

@@ -10,7 +10,9 @@ import {
     COST_BUMP,
     COST_BUMP_CHANCE,
     COST_EPSILON,
+    ENEMY_GAIN_SHARE,
     EFFECT_CHANCE,
+    EFFECT_DENSITY_FULL_POOL,
     ENEMY_COST_REDUCTION,
     ENEMY_MIN_COST,
     FILLER_MAX_ATTEMPTS,
@@ -31,6 +33,11 @@ import {
     TIDE_EFFECT_CHANCE,
     TIDE_POWER_CHANCE,
 } from './budget'
+
+function effectChance(limits: Limits, type: CardType): number {
+    const base = type === 'tide' ? TIDE_EFFECT_CHANCE : EFFECT_CHANCE
+    return base * Math.min(1, limits.effects.length / EFFECT_DENSITY_FULL_POOL)
+}
 
 function effectPool(limits: Limits, type: CardType, enemy: boolean, budget: number): EffectId[] {
     const pool = EFFECTS.filter((e) => effectPrice(e.id) <= budget && (!enemy || e.enemies) && limits.effects.includes(e.id)).map(
@@ -80,14 +87,20 @@ export function makeCard(state: GameState, turn: number, attempt = 0): Card {
     card.main = main
     const other: Currency = main === 'gold' ? 'power' : 'gold'
 
-    if (chance(rng, type === 'tide' ? TIDE_EFFECT_CHANCE : EFFECT_CHANCE)) {
+    if (enemy && chance(rng, OTHER_RESOURCE_CHANCE)) {
+        const currency = limits.currencies[nextInt(rng, limits.currencies.length)] as Currency
+        const amount = Math.max(1, Math.floor(cost * ENEMY_GAIN_SHARE))
+        card[currency] += amount
+        budget -= amount * RESOURCE_PRICE[currency]
+    }
+
+    if (chance(rng, effectChance(limits, type))) {
         const pool = effectPool(limits, type, enemy, budget)
         if (pool.length > 0) {
             const id = pool[nextInt(rng, pool.length)] as EffectId
             const effect = EFFECT_BY_ID[id]
             card.fx.push(id)
-            budget -= effect.roll ? effect.roll(rng, card, budget) : effect.price
-            if (card.kinCurrency && !limits.currencies.includes(card.kinCurrency)) card.kinCurrency = main
+            budget -= effect.roll ? effect.roll(rng, card, budget, { currencies: limits.currencies, hearts: limits.hearts }) : effect.price
             if (!enemy && effect.retainable && budget >= RETAIN_PRICE && chance(rng, RETAIN_CHANCE)) {
                 card.retain = true
                 budget -= RETAIN_PRICE
@@ -116,7 +129,10 @@ export function makeCard(state: GameState, turn: number, attempt = 0): Card {
     const fitted = enemy ? Math.ceil(spent / HM) : Math.ceil((spent - RECRUIT_BUDGET_BASE) / RECRUIT_BUDGET_PER_COST - COST_EPSILON)
     card.cost = Math.max(enemy ? ENEMY_MIN_COST : RECRUIT_MIN_COST, Math.min(cost, fitted))
     if (enemy && !card.hearts) card.hearts = 1
-    if (!enemy && !card.gold && !card.power && !card.hearts && !card.fx.length) card[limits.currencies.includes('gold') ? 'gold' : main] = 1
+    if (!enemy && !card.gold && !card.power && !card.hearts && !card.fx.length) {
+        const currency = limits.currencies.includes('gold') ? 'gold' : main
+        card[currency] = Math.max(1, Math.floor(budget0 / RESOURCE_PRICE[currency]))
+    }
 
     const fillerFrom = config.lateFillerFromTurn
     if (

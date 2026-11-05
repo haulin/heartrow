@@ -2,7 +2,7 @@ import { canAfford } from '../../state'
 import type { GameState } from '../../types'
 import type { Policy } from '../types'
 import { smartScore } from './smartBuy'
-import { redrawMemory, STRONG_WEIGHT } from './util'
+import { IDLE_REDRAW_WEIGHT, redrawMemory, STRONG_WEIGHT } from './util'
 import type { RedrawMemory } from './util'
 
 /** Redraws once per turn when the best affordable card is clearly worse than the best card in the row, or nothing is affordable. */
@@ -23,7 +23,7 @@ export function smartRedraw(memory: RedrawMemory = redrawMemory()): Policy {
         weight(state, move) {
             const { redrawn } = memory(state)
             if (move.type !== 'redraw') return 1
-            return !redrawn && wanted(state) ? STRONG_WEIGHT : 0
+            return !redrawn && wanted(state) ? STRONG_WEIGHT * IDLE_REDRAW_WEIGHT : 0
         },
     }
 }

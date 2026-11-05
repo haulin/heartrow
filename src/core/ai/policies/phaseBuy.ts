@@ -1,7 +1,7 @@
 import { cardCost, ownedCards } from '../../state'
 import type { Card, EffectId, GameState } from '../../types'
 import type { Policy } from '../types'
-import { rowCard, scoreWeight } from './util'
+import { expectedGain, rowCard, scoreWeight } from './util'
 
 export interface PhaseThresholds {
     earlyEnd: number
@@ -9,9 +9,6 @@ export interface PhaseThresholds {
 }
 
 export const DEFAULT_PHASE_THRESHOLDS: PhaseThresholds = { earlyEnd: 6, lateStart: 16 }
-type GainResource = 'gold' | 'power'
-type GainScore = (state: GameState, card: Card, resource: GainResource) => number
-const MIN_AVERAGE_UPLIFT = 0.1
 
 const EFFECT_VALUE: Partial<Record<EffectId, number>> = {
     all3: 0,
@@ -48,30 +45,10 @@ function heartValue(card: Card): number {
     return card.hearts * 6 + card.fx.reduce((score, fx) => score + (HEART_EFFECT_VALUE[fx] ?? 0), 0)
 }
 
-function expectedGain(card: Card, resource: GainResource): number {
-    return resource === 'gold' ? card.gold + (card.fx.includes('coin') ? 3 : 0) : card.power
-}
-
-function absoluteGain(_state: GameState, card: Card, resource: GainResource): number {
-    return expectedGain(card, resource)
-}
-
-function curveGain(state: GameState, card: Card, resource: GainResource): number {
-    const cards = ownedCards(state)
-    const total = cards.reduce((sum, owned) => sum + expectedGain(owned, resource), 0)
-    const candidate = expectedGain(card, resource)
-    if (candidate <= 0) return 0
-    if (total <= 0 || cards.length === 0) return 1
-    const currentAverage = total / cards.length
-    const newAverage = (total + candidate) / (cards.length + 1)
-    const uplift = newAverage / currentAverage - 1
-    return uplift < MIN_AVERAGE_UPLIFT ? 0 : Math.sqrt(uplift / MIN_AVERAGE_UPLIFT)
-}
-
-function score(state: GameState, card: Card, { earlyEnd, lateStart }: PhaseThresholds, gainScore: GainScore): number {
+function score(state: GameState, card: Card, { earlyEnd, lateStart }: PhaseThresholds): number {
     const cost = cardCost(state, card)
-    const gold = gainScore(state, card, 'gold')
-    const power = gainScore(state, card, 'power')
+    const gold = expectedGain(card, 'gold')
+    const power = expectedGain(card, 'power')
     const effects = effectValue(state, card)
     const hearts = heartValue(card)
 
@@ -84,22 +61,12 @@ function score(state: GameState, card: Card, { earlyEnd, lateStart }: PhaseThres
 }
 
 /** A lab-only buyer that changes focus from early economy to mid-run power/effects and late hearts. */
-function makePhaseBuyer(id: string, { earlyEnd, lateStart }: PhaseThresholds, gainScore: GainScore): Policy {
+export function phaseBuy(thresholds: PhaseThresholds = DEFAULT_PHASE_THRESHOLDS): Policy {
     return {
-        id,
+        id: 'phaseBuy',
         weight(state, move) {
             const card = rowCard(state, move)
-            return card?.kind === 'recruit' ? scoreWeight(score(state, card, { earlyEnd, lateStart }, gainScore), 3) : 1
+            return card?.kind === 'recruit' ? scoreWeight(score(state, card, thresholds), 3) : 1
         },
     }
-}
-
-/** A lab-only buyer that changes focus from early economy to mid-run power/effects and late hearts. */
-export function phaseBuy(thresholds: PhaseThresholds = DEFAULT_PHASE_THRESHOLDS): Policy {
-    return makePhaseBuyer('phaseBuy', thresholds, absoluteGain)
-}
-
-/** A lab-only buyer that prefers recruits which raise the current deck's expected gain curve. */
-export function deckCurveBuy(thresholds: PhaseThresholds = DEFAULT_PHASE_THRESHOLDS): Policy {
-    return makePhaseBuyer('deckCurveBuy', thresholds, curveGain)
 }

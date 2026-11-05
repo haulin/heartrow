@@ -10,12 +10,12 @@ export const army: EffectDef = {
     enemies: false,
     lean: ['moss', 'ember', 'tide'],
     retainable: true,
-    roll(rng, card) {
-        rollKinCurrency(rng, card)
+    roll(rng, card, _budget, context) {
+        rollKinCurrency(rng, card, context, false)
         return army.price
     },
     apply({ state, card }) {
-        const currency: Currency = card.kinCurrency ?? card.main
+        const currency: Currency = card.fxParams?.currency === 'hearts' ? card.main : (card.fxParams?.currency ?? card.main)
         state[currency] += Math.floor(ownedCards(state).filter((other) => other.type === card.type).length / 4)
     },
 }

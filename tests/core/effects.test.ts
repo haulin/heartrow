@@ -17,18 +17,18 @@ describe('effect registry', () => {
     })
 
     // A tripwire: a new or changed effect fails here until its needs are decided on purpose. The generator and the custom
-    // generator dialog read `needs`, so a wrong table means dead effects (or missing ones) in limited generators.
+    // generator dialog read these fields, so a wrong table means dead effects (or missing ones) in limited generators.
     it('declares what each effect needs from a generator', () => {
         expect(Object.fromEntries(EFFECTS.map((e) => [e.id, e.needs ?? []]))).toEqual({
             draw: [],
-            coin: ['gold'],
+            coin: [],
             exile: [],
             cheap: ['gold'],
             foes: ['foe', 'power'],
             all3: ['moss', 'ember', 'tide', 'hearts'],
             vault: ['exile', 'hearts'],
-            basics: ['gold'],
-            pile: ['power'],
+            basics: [],
+            pile: [],
             bond: [],
             kin: [],
             weak: ['foe', 'power'],
@@ -38,6 +38,11 @@ describe('effect registry', () => {
             swap: ['gold', 'power'],
             reapG: ['gold', 'hearts'],
             reapP: ['power', 'hearts'],
+        })
+        expect(Object.fromEntries(EFFECTS.map((e) => [e.id, e.needsAny ?? []]))).toMatchObject({
+            coin: ['gold', 'power'],
+            basics: ['gold', 'power'],
+            pile: ['gold', 'power'],
         })
     })
 })
@@ -54,7 +59,7 @@ describe('type effects', () => {
     })
 
     it('bond pays only when its type was already played', () => {
-        const bonded = () => mk({ type: 'moss', fx: ['bond'], bondCount: 2 })
+        const bonded = () => mk({ type: 'moss', fx: ['bond'], fxParams: { bondCount: 2 } })
         const first = blank()
         first.hand = [bonded(), mk({ type: 'moss' })]
         expect(playAll(first, 0, 1).gold).toBe(0)
@@ -67,14 +72,14 @@ describe('type effects', () => {
 
     it('kin counts only other played cards of the type still in hand', () => {
         const s = blank()
-        s.hand = [mk(), mk(), mk(), mk({ type: 'ember' }), mk({ fx: ['kin'], kinCurrency: 'power' })]
+        s.hand = [mk(), mk(), mk(), mk({ type: 'ember' }), mk({ fx: ['kin'], fxParams: { currency: 'power' } })]
         expect(playAll(s, 0, 1, 3, 4).power).toBe(2)
     })
 
     it('army counts the card type in deck, hand and discard but not exile', () => {
         const s = blank()
         const tide = (n: number) => Array.from({ length: n }, () => mk({ type: 'tide' }))
-        s.hand = [mk({ type: 'tide', fx: ['army'], kinCurrency: 'gold' })]
+        s.hand = [mk({ type: 'tide', fx: ['army'], fxParams: { currency: 'gold' } })]
         s.deck = tide(3)
         s.discard = tide(3)
         s.exile = tide(5)
@@ -110,7 +115,7 @@ describe('draw and cycle', () => {
 
     it('draw reshuffles the discard when the deck runs out', () => {
         const s = blank()
-        s.hand = [mk({ fx: ['draw'], drawCount: 3 })]
+        s.hand = [mk({ fx: ['draw'], fxParams: { drawCount: 3 } })]
         s.deck = [mk()]
         s.discard = [mk(), mk(), mk()]
         const { state, events } = applyMove(s, { type: 'play', handIndex: 0 })
@@ -123,7 +128,7 @@ describe('draw and cycle', () => {
 
     it('draw stops quietly when nothing is left', () => {
         const s = blank()
-        s.hand = [mk({ fx: ['draw'], drawCount: 4 })]
+        s.hand = [mk({ fx: ['draw'], fxParams: { drawCount: 4 } })]
         expect(applyMove(s, { type: 'play', handIndex: 0 }).state.hand).toHaveLength(1)
     })
 })
@@ -133,7 +138,7 @@ describe('exile', () => {
         const s = blank()
         const a = mk()
         s.hand = [mk({ fx: ['exile'] }), a]
-        s.row = [mk({ cost: 0 }), ...s.row.slice(1)]
+        s.row = [enemy(), enemy(), enemy(), enemy(), enemy()]
         const pending = applyMove(s, { type: 'play', handIndex: 0 }).state
         expect(pending.pendingExile).toBe(true)
         expect(legalMoves(pending)).toEqual<Move[]>([
@@ -156,11 +161,25 @@ describe('exile', () => {
         expect(applyMove(pending, { type: 'skipExile' }).state.pendingExile).toBe(false)
     })
 
-    it('does not open for an enemy defeat with an empty hand', () => {
+    it('lists a river recruit as an additional exile target', () => {
+        const s = blank()
+        s.hand = [mk({ fx: ['exile'] })]
+        s.row = [mk(), enemy(), enemy(), enemy(), enemy()]
+        const pending = applyMove(s, { type: 'play', handIndex: 0 }).state
+        expect(pending.pendingExile).toBe(true)
+        expect(legalMoves(pending)).toEqual<Move[]>([
+            { type: 'exile', handIndex: 0 },
+            { type: 'exile', rowIndex: 0 },
+            { type: 'skipExile' },
+        ])
+    })
+
+    it('opens only when an enemy defeat leaves an exile target', () => {
         const s = blank()
         s.power = 5
         s.row = [enemy({ fx: ['exile'] }), ...s.row.slice(1)]
-        expect(applyMove(s, { type: 'take', rowIndex: 0 }).state.pendingExile).toBe(false)
+        const result = applyMove(s, { type: 'take', rowIndex: 0 }).state
+        expect(result.pendingExile).toBe(result.row.slice(0, -1).some((card) => card.kind === 'recruit'))
         s.hand = [mk()]
         expect(applyMove(s, { type: 'take', rowIndex: 0 }).state.pendingExile).toBe(true)
     })
@@ -205,7 +224,7 @@ describe('resources', () => {
         s.hand = [mk({ fx: ['coin'] })]
         const { state, events } = applyMove(s, { type: 'play', handIndex: 0 })
         expect([2, 4]).toContain(state.gold)
-        expect(events.find((e) => e.type === 'coinFlipped')).toMatchObject({ gold: state.gold })
+        expect(events.find((e) => e.type === 'coinFlipped')).toMatchObject({ currency: 'gold', amount: state.gold })
         expect(state.streams.gen).toEqual(s.streams.gen)
         expect(state.streams.flip).not.toEqual(s.streams.flip)
     })
@@ -214,10 +233,31 @@ describe('resources', () => {
         const s = blank()
         s.exile = [mk(), mk(), mk(), mk()]
         s.deck = [basicCard(), basicCard()]
-        s.hand = [basicCard(), mk({ fx: ['vault'] }), mk({ fx: ['basics'] }), mk({ fx: ['pile'] })]
+        s.hand = [
+            basicCard(),
+            mk({ fx: ['vault'] }),
+            mk({ fx: ['basics'], fxParams: { currency: 'gold' } }),
+            mk({ fx: ['pile'], fxParams: { currency: 'power' } }),
+        ]
         s.discard = [basicCard(), basicCard(), mk(), mk(), mk(), mk()]
         const done = playAll(s, 1, 2, 3)
         expect([done.hearts, done.gold, done.power]).toEqual([1, 1, 2])
+    })
+
+    it('supports parameterized output currencies', () => {
+        const s = blank()
+        s.deck = [basicCard(), basicCard(), basicCard(), basicCard()]
+        s.discard = [mk(), mk(), mk()]
+        s.hand = [
+            mk({ type: 'tide' }),
+            mk({ type: 'tide', fx: ['kin'], fxParams: { currency: 'hearts' } }),
+            mk({ fx: ['basics'], fxParams: { currency: 'power' } }),
+            mk({ fx: ['pile'], fxParams: { currency: 'gold' } }),
+        ]
+        const done = playAll(s, 0, 1, 2, 3)
+        expect(done.hearts).toBe(1)
+        expect(done.power).toBe(1)
+        expect(done.gold).toBe(1)
     })
 })
 
@@ -231,6 +271,17 @@ describe('enemies', () => {
         const { state, events } = applyMove(s, { type: 'take', rowIndex: 1 })
         expect(state.power).toBe(3)
         expect(events.find((e) => e.type === 'defeated')).toMatchObject({ paid: 1, gains: { power: 3, hearts: 1, gold: 0 } })
+    })
+
+    it('reports direct enemy gains in the defeat event', () => {
+        const s = blank()
+        s.power = 1
+        s.row = [enemy({ cost: 1, gold: 2, power: 1 }), ...s.row.slice(1)]
+        const { state, events } = applyMove(s, { type: 'take', rowIndex: 0 })
+        expect([state.gold, state.power]).toEqual([2, 1])
+        expect(events.find((event) => event.type === 'defeated')).toMatchObject({
+            gains: { gold: 2, power: 1, hearts: 1 },
+        })
     })
 
     it('defeating gives hearts, refills at index 0 and shifts the cards on its left', () => {

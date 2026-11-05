@@ -1,10 +1,14 @@
-import { chance } from '../rng'
+import { nextInt } from '../rng'
 import type { Rng } from '../rng'
-import type { Card, Currency } from '../types'
-import type { EffectDef } from './types'
+import type { Card, GeneratorResource } from '../types'
+import type { EffectDef, EffectRollContext } from './types'
 
-export function rollKinCurrency(rng: Rng, card: Card): void {
-    card.kinCurrency = chance(rng, 0.5) ? card.main : card.main === 'gold' ? 'power' : 'gold'
+export function rollKinCurrency(rng: Rng, card: Card, context: EffectRollContext, allowHearts: boolean): GeneratorResource {
+    const currencies: GeneratorResource[] = [...context.currencies]
+    if (allowHearts && card.type === 'tide' && context.hearts) currencies.push('hearts')
+    const currency = currencies[nextInt(rng, currencies.length)] ?? card.main
+    card.fxParams = { ...card.fxParams, currency }
+    return currency
 }
 
 export const kin: EffectDef = {
@@ -14,12 +18,12 @@ export const kin: EffectDef = {
     enemies: false,
     lean: ['moss', 'ember'],
     retainable: true,
-    roll(rng, card) {
-        rollKinCurrency(rng, card)
-        return kin.price
+    roll(rng, card, budget, context) {
+        const currency = rollKinCurrency(rng, card, context, budget >= kin.price * 1.5)
+        return kin.price * (currency === 'hearts' ? 1.5 : 1)
     },
     apply({ state, card }) {
-        const currency: Currency = card.kinCurrency ?? card.main
+        const currency = card.fxParams?.currency ?? card.main
         state[currency] += state.hand.filter((other) => other.played && other !== card && other.type === card.type).length
     },
 }

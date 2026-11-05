@@ -13,10 +13,13 @@ export function drawFirst(): Policy {
             if (move.type !== 'play' || !card) return 1
             const pileInHand = state.hand.some((c) => c.fx.includes('pile'))
             if (card.fx.includes('draw')) {
-                const reshuffles = (card.drawCount ?? 1) > state.deck.length
+                const reshuffles = (card.fxParams?.drawCount ?? 1) > state.deck.length
                 return pileInHand && reshuffles ? 1 : STRONG_WEIGHT
             }
-            if (card.fx.includes('pile') && state.hand.some((c) => c.fx.includes('draw') && (c.drawCount ?? 1) > state.deck.length))
+            if (
+                card.fx.includes('pile') &&
+                state.hand.some((c) => c.fx.includes('draw') && (c.fxParams?.drawCount ?? 1) > state.deck.length)
+            )
                 return STRONG_WEIGHT
             return 1
         },

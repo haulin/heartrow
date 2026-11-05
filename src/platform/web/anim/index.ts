@@ -125,6 +125,13 @@ export function planBefore(frame: Frame, root: ParentNode): Effect[] {
                 if (event.paid > 0) out.push(...pulseOf(root, 'gold'))
                 break
             }
+            case 'exiled':
+                if (frame.move.type === 'exile' && 'rowIndex' in frame.move) {
+                    const slot = cardEls(root, 'row', event.card.id)?.parentElement
+                    const to = statEl(root, 'piles')
+                    if (slot && to) out.push({ kind: 'flyCard', el: slot, to })
+                }
+                break
             case 'rowRedrawn':
                 // The four replaced cards shrink away one after another.
                 // The rightmost goes first, like the row moving to the right.
@@ -179,6 +186,9 @@ const cardIdOfMove = (frame: Frame): { zone: 'row' | 'hand'; card: Card | undefi
     const state = frame.before.state
     if (move.type === 'play') return { zone: 'hand', card: state.hand[move.handIndex] }
     if (move.type === 'take') return { zone: 'row', card: state.row[move.rowIndex] }
+    if (move.type === 'exile') {
+        return 'handIndex' in move ? { zone: 'hand', card: state.hand[move.handIndex] } : { zone: 'row', card: state.row[move.rowIndex] }
+    }
     return null
 }
 

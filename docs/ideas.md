@@ -8,14 +8,12 @@ Everything here is not done yet. Log each idea as one undated line, and mark its
 - Carry on after the goal: today "End your turn to win, or keep going" only means keep playing the current turn. A real choice could be a mode option where ending the turn does not win and a separate "Claim win" move does, with the run scored by final hearts.
 - Stop early or carry on: when the goal is reached, let the player stop or continue to the full turn limit.
 - Undo peeking at random outcomes (open): free undo supports resource planning, but undo after redraw, draw, cycle, purge or take can reveal an alternate random branch without spending the resource. Prefer to keep undo free for solo play; if competitive modes arrive, consider a no-undo or undo-flagged mode instead of making undo a resource.
-- Redraw placement order (high priority, open): place the four newly generated cards right to left so the first generated card lands on the right and the fourth lands on the left, matching single-card refills and preserving the expected RNG order.
 - Free enemies (open): stacked `weak` makes the discount larger than any enemy cost, so enemies cost 0 and the run can become infinite. `cardCost` floors enemy cost at 0. Options: a floor of 1, a cap on stacking, or keep it as a degenerate case in the preset library. Same question for `cheap` on recruits.
+- Cheap enemy alternate rewards (open): a cost-1 enemy can show its minimum 1 ♥ plus an alternate resource even though that exceeds its 1.4 budget. It may be rare enough to keep as a special reward; decide whether to reserve the minimum Heart and suppress the alternate gain.
 - A recruit that only draws one card (a 2 ● Draw 1 with nothing else) appears again. An earlier rule said it should not. Decide later.
-- Cycle and purge discard order: they discard after drawing. Check how it looks in the UI.
 - The saved run has one slot only; several slots could come with saved generators.
 - Copy run on a phone over an insecure LAN address shows “Not copied” because the modern Clipboard API is unavailable and the legacy fallback cannot be confirmed. Try HTTPS or a more useful “Copy attempted” state.
 - Bond pricing (parked, feels a little off): Bond costs `0.5` plus `0, 0.7, 1.5` for +1, +2, +3, so +3 costs `2.0` budget, two thirds of a plain +3. A playtest card (4 ●, 1 ⚔, Bond +3 ⚔, Retain) felt cheap, since a Retained Bond card can wait until its type has been played, and a generator with few types makes that likelier. Counter-view: a buyer who plans on several cards of one colour will often miss, and the card's price works out about right against a guaranteed 4 (Bond +3 at 2.0 is 1 + 2 + 0.5 = 3.5 budget for the bonus part, against 3.7 for a cost-4 card). Making it miss would need about 0.9 per level, which may be too harsh. Leave it until more play data; changing it is an engine change, so bump the version then.
-- Recheck every card for the 1 px icon shift. The "Extra slow" animation entry vanished once after a hot reload; check after a full reload.
 - Colour review after the icon change: the light theme looks weak, Enemy purple and Tide blue are too close, and unaffordable recruit cards (dimmed to 55%) look faded next to Basics. Decide in one pass over both themes.
 - Open question for `draw`, `cycle` and `purge`: do they need anything in `EffectDef.needs`? They touch no resource.
 
@@ -36,15 +34,12 @@ Everything here is not done yet. Log each idea as one undated line, and mark its
 - Enemy cost minimum of one after discounts (see free enemies).
 - Reprice `weak`. Add a `redraw` effect (probably enemies only), a duplicate-rightmost-unused-card effect, and a `haste` effect that resolves a recruit's effect when recruited.
 - Untap effect (open): replay a selected played card to give Ember a way to reuse scarce gold without Swap, but suppress the selected card's Untap effect during the replay so Untap cards cannot recurse.
-- Effect density for narrow pools (open): when a generator allows only a few effects, adjust effect frequency or expose a density setting so an Exile-only pool does not put Exile on nearly every eligible card.
 - Count recruiting as playing a type. Let draw-only cards count as simple. Cap stacked Retain cards.
-- Kin as a heart source (open): Kin currently copies a card's gold or power output, but a Tide-flavoured version could copy hearts. Decide whether that makes Tide more coherent or makes Kin too flexible for every colour.
 - Reward rare runs of identical recruit cards as an achievement; prevent redraw farming.
 - If Basics are removed, test starter compositions such as 3 Moss / 3 Ember / 3 Tide.
 - Parametrised effects (open question): `foes`, `pile`, `all3`, `vault`, `cheap`, `basics` and `weak` are fixed text today. Possible parameters: the currency, the divisor and the amount. Each would need a price per step. Generator settings must not change rolled parameters except through the allowed resources and types.
-- Basics and Pile by currency: `basics` only gives gold and `pile` only power. Let them roll their currency like `kin` and `army`, so a power-only deck has a Basics-style effect. Rolling adds a random draw, so it shifts seeds unless the draw is only made for generators with limits.
-- Gain ranges: a minimum and maximum for the `+n` of plain gains per resource, set in the generator.
-- Enemy gains: let enemies also give gold or power on defeat as a plain gain, so a simple enemy reads "+3 ♥ and +2 ●". It changes Standard unless it is a generator option (for example `enemyGains`), so decide setting or rule change.
+- Unified resource leans (open): after the current parametrization work, consider unifying the existing 70/30 effect lean with direct resource selection without changing recruit balance accidentally.
+- Coin payout variants (open): compare 50/50 flips such as 1/3 or 3/5 with the current 2/4 payout, including the budget price and how much risk the lower result creates.
 - Show calculated values for conditional effects without crowding the card. Mark cards that need a decision so Play simple is less necessary.
 - Generator editor warning: recruits are bought with gold, so a generator with recruit types but no gold (no Basic gold and no gold resource) leaves every recruit unbuyable, and the run is only enemies. Warn in the editor, or say so in the summary.
 - Generator editor: the Effects fieldset could get search or filtering if the list grows.
@@ -96,6 +91,10 @@ Candidate archetypes, not approved balance targets. Test constrained generators 
 - Human-style bot (open): value early gold, power above the deck's best power card, up to three diminishing exiles, varied effects, late hearts, right-side enemy kills except when Foes benefits from leaving enemies, and a short Swap plan that targets an affordable river card.
 - Human bot readiness rules (open): estimate current-hand gold with Coin worth 3 expected gold, deprioritise early Reaping but reconsider ReapG and ReapP as late Heart candidates, value first Draw, Exile and Cycle/Purge copies, require setup for Bond, Army, Kin, all3, Pile and Vault, and use one effect-value policy instead of one permanent policy per effect.
 - Human bot play order (open): play plain resource gains first, make Cycle/Purge the main effect exception, and ignore unsupported conditional effects such as all3, Kin, Army and Bond unless a dedicated build bot can evaluate them.
+- Redraw edge lookahead (open): when the affordable right-edge enemy would leave the next enemy to its left unaffordable, consider redrawing instead of taking the edge enemy.
+- Bot redraw resource gate (open): do not redraw when all remaining resources are below the expected current card cost, even when an affordable row card is later vetoed by the buying policy.
+- Average-gain buying (open): combine phase priorities with a soft bonus for how much a purchase raises the relevant deck average, so a 3 Power card can beat a 2 Gold card when Power is the needed resource without vetoing useful low-gain cards; compare this with `phaseBuy`.
+- Average-relative exile (open): choose exile targets by their value against the current resource average, with a roughly 15% retention threshold and Weak/Foes worth about 1 Power, so early Gold is protected and later Power can be thinned.
 
 ## Screens, modes and sharing
 
@@ -106,6 +105,7 @@ Candidate archetypes, not approved balance targets. Test constrained generators 
 - Level names (open): "Easy, Medium, Hard" for Levels 1 to 3 wait for evidence, since the designer struggled with Level 1 early on yet has won Level 3 twice. Revisit with feedback from new players.
 - Long Run starts a new run at once from home and replaces the run in progress without a warning. Decide whether it needs a confirm or the same note as the level picker and editor.
 - Challenge: the player chooses a generator and tries to make it work. Custom challenges choose or ban types and effects, with several slots to save, edit and duplicate. Start with the Level 1–3 goals. Leave starter decks out of the first iteration.
+- Challenge objectives (open): finish a run with no escapes, or with fewer than 10 wasted Gold and fewer than 10 wasted Power; recognize that passing on a card can be correct when it leads to no useful river action.
 - Show the mode, difficulty, goal, seed and run brief before a menu-launched game and in an overview popup. A shared link starts the game directly and opens the overview once. Compose the brief from structured selections, with only a short length-limited player note.
 - Standard setup with an editable seed field.
 - Keep the game screen mostly unchanged: a route back to the menu and access to the overview.

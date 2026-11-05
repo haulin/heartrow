@@ -51,13 +51,23 @@ describe('card view model', () => {
     })
 
     it('splits gains, effect lines and the retain line', () => {
-        const c = card({ gold: 1, hearts: 1, fx: ['draw'], drawCount: 2, retain: true, played: true })
+        const c = card({ gold: 1, hearts: 1, fx: ['draw'], fxParams: { drawCount: 2 }, retain: true, played: true })
         const v = buildCardView(c, 'hand', 0, state)
         expect(v.gains.map((g) => g.text)).toEqual(['+1 ●', '+1 ♥'])
         expect(v.effects).toEqual(['Draw 2'])
         expect(v.retain).toContain('Retain')
         expect(v.played).toBe(true)
         expect(v.label).toContain('Already played this turn.')
+    })
+
+    it('marks recruit river exile targets and blocks enemies and the edge card', () => {
+        const s = { ...state, pendingExile: true, row: [card(), card({ kind: 'enemy', type: 'foe' }), card()] }
+        const target = buildCardView(s.row[0]!, 'row', 0, s)
+        const enemy = buildCardView(s.row[1]!, 'row', 1, s)
+        const edge = buildCardView(s.row[2]!, 'row', 2, s)
+        expect([target.pendingExile, target.exileBlocked]).toEqual([true, false])
+        expect([enemy.pendingExile, enemy.exileBlocked]).toEqual([false, true])
+        expect([edge.pendingExile, edge.exileBlocked]).toEqual([false, true])
     })
 
     it('spoken() replaces symbols', () => {

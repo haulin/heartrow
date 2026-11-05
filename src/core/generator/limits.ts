@@ -32,7 +32,10 @@ function met(generator: GeneratorConfig | undefined, need: EffectNeed): boolean 
 
 /** The needs of an effect that the generator turns off. Empty when the effect can be rolled, or when it is switched off itself. */
 export function unmetNeeds(generator: GeneratorConfig | undefined, id: EffectId): EffectNeed[] {
-    return (EFFECT_BY_ID[id].needs ?? []).filter((need) => !met(generator, need))
+    const effect = EFFECT_BY_ID[id]
+    const required = (effect.needs ?? []).filter((need) => !met(generator, need))
+    const alternatives = effect.needsAny && !effect.needsAny.some((need) => met(generator, need)) ? [...effect.needsAny] : []
+    return [...required, ...alternatives]
 }
 
 export function generatorLimits(generator: GeneratorConfig | undefined): Limits {

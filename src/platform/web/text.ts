@@ -56,10 +56,10 @@ export function sortPile(cards: readonly Card[]): Card[] {
 type EffectBucket = 'g' | 'p' | 'h' | 'u'
 
 const EFFECT_BUCKET: Record<string, EffectBucket | 'main' | 'kin'> = {
-    coin: 'g',
-    basics: 'g',
+    coin: 'kin',
+    basics: 'kin',
     foes: 'p',
-    pile: 'p',
+    pile: 'kin',
     all3: 'h',
     vault: 'h',
     reapG: 'h',
@@ -93,8 +93,10 @@ export function deckSummary(state: GameState): DeckSummary {
         for (const k of c.fx) {
             const b = EFFECT_BUCKET[k] ?? 'u'
             if (b === 'main') e[c.main === 'power' ? 'p' : 'g']++
-            else if (b === 'kin') e[c.kinCurrency === 'power' ? 'p' : 'g']++
-            else e[b]++
+            else if (b === 'kin') {
+                const currency = c.fxParams?.currency ?? (k === 'pile' ? 'power' : k === 'kin' || k === 'army' ? c.main : 'gold')
+                e[currency === 'power' ? 'p' : currency === 'hearts' ? 'h' : 'g']++
+            } else e[b]++
         }
     }
     return {

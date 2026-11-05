@@ -5,10 +5,15 @@ export const pile: EffectDef = {
     price: 1.5,
     text: '+1 ⚔ per 3 cards in your discard',
     enemies: true,
-    needs: ['power'],
+    needsAny: ['gold', 'power'],
     lean: ['ember'],
     retainable: true,
-    apply({ state, gain }) {
-        gain('power', Math.floor(state.discard.length / 3))
+    roll(_rng, card) {
+        card.fxParams = { ...card.fxParams, currency: card.main }
+        return pile.price
+    },
+    apply({ state, card, gain }) {
+        const currency = card.fxParams?.currency === 'gold' ? 'gold' : 'power'
+        gain(currency, Math.floor(state.discard.length / 3))
     },
 }

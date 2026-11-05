@@ -14,6 +14,8 @@ export const COST_EPSILON = 1e-9
 export const TIDE_POWER_CHANCE = 0.5
 export const EFFECT_CHANCE = 0.45
 export const TIDE_EFFECT_CHANCE = 0.75
+/** Four available effects retain the normal density; narrower pools scale down from there. */
+export const EFFECT_DENSITY_FULL_POOL = 4
 
 export const COST_BUMP_CHANCE = 0.1
 export const COST_BUMP = 2
@@ -25,6 +27,7 @@ export const HEARTS_CHANCE_FIRST = 0.075
 export const HEARTS_CHANCE_FIRST_TIDE = 0.165
 export const HEARTS_CHANCE_AFTER_HEARTS = 0.75
 export const OTHER_RESOURCE_CHANCE = 0.15
+export const ENEMY_GAIN_SHARE = 0.4
 
 export const DRAW_PRICE_PER_CARD = 1.5
 export const DRAW_MAX = 4

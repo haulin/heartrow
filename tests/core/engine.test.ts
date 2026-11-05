@@ -63,6 +63,7 @@ describe('engine', () => {
             const legal = new Set(legalMoves(before).map(key))
             const candidates: Move[] = [{ type: 'endTurn' }, { type: 'redraw' }, { type: 'skipExile' }]
             for (let i = -1; i <= before.hand.length; i++) candidates.push({ type: 'play', handIndex: i }, { type: 'exile', handIndex: i })
+            for (let i = -1; i <= before.row.length; i++) candidates.push({ type: 'exile', rowIndex: i })
             for (let i = -1; i <= before.row.length; i++) candidates.push({ type: 'take', rowIndex: i })
             for (const move of candidates) {
                 const accepted = !applyMove(before, move).events.some((e) => e.type === 'rejected')

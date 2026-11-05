@@ -11,12 +11,15 @@ import {
     createRng,
     customMode,
     DEFAULT_CUSTOM,
+    edgeFollowUp,
+    exileByAverage,
     expectedCardCost,
     hasReasonableResources,
     humanPlayOrder,
     legalMoves,
     makeProfile,
     newGame,
+    phaseBuy,
     pickMove,
     playGame,
     redrawMemory,
@@ -103,6 +106,31 @@ describe('profiles', () => {
         expect(hasReasonableResources({ ...early, gold: 0, power: 2 })).toBe(true)
     })
 
+    it('values a Power Coin like its expected Power gain', () => {
+        const initial = newGame(standardMode(0), 1).state
+        const power = {
+            ...initial.row[0]!,
+            type: 'ember' as const,
+            kind: 'recruit' as const,
+            cost: 2,
+            gold: 0,
+            power: 3,
+            hearts: 0,
+            fx: [],
+            main: 'power' as const,
+        }
+        const coin = {
+            ...power,
+            power: 0,
+            fx: ['coin'] as Card['fx'],
+            fxParams: { currency: 'power' as const },
+        }
+        const policy = phaseBuy()
+        const plainWeight = policy.weight({ ...initial, row: [power, ...initial.row.slice(1)] }, { type: 'take', rowIndex: 0 }, [])
+        const coinWeight = policy.weight({ ...initial, row: [coin, ...initial.row.slice(1)] }, { type: 'take', rowIndex: 0 }, [])
+        expect(coinWeight).toBeGreaterThan(plainWeight)
+    })
+
     it('takes more redraw risk when several redraws remain', () => {
         const early = newGame(standardMode(0), 1).state
         expect(hasReasonableResources({ ...early, gold: 3, power: 0, redraws: 1 })).toBe(false)
@@ -175,6 +203,48 @@ describe('profiles', () => {
 
         policy.weight(before, { type: 'endTurn' }, [{ type: 'endTurn' }])
         expect(policy.weight(after, { type: 'take', rowIndex: 0 }, [{ type: 'take', rowIndex: 0 }])).toBe(1)
+    })
+
+    it('does not count a take the buying policies veto as something to buy', () => {
+        const initial = newGame(standardMode(0), 1).state
+        const cheap = { ...initial.row[0]!, kind: 'recruit' as const, cost: 1, gold: 1 }
+        const poor = { ...initial, gold: 1, power: 0, row: [cheap, ...initial.row.slice(1)] }
+        const legal: Move[] = [{ type: 'take', rowIndex: 0 }, { type: 'redraw' }, { type: 'endTurn' }]
+        const veto = fixed('veto', { take: 0 })
+        const redraw = (buyers: Policy[]) => redrawWhenStuck(redrawMemory(), { buyers }).weight(poor, { type: 'redraw' }, legal)
+
+        expect(redraw([])).toBeGreaterThan(0)
+        expect(redraw([veto])).toBe(0)
+    })
+
+    it('exiles a played Basic only when the deck average of its resource stays within the allowed drop', () => {
+        const initial = newGame(standardMode(0), 1).state
+        const all = [...initial.deck, ...initial.hand, ...initial.discard]
+        const gold = { ...all.find((card) => card.kind === 'basic' && card.gold)!, played: true }
+        const power = { ...all.find((card) => card.kind === 'basic' && card.power)!, played: true }
+        const rest = all.filter((card) => card.id !== gold.id && card.id !== power.id)
+        const state = { ...initial, hand: [gold, power], deck: rest, discard: [] }
+        const policy = exileByAverage()
+
+        // Six Gold and four Power Basics: losing a Gold Basic cuts the Gold average 7%, losing a Power Basic cuts Power 17%.
+        expect(policy.weight(state, { type: 'exile', handIndex: 0 }, [])).toBeGreaterThan(0)
+        expect(policy.weight(state, { type: 'exile', handIndex: 1 }, [])).toBe(0)
+    })
+
+    it('redraws before defeating the edge enemy only when its neighbour would escape and nothing else is worth buying', () => {
+        const initial = newGame(standardMode(0), 1).state
+        const enemy = { ...initial.row[0]!, kind: 'enemy' as const, cost: 3, fx: [] }
+        const row = [...initial.row.slice(0, 3), enemy, enemy]
+        const state = { ...initial, power: 4, row }
+        const legal: Move[] = [{ type: 'take', rowIndex: 4 }, { type: 'take', rowIndex: 3 }, { type: 'redraw' }, { type: 'endTurn' }]
+        const onlyEdge: Policy = { id: 'onlyEdge', weight: (_s, m) => (m.type === 'take' && m.rowIndex !== 4 ? 0 : 1) }
+        const weights = (buyers: Policy[], from = state) =>
+            legal.map((move) => edgeFollowUp(redrawMemory(), buyers).weight(from, move, legal))
+
+        // 4 Power pays the edge (3) and leaves 1, which cannot pay the neighbour (3).
+        expect(weights([onlyEdge])).toEqual([0, 1, 8, 1])
+        expect(weights([])).toEqual([1, 1, 1, 1])
+        expect(weights([onlyEdge], { ...state, power: 6 })).toEqual([1, 1, 1, 1])
     })
 
     for (const config of [standardMode(0), LONG_MODE]) {

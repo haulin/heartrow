@@ -48,7 +48,7 @@ This makes buying a card beside an enemy a meaningful choice. Buying the edge ca
 - Redraw replaces the four left cards and leaves the edge card in place.
 - Reaching the goal wins only when the turn ends.
 - “Play simple” plays cards without worded effects.
-- Exile is optional. The player can skip it. Forced exile was rejected.
+- Exile is optional. The player can skip it. It can target any hand card, or a recruit in river slots 1–4; enemies and the right-edge card are not valid targets. Exiling a river recruit refills the left edge.
 - Undo is permissive: any move except ending the turn can be undone, back to the start of the turn. Random outcomes replay identically, so undo cannot fish for luck.
 
 Cards are generated when they enter the row. Their type, resources, effects, and art come from the generator budget. There is no row deck.
@@ -71,7 +71,7 @@ There are four screens, home, game, the level picker and the generator editor, a
 
 The editor keeps its settings in the address as you change them, so a reload or a copied address gives the same editor. It opens from the home screen (with the settings of the last run, if there is one) and from the run dialog's "Open in the generator editor" button (with the settings of the run on screen; a Standard run opens with the defaults at its goal). Back from the editor returns to where you came from, for example the run; Start begins a new custom run and replaces the one in memory. The screen state is web only; core knows nothing about screens.
 
-The game screen has only game actions in its button bar (End turn, Play simple, Redraw, Skip exile, Undo). Home sits at the top left; New game, Settings and About are on the home screen. The header's other button names the mode (Standard, Custom or Long Run, with an ⓘ) and opens a dialog with the level, goal, turns, the generator summary of a custom run, and the seed with its copy buttons.
+The game screen has only game actions in its button bar (End turn, Play simple, Redraw, Undo, Skip exile). Home sits at the top left; New game, Settings and About are on the home screen. The header's other button names the mode (Standard, Custom or Long Run, with an ⓘ) and opens a dialog with the level, goal, turns, the generator summary of a custom run, and the seed with its copy buttons.
 
 ### Saved run
 
@@ -82,6 +82,7 @@ The web layer saves the current run in `localStorage` after every accepted move,
 - Recruit cost is a converted budget, not a direct value sum: a recruit with base cost `C` starts with `C × .85 + .3` budget. The row may display a lower current price when a recruit discount is active.
 - Direct gold and power each cost `1`, hearts cost `1.5`, and effects consume their listed budget. Integer resource gains can leave a fractional remainder below `1`; this is intentional. For example, a base-cost-12 card with `+2 ● +4 ⚔ +3 ♥` uses `10.5` budget exactly, while a base-cost-11 card with `+8 ● +1 ⚔` leaves `0.65`.
 - Enemy budget is the cost times `1.4`. The displayed cost is recomputed from the budget actually spent.
+- Direct gains are one unit at a time. Recruits keep their existing lean and resource distribution. Enemies have a 15% chance to spend part of their budget on Gold or Power instead of Hearts; the alternate gain is `max(1, floor(cost × .4))`, and its budget is reserved before effects and Hearts are generated.
 - Draw is one scalable effect. It costs `1.5` budget per card, so a generated card can draw 1 to 4 cards when it has enough budget.
 - Retain costs `0.5` budget.
 - Scaled conditional effects should use simple magnitude pricing of roughly `3` budget per level; test the exact values for discounts and per-enemy effects before resolving them.
@@ -89,15 +90,16 @@ The web layer saves the current run in `localStorage` after every accepted move,
 - The two discard effects are `cycle`, which keeps Retain cards and costs more, and `purge`, which discards Retain cards too and costs less. Both lean Tide.
 - `swap` exchanges gold and power. It leans Moss and Ember and gives a gold engine an outlet for defeating enemies.
 - `exile` gets one extra selection weight on Moss and Ember recruits while Tide stays its strongest type.
+- Rolled output parameters live in `Card.fxParams`. Kin can produce Hearts on Tide when Hearts are enabled; Basics, Pile and Coin use the card's generated output currency. Parameterized output remains visible in card text and is priced before the remaining budget is spent.
 - `foes` counts the enemies in the row before the defeated enemy is replaced, including the enemy being defeated and excluding the newcomer.
 
 ### Generator limits
 
 `GeneratorConfig` (on `ModeConfig`) lists the allowed card types (Moss, Ember, Tide, enemies), resources (gold, power, hearts) and effects. `generatorLimits` in `src/core/generator/limits.ts` turns it into what can really be made.
 
-- Plain gains, hearts and the Kin and Army currency are redirected to an allowed resource. Gold can be switched off too; the core falls back to gold only when no currency is allowed.
+- Plain gains, hearts and the Kin and Army currency are redirected to an allowed resource. Gold can be switched off too; the core falls back to gold only when no currency is allowed. Basics, Pile and Coin use an allowed output currency, and Kin may use Hearts for Tide.
 - Enemies need power (to defeat) and hearts (to pay out), so they are off when either is.
-- `EffectDef.needs` lists what an effect requires (resources, enemies, colours, the exile effect). The generator skips an effect whose need is off. A tripwire test lists every effect's needs, so a new or changed effect is noticed.
+- `EffectDef.needs` and `needsAny` list what an effect requires (resources, enemies, colours, the exile effect). The generator skips an effect whose need is off. A tripwire test lists every effect's needs, so a new or changed effect is noticed.
 - The random draws are the same whatever the limits are. A test checks that "allow everything" equals no generator.
 
 ## Interface conventions
@@ -150,10 +152,10 @@ Some quirks come from the original prototype. The core keeps them unless listed 
 ## Bots and balance
 
 - Bots live in `src/core/ai`. A bot is a list of policies. Each policy returns a non-negative factor for every legal move; the factors are multiplied, `0` vetoes a move, and the sampled profiles choose from the resulting weights with their own seeded RNG. The `random` profile has no policies and is a uniform control. These bots give a relative balance signal, not a substitute for human play.
-- Policies cover turn order and hand use (`playsFirst`, `retainAware`, `drawFirst`, `effectCardsFirst`, `exileChoices`), row priorities (`buyEnemies`, `buyBuild`, `buyValue`, `noRecruits`, `rush`, `pacifist`, `smartBuy`), redraw control (`protectEdge`, `redrawWhenStuck`, `smartRedraw`), and turn completion (`endTurnWhenDone`). Most preference factors use the ordinary 1–10 range; zero remains a deliberate veto, and small factors keep redraw and ending the turn as last-resort actions.
+- Policies cover turn order and hand use (`playsFirst`, `retainAware`, `drawFirst`, `effectCardsFirst`, `exileChoices`), row priorities (`buyEnemies`, `buyBuild`, `buyValue`, `noRecruits`, `rush`, `pacifist`, `smartBuy`), redraw control (`protectEdge`, `redrawWhenStuck`, `smartRedraw`), and turn completion (`endTurnWhenDone`). Redraw weights belong to the redraw policies (`redrawWhenStuck`, `smartRedraw`, `protectEdge`) and end turn to `endTurnWhenDone`; neither policy sets the other's weight. Both are given the profile's buying policies and count a legal take as something to buy only when none of them vetoes it. Most preference factors use the ordinary 1–10 range; zero remains a deliberate veto, and small factors keep redraw and ending the turn as last-resort actions.
 - The named profiles are `mixed` (balanced fighter), `none` (no recruits), `build` (early deck building), `rush` (early recruiting only), `pacifist` (no combat and engine cards), and `smart` (unified purchase and redraw scoring). `lookahead` remains a separate, greedy rollout experiment.
-- The current bot comparison is recorded in `tools/baseline/bots-2026-11.json`. These figures are balance signals, not targets.
-- In that baseline, `random` averages −9.3 hearts in Standard and −41.1 in Long Run; the active fighter/build profiles (`mixed`, `build`, `smart`) average about 30 hearts in Standard and 51 in Long Run. At goal 48, `mixed` hits 9.2% and `smart` 9.5%; at goal 64, they hit 0.7% and 0.5%. `lookahead` is sampled separately because it is expensive: its small sample averaged 78.5 hearts in Long Run.
+- Performance comparisons use greedy selection. Sampled selection remains available for randomness experiments, but it is not a bot-balance benchmark.
+- The current bot comparison is recorded in `tools/baseline/bots-current.md`. These figures are balance signals, not targets. Earlier measurements and the experiments behind the bots are in [`history.md`](history.md).
 - The Long Run bot redraws before defeating an affordable right-edge enemy when another enemy sits to its left, so that left enemy does not become the new escape threat.
 - The core was checked against the original prototype over 100 seeds. The generator matches. The bots are 2–4% stronger than the prototype and that was accepted. The report is in `tools/baseline/V7_PARITY.md`.
 - Run the simulator with `npm run sim`.

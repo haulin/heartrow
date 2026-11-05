@@ -64,7 +64,13 @@ export function newGame(config: ModeConfig, seed: number): StepResult {
 export function legalMoves(state: GameState): Move[] {
     if (state.status !== 'playing') return []
     if (state.pendingExile) {
-        return [...state.hand.map((_, handIndex): Move => ({ type: 'exile', handIndex })), { type: 'skipExile' }]
+        return [
+            ...state.hand.map((_, handIndex): Move => ({ type: 'exile', handIndex })),
+            ...state.row.flatMap((card, rowIndex): Move[] =>
+                rowIndex === state.row.length - 1 || card.kind !== 'recruit' ? [] : [{ type: 'exile', rowIndex }],
+            ),
+            { type: 'skipExile' },
+        ]
     }
     const moves: Move[] = []
     state.hand.forEach((card, handIndex) => {
@@ -93,7 +99,12 @@ function validate(state: GameState, move: Move): GameEvent | null {
             return state.hand[move.handIndex]!.played ? reject('alreadyPlayed') : null
         case 'exile':
             if (!state.pendingExile) return reject('noExilePending')
-            return inRange(move.handIndex, state.hand.length) ? null : reject('noSuchCard')
+            if ('handIndex' in move) {
+                if (!inRange(move.handIndex, state.hand.length)) return reject('noSuchCard')
+                return null
+            }
+            if (!inRange(move.rowIndex, state.row.length)) return reject('noSuchCard')
+            return move.rowIndex === state.row.length - 1 || state.row[move.rowIndex]!.kind !== 'recruit' ? reject('cannotExile') : null
         case 'skipExile':
             return state.pendingExile ? null : reject('noExilePending')
         case 'take': {
@@ -131,11 +142,16 @@ export function applyMove(state: GameState, move: Move): StepResult {
             play(next, move.handIndex, events)
             break
         case 'exile': {
-            const [card] = next.hand.splice(move.handIndex, 1) as [Card]
+            const card = 'handIndex' in move ? next.hand.splice(move.handIndex, 1)[0]! : next.row.splice(move.rowIndex, 1)[0]!
             next.exile.push(card)
             next.stats.exiled++
             next.pendingExile = false
             events.push({ type: 'exiled', card: cloneCard(card) })
+            if ('rowIndex' in move) {
+                const fresh = makeCard(next, next.turn)
+                next.row.unshift(fresh)
+                events.push({ type: 'rowRefilled', card: cloneCard(fresh) })
+            }
             break
         }
         case 'skipExile':
@@ -199,6 +215,7 @@ function redraw(state: GameState, events: GameEvent[]): void {
     const kept = state.row[REDRAWN_SLOTS]!
     const cards: Card[] = []
     for (let i = 0; i < REDRAWN_SLOTS; i++) cards.push(makeCard(state, state.turn))
+    cards.reverse()
     state.row = [...cards, kept]
     events.push({ type: 'rowRedrawn', cards: cards.map(cloneCard), kept: cloneCard(kept) })
 }

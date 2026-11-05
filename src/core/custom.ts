@@ -111,12 +111,20 @@ export function customMode(def: CustomGenerator): ModeConfig {
         name: 'Custom generator',
         description: customSummary(def),
         starter: { basicGold: def.starterGold, basicPower: def.starterPower },
-        generator: { allowedTypes: [...def.types], allowedResources: [...def.resources], allowedEffects: [...def.effects] },
+        generator: {
+            allowedTypes: [...def.types],
+            allowedResources: [...def.resources],
+            allowedEffects: [...def.effects],
+        },
     }
 }
 
 export function generatorOf(def: CustomGenerator): GeneratorConfig {
-    return { allowedTypes: def.types, allowedResources: def.resources, allowedEffects: def.effects }
+    return {
+        allowedTypes: def.types,
+        allowedResources: def.resources,
+        allowedEffects: def.effects,
+    }
 }
 
 /** The card types the generator can actually make: enemies need power and hearts. */

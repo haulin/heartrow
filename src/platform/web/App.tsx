@@ -79,8 +79,14 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
 
     /** Clicks are resolved by card id against the latest state, so a card that shifts while an animation plays is never clicked by mistake. */
     const takeCard = (id: number) => {
-        const rowIndex = store.getState().row.findIndex((c) => c.id === id)
-        if (rowIndex >= 0) dispatch({ type: 'take', rowIndex })
+        const s = store.getState()
+        const rowIndex = s.row.findIndex((c) => c.id === id)
+        if (rowIndex < 0) return
+        if (s.pendingExile) {
+            dispatch({ type: 'exile', rowIndex })
+            return
+        }
+        dispatch({ type: 'take', rowIndex })
     }
     const handCard = (id: number) => {
         const s = store.getState()
@@ -189,7 +195,7 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
     }
 
     const over = statusMessage(state)
-    const text = over ?? (state.pendingExile ? 'Exile: click any card in your hand, played or not, or skip.' : session.message)
+    const text = over ?? (state.pendingExile ? 'Exile a card or river recruit, or skip.' : session.message)
     const label = `${spoken(text)}${over !== null ? ' Activate to open the full log.' : state.pendingExile ? ' Select a card to exile, or skip.' : ' Activate to open the full log.'}`
 
     const n = state.hand.length
@@ -358,11 +364,6 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                     >
                         Redraw
                     </button>
-                    {state.pendingExile ? (
-                        <button type="button" class="b" onClick={() => dispatch({ type: 'skipExile' })}>
-                            Skip exile
-                        </button>
-                    ) : null}
                     <button
                         type="button"
                         class="b alt"
@@ -374,6 +375,11 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                     >
                         Undo
                     </button>
+                    {state.pendingExile ? (
+                        <button type="button" class="b" onClick={() => dispatch({ type: 'skipExile' })}>
+                            Skip exile
+                        </button>
+                    ) : null}
                 </div>
             </main>
 

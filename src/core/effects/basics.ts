@@ -6,9 +6,14 @@ export const basics: EffectDef = {
     price: 1.5,
     text: '+1 ● per 4 basic cards in your deck',
     enemies: true,
-    needs: ['gold'],
+    needsAny: ['gold', 'power'],
     lean: ['moss'],
-    apply({ state, gain }) {
-        gain('gold', Math.floor(ownedCards(state).filter((card) => card.kind === 'basic').length / 4))
+    roll(_rng, card) {
+        card.fxParams = { ...card.fxParams, currency: card.main }
+        return basics.price
+    },
+    apply({ state, card, gain }) {
+        const currency = card.fxParams?.currency === 'power' ? 'power' : 'gold'
+        gain(currency, Math.floor(ownedCards(state).filter((card) => card.kind === 'basic').length / 4))
     },
 }

@@ -7,7 +7,18 @@ export interface ArtShape {
 
 function hashSeed(card: Card): number {
     let a = 0
-    const text = [card.type, card.kind, card.cost, card.gold, card.power, card.hearts, card.fx.join(), card.drawCount || ''].join('|')
+    const text = [
+        card.type,
+        card.kind,
+        card.cost,
+        card.gold,
+        card.power,
+        card.hearts,
+        card.fx.join(),
+        card.fxParams?.currency ?? '',
+        card.fxParams?.drawCount ?? '',
+        card.fxParams?.bondCount ?? '',
+    ].join('|')
     for (const ch of text) a = (a * 31 + ch.charCodeAt(0)) | 0
     return a
 }

@@ -15,6 +15,11 @@ export interface EffectContext {
     gain: (resource: Currency | 'hearts', amount: number) => void
 }
 
+export interface EffectRollContext {
+    currencies: readonly Currency[]
+    hearts: boolean
+}
+
 export interface EffectDef {
     id: EffectId
     /** Budget price. Scaled by the draw count when `perDrawCard` is set. */
@@ -23,6 +28,8 @@ export interface EffectDef {
     text: string
     /** What a generator must allow for the effect to make sense. The generator skips the effect when any need is off. */
     needs?: readonly EffectNeed[]
+    /** Alternative needs: at least one item in the group must be allowed. */
+    needsAny?: readonly EffectNeed[]
     /** Allowed as an enemy defeat effect. */
     enemies: boolean
     /** Colours whose effect pool favours this effect. */
@@ -32,6 +39,6 @@ export interface EffectDef {
     /** Eligible for the Retain roll. */
     retainable?: true
     /** Rolls effect parameters onto the card and returns the total budget the effect consumes. */
-    roll?(rng: Rng, card: Card, budget: number): number
+    roll?(rng: Rng, card: Card, budget: number, context: EffectRollContext): number
     apply(ctx: EffectContext): void
 }

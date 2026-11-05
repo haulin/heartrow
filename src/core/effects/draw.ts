@@ -12,10 +12,11 @@ export const draw: EffectDef = {
     lean: ['tide'],
     roll(rng, card, budget) {
         const max = Math.min(DRAW_MAX, Math.floor(budget / DRAW_PRICE_PER_CARD))
-        card.drawCount = 1 + nextInt(rng, max)
-        return DRAW_PRICE_PER_CARD * card.drawCount
+        const drawCount = 1 + nextInt(rng, max)
+        card.fxParams = { ...card.fxParams, drawCount }
+        return DRAW_PRICE_PER_CARD * drawCount
     },
     apply({ state, card, events }) {
-        drawCards(state, card.drawCount ?? 1, events, 'effect')
+        drawCards(state, card.fxParams?.drawCount ?? 1, events, 'effect')
     },
 }

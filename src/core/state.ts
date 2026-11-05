@@ -5,14 +5,26 @@ export const HAND_SIZE = 5
 export const ROW_SIZE = 5
 
 export function cloneCard(card: Card): Card {
-    return { ...card, fx: card.fx.slice() }
+    return { ...card, fx: card.fx.slice(), ...(card.fxParams && { fxParams: { ...card.fxParams } }) }
 }
 
 export function cloneState(state: GameState): GameState {
     const cards = (list: Card[]) => list.map(cloneCard)
     return {
         ...state,
-        config: { ...state.config, steps: state.config.steps.map((step) => ({ ...step })), starter: { ...state.config.starter } },
+        config: {
+            ...state.config,
+            steps: state.config.steps.map((step) => ({ ...step })),
+            starter: { ...state.config.starter },
+            ...(state.config.generator && {
+                generator: {
+                    ...state.config.generator,
+                    allowedTypes: [...state.config.generator.allowedTypes],
+                    allowedResources: [...state.config.generator.allowedResources],
+                    allowedEffects: [...state.config.generator.allowedEffects],
+                },
+            }),
+        },
         typesPlayed: state.typesPlayed.slice(),
         deck: cards(state.deck),
         hand: cards(state.hand),
