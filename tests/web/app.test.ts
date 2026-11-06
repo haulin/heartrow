@@ -52,8 +52,8 @@ describe('App home screen', () => {
         press(host, 'About')
         const about = host.querySelector('dialog')!
         expect(about.textContent).toContain('roguelike deckbuilder')
-        expect(about.textContent).toContain('8,888 distinct recruits')
-        expect(about.textContent).toContain('138 distinct enemies')
+        expect(about.textContent).toContain('11,872 distinct recruits')
+        expect(about.textContent).toContain('561 distinct enemies')
         expect(about.textContent).not.toContain('100,000')
         expect(about.querySelectorAll('.ico')).toHaveLength(3)
         expect(about.querySelector('.ico.g')).not.toBeNull()

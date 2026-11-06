@@ -39,7 +39,7 @@ describe('formatEvent', () => {
             ],
             [{ type: 'drew', cardIds: [1], requested: 2, cause: 'effect' }, 'Drew 2 cards.'],
             [{ type: 'drew', cardIds: [1], requested: 1, cause: 'effect' }, 'Drew 1 card.'],
-            [{ type: 'coinFlipped', currency: 'gold', amount: 4 }, 'Coin flip: +4 ●.'],
+            [{ type: 'flipped', currency: 'gold', amount: 4 }, 'Flip: +4 ●.'],
             [{ type: 'swapped' }, 'Swapped ● and ⚔.'],
             [{ type: 'cycled', count: 3, purge: false }, 'Cycled 3 cards.'],
             [{ type: 'exiled', card: card('moss') }, 'Exiled a Moss card.'],
@@ -137,7 +137,7 @@ describe('effectText', () => {
             '+1 ⚔ per 4 Tide cards in your deck',
         ])
         expect(fx(['kin'])).toEqual(['+1 ● per other Tide card played this turn'])
-        expect(fx(['basics', 'pile', 'coin'], { fxParams: { currency: 'power' } })).toEqual([
+        expect(fx(['basics', 'pile', 'flip'], { fxParams: { currency: 'power' } })).toEqual([
             '+1 ⚔ per 4 basic cards in your deck',
             '+1 ⚔ per 3 cards in your discard',
             'Flip: +2 or +4 ⚔',

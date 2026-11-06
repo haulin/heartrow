@@ -11,7 +11,7 @@ function playAll(state: GameState, ...indexes: number[]): GameState {
 
 describe('effect registry', () => {
     it('has one entry per effect id, with draw priced per card', () => {
-        expect(new Set(EFFECTS.map((e) => e.id)).size).toBe(18)
+        expect(new Set(EFFECTS.map((e) => e.id)).size).toBe(20)
         expect(EFFECT_BY_ID.draw.perDrawCard).toBe(true)
         expect(EFFECTS.filter((e) => !e.enemies).map((e) => e.id)).toEqual(['all3', 'bond', 'kin', 'army'])
     })
@@ -21,7 +21,7 @@ describe('effect registry', () => {
     it('declares what each effect needs from a generator', () => {
         expect(Object.fromEntries(EFFECTS.map((e) => [e.id, e.needs ?? []]))).toEqual({
             draw: [],
-            coin: [],
+            flip: [],
             exile: [],
             cheap: ['gold'],
             foes: ['foe', 'power'],
@@ -29,6 +29,8 @@ describe('effect registry', () => {
             vault: ['exile', 'hearts'],
             basics: [],
             pile: [],
+            hoard: [],
+            bulk: ['foe', 'power'],
             bond: [],
             kin: [],
             weak: ['foe', 'power'],
@@ -40,9 +42,10 @@ describe('effect registry', () => {
             reapP: ['power', 'hearts'],
         })
         expect(Object.fromEntries(EFFECTS.map((e) => [e.id, e.needsAny ?? []]))).toMatchObject({
-            coin: ['gold', 'power'],
+            flip: ['gold', 'power'],
             basics: ['gold', 'power'],
             pile: ['gold', 'power'],
+            hoard: ['gold', 'power'],
         })
     })
 })
@@ -219,12 +222,20 @@ describe('resources', () => {
         expect(cardCost(next, mk({ cost: 3 }))).toBe(3)
     })
 
-    it('coin flips use the flip stream only', () => {
+    it('discount amounts stack', () => {
         const s = blank()
-        s.hand = [mk({ fx: ['coin'] })]
+        s.hand = [mk({ fx: ['cheap'], fxParams: { amount: 2 } }), mk({ fx: ['weak'], fxParams: { amount: 2 } }), mk({ fx: ['weak'] })]
+        const done = playAll(s, 0, 1, 2)
+        expect(cardCost(done, mk({ cost: 5 }))).toBe(3)
+        expect(cardCost(done, enemy({ cost: 5 }))).toBe(2)
+    })
+
+    it('flips use the flip stream only', () => {
+        const s = blank()
+        s.hand = [mk({ fx: ['flip'] })]
         const { state, events } = applyMove(s, { type: 'play', handIndex: 0 })
         expect([2, 4]).toContain(state.gold)
-        expect(events.find((e) => e.type === 'coinFlipped')).toMatchObject({ currency: 'gold', amount: state.gold })
+        expect(events.find((e) => e.type === 'flipped')).toMatchObject({ currency: 'gold', amount: state.gold })
         expect(state.streams.gen).toEqual(s.streams.gen)
         expect(state.streams.flip).not.toEqual(s.streams.flip)
     })
@@ -258,6 +269,26 @@ describe('resources', () => {
         expect(done.hearts).toBe(1)
         expect(done.power).toBe(1)
         expect(done.gold).toBe(1)
+    })
+
+    it('hoard counts the whole deck, hand and discard, and multiplies by its amount', () => {
+        const s = blank()
+        s.deck = Array.from({ length: 5 }, () => basicCard())
+        s.discard = Array.from({ length: 5 }, () => basicCard())
+        s.exile = [basicCard(), basicCard(), basicCard()]
+        s.hand = [mk({ fx: ['hoard'], fxParams: { currency: 'power', amount: 2, perCards: 4 } })]
+        expect(playAll(s, 0).power).toBe(4)
+    })
+})
+
+describe('bulk', () => {
+    it('lowers the enemy cost by 1 per step of cards in the deck, never below 0', () => {
+        const s = blank()
+        const bulky = enemy({ cost: 5, fx: ['bulk'], fxParams: { costPerCards: 4 } })
+        s.hand = Array.from({ length: 9 }, () => basicCard())
+        expect(cardCost(s, bulky)).toBe(3)
+        s.discard = Array.from({ length: 12 }, () => basicCard())
+        expect(cardCost(s, bulky)).toBe(0)
     })
 })
 

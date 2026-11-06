@@ -1,6 +1,6 @@
 import { nextInt } from '../rng'
 import { drawCards } from '../state'
-import { DRAW_MAX, DRAW_PRICE_PER_CARD } from '../generator/budget'
+import { DRAW_MAX, DRAW_PRICE_PER_CARD, RETAIN_RARELY } from '../generator/budget'
 import type { EffectDef } from './types'
 
 export const draw: EffectDef = {
@@ -10,6 +10,7 @@ export const draw: EffectDef = {
     text: 'Draw {n}',
     enemies: true,
     lean: ['tide'],
+    retain: RETAIN_RARELY,
     roll(rng, card, budget) {
         const max = Math.min(DRAW_MAX, Math.floor(budget / DRAW_PRICE_PER_CARD))
         const drawCount = 1 + nextInt(rng, max)

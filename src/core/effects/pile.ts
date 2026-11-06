@@ -1,3 +1,5 @@
+import { gainPerCards, rollMainCurrency, rolledCurrency } from './countGain'
+import { RETAIN_OFTEN } from '../generator/budget'
 import type { EffectDef } from './types'
 
 export const pile: EffectDef = {
@@ -7,13 +9,13 @@ export const pile: EffectDef = {
     enemies: true,
     needsAny: ['gold', 'power'],
     lean: ['ember'],
-    retainable: true,
+    pays: 'rolled',
+    retain: RETAIN_OFTEN,
     roll(_rng, card) {
-        card.fxParams = { ...card.fxParams, currency: card.main }
+        rollMainCurrency(card)
         return pile.price
     },
-    apply({ state, card, gain }) {
-        const currency = card.fxParams?.currency === 'gold' ? 'gold' : 'power'
-        gain(currency, Math.floor(state.discard.length / 3))
+    apply(ctx) {
+        gainPerCards(ctx, rolledCurrency(ctx.card, 'power'), ctx.state.discard.length, 3)
     },
 }

@@ -95,7 +95,7 @@ describe('custom generator links', () => {
             'all types; all resources; all effects; start with 0 ● and 5 ⚔ Basics',
         )
         const noTide = { ...DEFAULT_CUSTOM, types: ['moss' as const, 'ember' as const, 'foe' as const] }
-        expect(customSummary(noTide)).toBe('moss, ember, foe; all resources; 17 of 18 effects')
+        expect(customSummary(noTide)).toBe('moss, ember, foe; all resources; 19 of 20 effects')
         expect(effectiveEffects(noTide)).not.toContain('all3')
         const noHearts = { ...DEFAULT_CUSTOM, resources: ['gold' as const, 'power' as const] }
         expect(effectiveTypes(noHearts)).toEqual(['moss', 'ember', 'tide'])

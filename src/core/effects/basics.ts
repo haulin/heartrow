@@ -1,4 +1,6 @@
+import { RETAIN_SOMETIMES } from '../generator/budget'
 import { ownedCards } from '../state'
+import { gainPerCards, rollMainCurrency, rolledCurrency } from './countGain'
 import type { EffectDef } from './types'
 
 export const basics: EffectDef = {
@@ -8,12 +10,14 @@ export const basics: EffectDef = {
     enemies: true,
     needsAny: ['gold', 'power'],
     lean: ['moss'],
+    pays: 'rolled',
+    retain: RETAIN_SOMETIMES,
     roll(_rng, card) {
-        card.fxParams = { ...card.fxParams, currency: card.main }
+        rollMainCurrency(card)
         return basics.price
     },
-    apply({ state, card, gain }) {
-        const currency = card.fxParams?.currency === 'power' ? 'power' : 'gold'
-        gain(currency, Math.floor(ownedCards(state).filter((card) => card.kind === 'basic').length / 4))
+    apply(ctx) {
+        const basicCards = ownedCards(ctx.state).filter((card) => card.kind === 'basic').length
+        gainPerCards(ctx, rolledCurrency(ctx.card, 'gold'), basicCards, 4)
     },
 }

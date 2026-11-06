@@ -1,6 +1,7 @@
 import { nextInt } from '../rng'
 import type { Rng } from '../rng'
 import type { Card, GeneratorResource } from '../types'
+import { RETAIN_SOMETIMES } from '../generator/budget'
 import type { EffectDef, EffectRollContext } from './types'
 
 export function rollKinCurrency(rng: Rng, card: Card, context: EffectRollContext, allowHearts: boolean): GeneratorResource {
@@ -17,7 +18,8 @@ export const kin: EffectDef = {
     text: '+1 {k} per other {T} card played this turn',
     enemies: false,
     lean: ['moss', 'ember'],
-    retainable: true,
+    pays: 'rolled',
+    retain: RETAIN_SOMETIMES,
     roll(rng, card, budget, context) {
         const currency = rollKinCurrency(rng, card, context, budget >= kin.price * 1.5)
         return kin.price * (currency === 'hearts' ? 1.5 : 1)

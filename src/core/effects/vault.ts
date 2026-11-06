@@ -1,3 +1,5 @@
+import { gainPerCards } from './countGain'
+import { RETAIN_RARELY } from '../generator/budget'
 import type { EffectDef } from './types'
 
 export const vault: EffectDef = {
@@ -7,8 +9,9 @@ export const vault: EffectDef = {
     enemies: true,
     needs: ['exile', 'hearts'],
     lean: [],
-    retainable: true,
-    apply({ state, gain }) {
-        gain('hearts', Math.floor(state.exile.length / 3))
+    pays: 'hearts',
+    retain: RETAIN_RARELY,
+    apply(ctx) {
+        gainPerCards(ctx, 'hearts', ctx.state.exile.length, 3)
     },
 }

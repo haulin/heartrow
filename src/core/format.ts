@@ -15,17 +15,19 @@ export const TYPE_NAMES: Record<CardType, string> = {
 
 const EFFECT_TEMPLATES: Record<EffectId, string> = {
     draw: 'Draw {n}',
-    coin: 'Flip: +2 or +4 {c}',
+    flip: 'Flip: +2 or +4 {c}',
     exile: 'Exile a card or river recruit',
-    cheap: 'Recruits cost 1 less ● this turn',
+    cheap: 'Recruits cost −{a} ● this turn',
     foes: '+1 ⚔ per enemy in the recruit row',
     all3: '+2 ♥ if you played all 3 types this turn',
     vault: '+1 ♥ per 3 cards in exile',
     basics: '+1 {c} per 4 basic cards in your deck',
     pile: '+1 {c} per 3 cards in your discard',
+    hoard: '+{a} {c} per {d} cards in your deck',
+    bulk: 'Needs −1 ⚔ per {d} cards in your deck',
     bond: 'Bond: +{n} {m} if you played {T} earlier this turn',
     kin: '+1 {k} per other {T} card played this turn',
-    weak: 'Enemies cost 1 less ⚔ this turn',
+    weak: 'Enemies need −{a} ⚔ this turn',
     army: '+1 {k} per 4 {T} cards in your deck',
     cycle: 'Discard your unplayed cards except Retain ones, draw as many',
     purge: 'Discard all your unplayed cards, even Retain, draw as many',
@@ -33,6 +35,9 @@ const EFFECT_TEMPLATES: Record<EffectId, string> = {
     reapG: 'End of turn: +1 ♥ per 3 unspent ●',
     reapP: 'End of turn: +1 ♥ per 2 unspent ⚔',
 }
+
+/** Effects that act while the enemy is in the row, so they carry no "Defeat:" prefix. */
+const PASSIVE_ENEMY_EFFECTS: readonly EffectId[] = ['bulk']
 
 const RETAIN_TEXT = '↺ Retain: stays in hand if unplayed'
 
@@ -47,8 +52,10 @@ export function effectText(card: Card): string[] {
             .replaceAll('{k}', symbol(outputCurrency))
             .replaceAll('{c}', symbol(outputCurrency))
             .replaceAll('{n}', String(n))
+            .replaceAll('{a}', String(card.fxParams?.amount ?? 1))
+            .replaceAll('{d}', String(card.fxParams?.perCards ?? card.fxParams?.costPerCards ?? 1))
             .replaceAll('{T}', TYPE_NAMES[card.type])
-        return card.kind === 'enemy' ? `Defeat: ${text}` : text
+        return card.kind === 'enemy' && !PASSIVE_ENEMY_EFFECTS.includes(id) ? `Defeat: ${text}` : text
     })
     if (card.retain) lines.push(RETAIN_TEXT)
     return lines
@@ -91,8 +98,8 @@ export function formatEvent(event: GameEvent, ctx: FormatContext): string | null
             return playedLine(event.card, event.gains)
         case 'drew':
             return event.cause === 'effect' && event.requested > 0 ? `Drew ${event.requested} card${plural(event.requested)}.` : null
-        case 'coinFlipped':
-            return `Coin flip: +${event.amount} ${symbol(event.currency)}.`
+        case 'flipped':
+            return `Flip: +${event.amount} ${symbol(event.currency)}.`
         case 'swapped':
             return 'Swapped ● and ⚔.'
         case 'cycled':

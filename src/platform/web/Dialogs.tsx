@@ -215,7 +215,7 @@ export function AboutDialog({ state, onClose }: { state?: GameState | undefined;
                 draw, exile, and hearts.
             </p>
             <p class="rules">
-                Standard can produce 8,888 distinct recruits and 138 distinct enemies. Custom generators change the card pool and its
+                Standard can produce 11,872 distinct recruits and 561 distinct enemies. Custom generators change the card pool and its
                 variety.
             </p>
             {state ? <SeedLine state={state} /> : null}

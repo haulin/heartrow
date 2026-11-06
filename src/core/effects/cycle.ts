@@ -1,3 +1,4 @@
+import { RETAIN_OFTEN } from '../generator/budget'
 import { drawCards } from '../state'
 import type { EffectContext, EffectDef } from './types'
 
@@ -15,6 +16,7 @@ export const cycle: EffectDef = {
     text: 'Discard your unplayed cards except Retain ones, draw as many',
     enemies: true,
     lean: ['tide'],
+    retain: RETAIN_OFTEN,
     apply(ctx) {
         discardUnplayed(ctx, false)
     },

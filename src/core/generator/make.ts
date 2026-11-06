@@ -27,9 +27,8 @@ import {
     RECRUIT_BUDGET_BASE,
     RECRUIT_BUDGET_PER_COST,
     RECRUIT_MIN_COST,
+    REFERENCE_DECK_SIZE,
     RESOURCE_PRICE,
-    RETAIN_CHANCE,
-    RETAIN_PRICE,
     TIDE_EFFECT_CHANCE,
     TIDE_POWER_CHANCE,
 } from './budget'
@@ -40,9 +39,9 @@ function effectChance(limits: Limits, type: CardType): number {
 }
 
 function effectPool(limits: Limits, type: CardType, enemy: boolean, budget: number): EffectId[] {
-    const pool = EFFECTS.filter((e) => effectPrice(e.id) <= budget && (!enemy || e.enemies) && limits.effects.includes(e.id)).map(
-        (e) => e.id,
-    )
+    const pool = EFFECTS.filter(
+        (e) => effectPrice(e.id) <= budget && (enemy ? e.enemies : !e.enemyOnly) && limits.effects.includes(e.id),
+    ).map((e) => e.id)
     const lean = enemy ? [] : pool.filter((id) => EFFECT_BY_ID[id].lean.includes(type as Colour))
     const copies = Math.max(1, Math.round((LEAN_SHARE * (pool.length - lean.length)) / ((1 - LEAN_SHARE) * Math.max(1, lean.length))))
     for (let i = 1; i < copies; i++) pool.push(...lean)
@@ -101,9 +100,10 @@ export function makeCard(state: GameState, turn: number, attempt = 0): Card {
             const effect = EFFECT_BY_ID[id]
             card.fx.push(id)
             budget -= effect.roll ? effect.roll(rng, card, budget, { currencies: limits.currencies, hearts: limits.hearts }) : effect.price
-            if (!enemy && effect.retainable && budget >= RETAIN_PRICE && chance(rng, RETAIN_CHANCE)) {
+            const { retain } = effect
+            if (!enemy && retain && budget >= retain.price && chance(rng, retain.chance)) {
                 card.retain = true
-                budget -= RETAIN_PRICE
+                budget -= retain.price
             }
         }
     }
@@ -126,8 +126,11 @@ export function makeCard(state: GameState, turn: number, attempt = 0): Card {
     }
 
     const spent = budget0 - budget
-    const fitted = enemy ? Math.ceil(spent / HM) : Math.ceil((spent - RECRUIT_BUDGET_BASE) / RECRUIT_BUDGET_PER_COST - COST_EPSILON)
+    const fitted = enemy
+        ? Math.ceil(spent / HM - COST_EPSILON)
+        : Math.ceil((spent - RECRUIT_BUDGET_BASE) / RECRUIT_BUDGET_PER_COST - COST_EPSILON)
     card.cost = Math.max(enemy ? ENEMY_MIN_COST : RECRUIT_MIN_COST, Math.min(cost, fitted))
+    if (card.fxParams?.costPerCards) card.cost += Math.floor(REFERENCE_DECK_SIZE / card.fxParams.costPerCards)
     if (enemy && !card.hearts) card.hearts = 1
     if (!enemy && !card.gold && !card.power && !card.hearts && !card.fx.length) {
         const currency = limits.currencies.includes('gold') ? 'gold' : main

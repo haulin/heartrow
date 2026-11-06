@@ -38,8 +38,13 @@ export function cloneState(state: GameState): GameState {
 
 export function cardCost(state: GameState, card: Card): number {
     if (card.kind === 'recruit') return Math.max(0, card.cost - state.recruitDiscount)
-    if (card.kind === 'enemy') return Math.max(0, card.cost - state.enemyDiscount)
+    if (card.kind === 'enemy') return Math.max(0, card.cost - state.enemyDiscount - deckSizeDiscount(state, card))
     return card.cost
+}
+
+function deckSizeDiscount(state: GameState, card: Card): number {
+    const perCards = card.fxParams?.costPerCards
+    return perCards ? Math.floor(ownedCards(state).length / perCards) : 0
 }
 
 export function canAfford(state: GameState, card: Card): boolean {

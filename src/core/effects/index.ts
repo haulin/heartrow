@@ -3,12 +3,14 @@ import { all3 } from './all3'
 import { army } from './army'
 import { basics } from './basics'
 import { bond } from './bond'
+import { bulk } from './bulk'
 import { cheap } from './cheap'
-import { coin } from './coin'
+import { flip } from './flip'
 import { cycle } from './cycle'
 import { draw } from './draw'
 import { exile } from './exile'
 import { foes } from './foes'
+import { hoard } from './hoard'
 import { kin } from './kin'
 import { pile } from './pile'
 import { purge } from './purge'
@@ -24,7 +26,7 @@ export type { EffectContext, EffectDef } from './types'
 /** Pool order matters: the generator draws from it in this order. */
 export const EFFECTS: readonly EffectDef[] = [
     draw,
-    coin,
+    flip,
     exile,
     cheap,
     foes,
@@ -32,6 +34,8 @@ export const EFFECTS: readonly EffectDef[] = [
     vault,
     basics,
     pile,
+    hoard,
+    bulk,
     bond,
     kin,
     weak,

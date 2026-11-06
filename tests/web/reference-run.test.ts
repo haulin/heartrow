@@ -33,16 +33,16 @@ describe('reference run', () => {
         }).toMatchInlineSnapshot(`
           {
             "gold": 0,
-            "hearts": 45,
+            "hearts": 48,
             "piles": [
-              7,
+              13,
               0,
-              14,
               6,
+              11,
             ],
             "power": 0,
-            "redraws": 0,
-            "turn": 24,
+            "redraws": 3,
+            "turn": 22,
           }
         `)
     })
@@ -50,45 +50,43 @@ describe('reference run', () => {
     it('ends with the same deck', () => {
         expect(deckSummary(state)).toMatchInlineSnapshot(`
           {
-            "ember": 5,
+            "ember": 4,
             "fxGold": 0,
-            "fxHearts": 0,
-            "fxOther": 5,
+            "fxHearts": 3,
+            "fxOther": 3,
             "fxPower": 1,
-            "gold": 16,
-            "hearts": 5,
-            "moss": 2,
-            "plain": 4,
-            "power": 18,
-            "tide": 10,
-            "total": 21,
+            "gold": 18,
+            "hearts": 11,
+            "moss": 4,
+            "plain": 2,
+            "power": 13,
+            "tide": 9,
+            "total": 19,
           }
         `)
         const line = (c: (typeof cards)[number]) =>
             `${c.type} ${c.kind} cost ${c.cost}: ${c.gold}g ${c.power}p ${c.hearts}h [${c.fx.join(',')}]`
         expect(cards.map(line).sort()).toMatchInlineSnapshot(`
           [
-            "ember recruit cost 2: 0g 0p 0h [swap]",
-            "ember recruit cost 2: 0g 2p 0h []",
-            "ember recruit cost 2: 2g 0p 0h []",
-            "ember recruit cost 4: 1g 2p 0h []",
-            "ember recruit cost 5: 0g 4p 0h []",
-            "moss recruit cost 2: 1g 1p 0h []",
-            "moss recruit cost 2: 1g 1p 0h []",
+            "ember recruit cost 2: 0g 0p 1h []",
+            "ember recruit cost 3: 0g 1p 0h [reapG]",
+            "ember recruit cost 3: 0g 1p 1h []",
+            "ember recruit cost 5: 1g 2p 0h [reapP]",
+            "moss recruit cost 2: 2g 0p 0h []",
+            "moss recruit cost 4: 2g 0p 0h [reapG]",
+            "moss recruit cost 4: 2g 0p 1h []",
+            "moss recruit cost 5: 0g 0p 3h []",
             "plain basic cost 0: 0g 1p 0h []",
-            "plain basic cost 0: 0g 1p 0h []",
-            "plain basic cost 0: 0g 1p 0h []",
-            "plain basic cost 0: 0g 1p 0h []",
-            "tide recruit cost 2: 0g 0p 1h []",
-            "tide recruit cost 2: 0g 1p 0h [exile]",
+            "plain basic cost 0: 1g 0p 0h []",
+            "tide recruit cost 2: 0g 0p 0h [cheap]",
             "tide recruit cost 2: 0g 2p 0h []",
             "tide recruit cost 2: 1g 0p 0h [exile]",
-            "tide recruit cost 2: 1g 1p 0h []",
             "tide recruit cost 3: 1g 0p 0h [kin]",
-            "tide recruit cost 3: 1g 0p 0h [purge]",
-            "tide recruit cost 5: 2g 0p 1h [exile]",
+            "tide recruit cost 4: 0g 3p 0h []",
+            "tide recruit cost 5: 1g 0p 2h []",
+            "tide recruit cost 5: 1g 3p 0h []",
             "tide recruit cost 5: 3g 0p 1h []",
-            "tide recruit cost 6: 2g 0p 2h []",
+            "tide recruit cost 8: 3g 0p 2h [exile]",
           ]
         `)
     })

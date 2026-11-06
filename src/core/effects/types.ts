@@ -32,12 +32,16 @@ export interface EffectDef {
     needsAny?: readonly EffectNeed[]
     /** Allowed as an enemy defeat effect. */
     enemies: boolean
+    /** Only enemies may roll it. */
+    enemyOnly?: true
+    /** Which resource the deck summary counts the effect under: a fixed one, the card's main one, or the one rolled onto the card. No value counts as other. */
+    pays?: 'gold' | 'power' | 'hearts' | 'main' | 'rolled'
     /** Colours whose effect pool favours this effect. */
     lean: readonly Colour[]
     /** Colours that get one extra copy in the pool. */
     extraFor?: readonly Colour[]
-    /** Eligible for the Retain roll. */
-    retainable?: true
+    /** Retain roll for recruits: budget price and chance. Every effect a recruit can roll sets it. */
+    retain?: { readonly price: number; readonly chance: number }
     /** Rolls effect parameters onto the card and returns the total budget the effect consumes. */
     roll?(rng: Rng, card: Card, budget: number, context: EffectRollContext): number
     apply(ctx: EffectContext): void

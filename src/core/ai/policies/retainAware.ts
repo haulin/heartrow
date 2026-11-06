@@ -12,9 +12,8 @@ export function retainChanges(state: GameState, card: Card): boolean {
         switch (fx) {
             case 'draw':
                 return state.deck.length + state.discard.length > 0
-            case 'coin':
+            case 'flip':
             case 'cheap':
-            case 'weak':
             case 'reapG':
             case 'reapP':
             case 'exile':
@@ -23,6 +22,7 @@ export function retainChanges(state: GameState, card: Card): boolean {
                 if (state.gold !== state.power) return true
                 break
             case 'foes':
+            case 'weak':
                 if (state.row.some((c) => c.kind === 'enemy')) return true
                 break
             case 'all3':

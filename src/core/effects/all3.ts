@@ -1,3 +1,4 @@
+import { RETAIN_OFTEN } from '../generator/budget'
 import type { EffectDef } from './types'
 
 export const all3: EffectDef = {
@@ -7,7 +8,8 @@ export const all3: EffectDef = {
     enemies: false,
     needs: ['moss', 'ember', 'tide', 'hearts'],
     lean: ['tide'],
-    retainable: true,
+    pays: 'hearts',
+    retain: RETAIN_OFTEN,
     apply({ state, source }) {
         if (source === 'play' && state.typesPlayed.length >= 3) state.hearts += 2
     },

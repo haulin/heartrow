@@ -1,4 +1,5 @@
-import type { Card, GameState } from '../../core'
+import { EFFECT_BY_ID } from '../../core'
+import type { Card, EffectId, GameState } from '../../core'
 
 export const INTRO_TEXT =
     'Click hand cards to play them, or recruit row cards to buy them. Gold ● buys recruits; power ⚔ defeats enemies for their ♥.'
@@ -55,18 +56,15 @@ export function sortPile(cards: readonly Card[]): Card[] {
 
 type EffectBucket = 'g' | 'p' | 'h' | 'u'
 
-const EFFECT_BUCKET: Record<string, EffectBucket | 'main' | 'kin'> = {
-    coin: 'kin',
-    basics: 'kin',
-    foes: 'p',
-    pile: 'kin',
-    all3: 'h',
-    vault: 'h',
-    reapG: 'h',
-    reapP: 'h',
-    bond: 'main',
-    kin: 'kin',
-    army: 'kin',
+const RESOURCE_BUCKET = { gold: 'g', power: 'p', hearts: 'h' } as const
+
+/** The summary column an effect counts under, read from the effect's own `pays` field. */
+function effectBucket(card: Card, effect: EffectId): EffectBucket {
+    const pays = EFFECT_BY_ID[effect].pays
+    if (!pays) return 'u'
+    if (pays === 'main') return RESOURCE_BUCKET[card.main]
+    if (pays === 'rolled') return RESOURCE_BUCKET[card.fxParams?.currency ?? card.main]
+    return RESOURCE_BUCKET[pays]
 }
 
 export interface DeckSummary {
@@ -90,14 +88,7 @@ export function deckSummary(state: GameState): DeckSummary {
     const count = (type: Card['type']) => all.filter((c) => c.type === type).length
     const e: Record<EffectBucket, number> = { g: 0, p: 0, h: 0, u: 0 }
     for (const c of all) {
-        for (const k of c.fx) {
-            const b = EFFECT_BUCKET[k] ?? 'u'
-            if (b === 'main') e[c.main === 'power' ? 'p' : 'g']++
-            else if (b === 'kin') {
-                const currency = c.fxParams?.currency ?? (k === 'pile' ? 'power' : k === 'kin' || k === 'army' ? c.main : 'gold')
-                e[currency === 'power' ? 'p' : currency === 'hearts' ? 'h' : 'g']++
-            } else e[b]++
-        }
+        for (const k of c.fx) e[effectBucket(c, k)]++
     }
     return {
         total: all.length,

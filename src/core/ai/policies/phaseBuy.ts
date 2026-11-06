@@ -16,10 +16,10 @@ const EFFECT_VALUE: Partial<Record<EffectId, number>> = {
     basics: 0,
     bond: 0,
     cheap: 3,
-    coin: 3,
+    flip: 3,
     cycle: 5,
     draw: 6,
-    exile: 5,
+    exile: 7,
     foes: 4,
     kin: 0,
     pile: 0,
@@ -33,10 +33,17 @@ const EFFECT_VALUE: Partial<Record<EffectId, number>> = {
 
 const HEART_EFFECT_VALUE: Partial<Record<EffectId, number>> = { reapG: 4, reapP: 4 }
 
+/** Effects that do the same job share one count, so a Purge halves the value of a Cycle. */
+const EFFECT_FAMILY: Partial<Record<EffectId, EffectId>> = { purge: 'cycle' }
+
+function family(fx: EffectId): EffectId {
+    return EFFECT_FAMILY[fx] ?? fx
+}
+
 function effectValue(state: GameState, card: Card): number {
     const owned = ownedCards(state)
     return card.fx.reduce((score, fx) => {
-        const copies = owned.filter((other) => other.fx.includes(fx)).length
+        const copies = owned.filter((other) => other.fx.some((otherFx) => family(otherFx) === family(fx))).length
         return score + (EFFECT_VALUE[fx] ?? 2) / (copies + 1)
     }, 0)
 }

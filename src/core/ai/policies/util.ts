@@ -45,10 +45,10 @@ export function rowCard(state: GameState, move: Move): Card | undefined {
 
 export type GainResource = 'gold' | 'power'
 
-/** A card's plain gain of one resource, counting Coin's +3 when it pays that resource. */
+/** A card's plain gain of one resource, counting Flip's +3 when it pays that resource. */
 export function expectedGain(card: Card, resource: GainResource): number {
-    const coinGain = card.fxParams?.currency === resource && card.fx.includes('coin') ? 3 : 0
-    return resource === 'gold' ? card.gold + coinGain : card.power + coinGain
+    const flipGain = card.fxParams?.currency === resource && card.fx.includes('flip') ? 3 : 0
+    return resource === 'gold' ? card.gold + flipGain : card.power + flipGain
 }
 
 export function turnsLeft(state: GameState): number {

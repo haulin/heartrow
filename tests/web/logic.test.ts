@@ -102,7 +102,7 @@ describe('undo', () => {
         expect(back.undo).toEqual([])
     })
 
-    it.each([['draw'], ['coin'], ['cycle']] as const)('is allowed after %s and replays the same outcome', (id) => {
+    it.each([['draw'], ['flip'], ['cycle']] as const)('is allowed after %s and replays the same outcome', (id) => {
         const start = withHand([fx(id), card({ id: 2 })])
         const first = play(start)
         expect(first.undo).toHaveLength(1)
@@ -232,6 +232,13 @@ describe('store and session', () => {
     it('summarises the deck', () => {
         const d = deckSummary(startSession(standardMode(0), 1).state)
         expect(d).toMatchObject({ total: 10, gold: 6, power: 4, plain: 10 })
+    })
+
+    it('counts an effect under the resource its card rolled', () => {
+        const state = startSession(standardMode(0), 1).state
+        state.discard.push(card({ fx: ['hoard'], fxParams: { currency: 'power', amount: 1, perCards: 4 } }))
+        state.discard.push(card({ fx: ['draw'] }))
+        expect(deckSummary(state)).toMatchObject({ fxPower: 1, fxGold: 0, fxOther: 1 })
     })
 })
 

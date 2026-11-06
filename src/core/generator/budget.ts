@@ -33,8 +33,22 @@ export const DRAW_PRICE_PER_CARD = 1.5
 export const DRAW_MAX = 4
 export const BOND_MAX = 3
 export const BOND_EXTRA_PRICE = [0, 0.7, 1.5] as const
+/** Deck size at which deck-size effects are priced and at which Bulk costs its rolled enemy cost. */
+export const REFERENCE_DECK_SIZE = 16
+export const HOARD_CARDS_PER_STEP = [4, 5, 6] as const
+export const HOARD_AMOUNTS = [1, 2] as const
+/** Early turns pay less than the reference deck size, so Hoard is priced below its payoff at that size. */
+export const HOARD_PRICE_FACTOR = 0.75
+export const BULK_CARDS_PER_STEP = 4
+/** Weak and Cheap: a deeper discount costs more per unit, minus a base offset, so one unit stays at 1.5 and two cost 4.5. */
+export const DISCOUNT_AMOUNTS = [1, 2] as const
+export const DISCOUNT_UNIT_PRICE = 3
+export const DISCOUNT_BASE_OFFSET = 1.5
+/** Retain terms by how often waiting helps the effect: the more useful it is, the more often a card with that effect gets Retain. */
 export const RETAIN_PRICE = 0.5
-export const RETAIN_CHANCE = 0.8
+export const RETAIN_OFTEN = { price: RETAIN_PRICE, chance: 0.5 }
+export const RETAIN_SOMETIMES = { price: RETAIN_PRICE, chance: 0.3 }
+export const RETAIN_RARELY = { price: RETAIN_PRICE, chance: 0.1 }
 
 /** Share of the effect pool given to lean effects. */
 export const LEAN_SHARE = 0.7

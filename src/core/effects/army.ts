@@ -1,6 +1,7 @@
 import { ownedCards } from '../state'
 import type { Currency } from '../types'
 import { rollKinCurrency } from './kin'
+import { RETAIN_RARELY } from '../generator/budget'
 import type { EffectDef } from './types'
 
 export const army: EffectDef = {
@@ -9,7 +10,8 @@ export const army: EffectDef = {
     text: '+1 {k} per 4 {T} cards in your deck',
     enemies: false,
     lean: ['moss', 'ember', 'tide'],
-    retainable: true,
+    pays: 'rolled',
+    retain: RETAIN_RARELY,
     roll(rng, card, _budget, context) {
         rollKinCurrency(rng, card, context, false)
         return army.price

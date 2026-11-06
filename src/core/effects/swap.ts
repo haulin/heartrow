@@ -1,3 +1,4 @@
+import { RETAIN_SOMETIMES } from '../generator/budget'
 import type { EffectDef } from './types'
 
 export const swap: EffectDef = {
@@ -7,7 +8,7 @@ export const swap: EffectDef = {
     enemies: true,
     needs: ['gold', 'power'],
     lean: ['moss', 'ember'],
-    retainable: true,
+    retain: RETAIN_SOMETIMES,
     apply({ state, events }) {
         const gold = state.gold
         state.gold = state.power

@@ -7,6 +7,8 @@ Everything here is not done yet. Log each idea as one undated line, and mark its
 - Win check (open): the river shifts as part of End turn, so ending the turn exactly on the goal can lose hearts to an escape and undo the win. It is rare (about every tenth enemy escape, not measured), and the player can avoid it by picking kills or rerolling. Options: keep it and warn near the goal, or check the goal after the reap and before the escape. Measure the bots before changing it. Undecided.
 - Carry on after the goal: today "End your turn to win, or keep going" only means keep playing the current turn. A real choice could be a mode option where ending the turn does not win and a separate "Claim win" move does, with the run scored by final hearts.
 - Stop early or carry on: when the goal is reached, let the player stop or continue to the full turn limit.
+- Level 4 harder since 0.0.9 (open): the designer lost two Standard Level 4 runs (63 and 81 of 96) after clearing it regularly. Suspect the wider effect variety from parameterized effects or the enemy Gold/Power gains; the bot did not see it (`lab-human` is about 1 ♥ better on 0.0.9 at every goal), so it needs more human runs before a balance change.
+- Level 4 needs exile and draw (open): every logged Level 4 win exiled 15 to 18 cards and had draw support, and the designer and the bots rarely buy Hearts cards. Try a Tide-heavy and a reaping run to see whether Hearts-first builds can win; the planned effects (Basic conversion, exile bonus, Basic engine) should widen the ways to get rid of Basics or make them worth keeping.
 - Undo peeking at random outcomes (open): free undo supports resource planning, but undo after redraw, draw, cycle, purge or take can reveal an alternate random branch without spending the resource. Prefer to keep undo free for solo play; if competitive modes arrive, consider a no-undo or undo-flagged mode instead of making undo a resource.
 - Free enemies (open): stacked `weak` makes the discount larger than any enemy cost, so enemies cost 0 and the run can become infinite. `cardCost` floors enemy cost at 0. Options: a floor of 1, a cap on stacking, or keep it as a degenerate case in the preset library. Same question for `cheap` on recruits.
 - Cheap enemy alternate rewards (open): a cost-1 enemy can show its minimum 1 ♥ plus an alternate resource even though that exceeds its 1.4 budget. It may be rare enough to keep as a special reward; decide whether to reserve the minimum Heart and suppress the alternate gain.
@@ -27,6 +29,11 @@ Everything here is not done yet. Log each idea as one undated line, and mark its
 - Exile bonus: a thin deck leaves cards like a lone Draw 1 with no reason to exile them. Either a card gives a bonus when exiled (refund, heart, draw) or an exile effect pays for any card exiled. Decide this together with the refund idea. Needs an "on exile" hook.
 - Exile from the recruit row: weak (rarely more than one per turn) but saves wasted exiles. Does the card go to your exile pile (Vault counts it) or leave the game?
 - Type-conversion effect that turns Basic cards into a chosen gem type. Decide whether it is permanent and how it competes with exile.
+- Parametrized Basics (open): roll the amount and the card count of `basics` the way `hoard` does, so a Basic-heavy deck can pay more than `+1` per 4. Not done with Hoard; Basics are still fixed at `+1` per 4 basic cards.
+- Swap river cards (open): let the player swap the 4th and 5th river card, for a redraw or through a card effect (probably with Retain, since it is only useful at the right moment). Motivated by a wanted card that could not be bought with the resources at hand.
+- Retain on Cycle (open): neither Draw nor Cycle can roll Retain today. Retain on Draw is pointless, since a Draw card is always played, but a retained Cycle could wait in hand for a bad draw.
+- Strip-colour effect (open): the opposite of conversion, it turns a coloured card into a Basic, working like exile. It only helps the Basics effect, so it needs more than that to be worth a card.
+- Basic as a generator type (open, daring): let Basic recruits roll in the row (see "Basic row recruits"). It dilutes the pool, but a diluted Standard pool is the aim: players adapt to what they are dealt, and presets and challenges serve those who commit to a style before the game.
 - Growing cards whose payout increases after each play. Decide whether growth belongs to the card instance or its definition and how duplication interacts.
 - Redraw counter as an effect input (gains grow with each redraw). Do not store "was stuck" in `GameState`: a human's reason for redrawing is not knowable.
 - Opening-turn trigger for drafted Basics when no coloured type has been played yet (starter Basics would not carry it).
@@ -37,7 +44,9 @@ Everything here is not done yet. Log each idea as one undated line, and mark its
 - Count recruiting as playing a type. Let draw-only cards count as simple. Cap stacked Retain cards.
 - Reward rare runs of identical recruit cards as an achievement; prevent redraw farming.
 - If Basics are removed, test starter compositions such as 3 Moss / 3 Ember / 3 Tide.
-- Parametrised effects (open question): `foes`, `pile`, `all3`, `vault`, `cheap`, `basics` and `weak` are fixed text today. Possible parameters: the currency, the divisor and the amount. Each would need a price per step. Generator settings must not change rolled parameters except through the allowed resources and types.
+- Parametrised effects (open question): `foes`, `pile`, `all3` and `vault` are fixed text today (`hoard`, `weak` and `cheap` are the model). Possible parameters: the currency, the divisor and the amount. `basics`, `pile` and `vault` could roll amount and divisor through the shared count-gain helper. Each would need a price per step. Generator settings must not change rolled parameters except through the allowed resources and types.
+- Smarter Retain for bots (open): `retainChanges` says playing `exile`, `cheap`, `weak`, `flip` and the reaps always changes something, so bots never hold them and Retain on those cards is a pure budget cost for them. Exile could wait until a hand has a card worth exiling, Weak until an enemy is in the row, Cheap until a recruit is buyable, Draw while the deck is small. Retain usefulness by effect, from the designer's play: useful to wait on are Exile, Cycle, Cheap, Weak, Foes, All3, Pile and the reaps (wait for a double or triple), situational are Swap, Bond, Kin, Basics and Coin, and rarely useful are Army, Hoard, Vault, Draw and Purge (it often breaks Retain plans). Possible shape: one chance per effect by usefulness, flat price 0.5, Exile at 1.
+- Retain terms (open): any effect can roll Retain now, with a per-effect price and chance (see design). The bots lost 4 to 6 hit points at goal 48 from the extra budget spent on Retain they rarely use, so the first tuning questions are whether the strong tier should cost 1 or 0.5, and whether bots should buy or hold Retain on Draw and Exile. Original v5 rule, for the record: Retain only on effects with a condition that can fail or wait (foes, all3, vault, pile, kin, bond, army, swap), not on unconditional ones (draw, exile, cheap, weak, coin, basics, reaping, plain gains, enemies); its author agreed it was too narrow for cycle, purge, exile and draw.
 - Unified resource leans (open): after the current parametrization work, consider unifying the existing 70/30 effect lean with direct resource selection without changing recruit balance accidentally.
 - Coin payout variants (open): compare 50/50 flips such as 1/3 or 3/5 with the current 2/4 payout, including the budget price and how much risk the lower result creates.
 - Show calculated values for conditional effects without crowding the card. Mark cards that need a decision so Play simple is less necessary.
@@ -49,7 +58,7 @@ Everything here is not done yet. Log each idea as one undated line, and mark its
 - Boss enemies every tenth turn that cost two resources, or bosses that create pressure while they remain in the row. Open: whether board effects expire or persist, and how the player removes them.
 - Bosses with two resource tracks and persistent partial payments (pay 3 ● and 4 ⚔ one turn, 4 ● and 6 ⚔ the next). Bosses should not be affected by the normal redraw; a special effect could reroll them and the fifth card.
 - More enemy variety, and more enemies at higher levels.
-- Anti-thin-deck enemy effect, for example +5 ⚔ minus 1 ⚔ for every 4 cards in your deck. The opposite of `pile`. Motivated by a 10-card deck that won with 89 ♥ on turn 22.
+- Bulk tuning (open): at 12 cards a Bulk enemy costs only 1 ⚔ more than normal, which the designer finds barely noticeable, and it is rolled mostly on cheap early enemies because it costs no budget. Check the premium (reference deck size 16, 4 cards per step) and its frequency after playtests.
 
 ## Starters, builds and modes
 
@@ -75,7 +84,7 @@ Candidate archetypes, not approved balance targets. Test constrained generators 
 - Tide heart engine: draw, discard, Retain, exile and direct hearts (a Tide-heavy run has won).
 - Exile vault: exile Basics and use `+1 ♥ per 3 cards in exile`. Depends on exile availability.
 - Ember combat: power, `foes`, `weak`, discard-pile power and enemy rewards. Pure Ember has one Level 4 win; repeat it before treating it as reliable.
-- Moss economy: `coin`, Basic-count gold, gold Reaping, expensive recruits, Swap as an outlet. Pure Moss is unproven.
+- Moss economy: `flip`, Basic-count gold, gold Reaping, expensive recruits, Swap as an outlet. Pure Moss is unproven.
 - Swap converter: generate one resource and exchange it. Probably a bridge, not an archetype.
 - Discard-pile engine: cycle or purge to grow the discard, then `+1 ⚔ per 3 cards in discard`. An Ember/Tide hybrid.
 - Wide tribal deck: many cards with `army`, `kin` or Bond. The counterexample to "thin is always best".
@@ -84,12 +93,11 @@ Candidate archetypes, not approved balance targets. Test constrained generators 
 - Reaping or greed: make excess resources and convert the rest to hearts at end of turn. Probably a finishing engine.
 - Micro-deck: four or five efficient cards. Does consistency make up for lost flexibility?
 - Draw engine: enough Draw, cycle, purge and Retain for reliable resources. Possibly shared by several colours.
-- Hoarder engine: roughly `+1` resource per 6 cards in the deck. Decide which resource, what the count includes, and whether it scales per card or per threshold.
 - Bot policy ladder (open): build benchmark bots from random by adding policies one at a time, compare greedy and sampled selection, and keep strategic rules such as early resources or exile targets as explicit profile hypotheses.
 - Bot outlier analysis (open): report the best run's seed and replayable context, then compare its sampled decisions with the greedy run on the same game to learn when randomness finds a stronger line.
 - Late redraw (open): remove the generic final-two-turn redraw veto because late costs are scaled up; compare named greedy bots and restore the veto only if the extra redraws reduce hearts.
 - Human-style bot (open): value early gold, power above the deck's best power card, up to three diminishing exiles, varied effects, late hearts, right-side enemy kills except when Foes benefits from leaving enemies, and a short Swap plan that targets an affordable river card.
-- Human bot readiness rules (open): estimate current-hand gold with Coin worth 3 expected gold, deprioritise early Reaping but reconsider ReapG and ReapP as late Heart candidates, value first Draw, Exile and Cycle/Purge copies, require setup for Bond, Army, Kin, all3, Pile and Vault, and use one effect-value policy instead of one permanent policy per effect.
+- Human bot readiness rules (open): estimate current-hand gold with Coin worth 3 expected gold, deprioritise early Reaping but reconsider ReapG and ReapP as late Heart candidates, require setup for Bond, Army, Kin, all3, Pile and Vault, and use one effect-value policy instead of one permanent policy per effect.
 - Human bot play order (open): play plain resource gains first, make Cycle/Purge the main effect exception, and ignore unsupported conditional effects such as all3, Kin, Army and Bond unless a dedicated build bot can evaluate them.
 - Redraw edge lookahead (open): when the affordable right-edge enemy would leave the next enemy to its left unaffordable, consider redrawing instead of taking the edge enemy.
 - Bot redraw resource gate (open): do not redraw when all remaining resources are below the expected current card cost, even when an affordable row card is later vetoed by the buying policy.

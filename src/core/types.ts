@@ -13,11 +13,14 @@ export interface EffectParams {
     currency?: GeneratorResource
     drawCount?: number
     bondCount?: number
+    amount?: number
+    perCards?: number
+    costPerCards?: number
 }
 
 export type EffectId =
     | 'draw'
-    | 'coin'
+    | 'flip'
     | 'exile'
     | 'cheap'
     | 'foes'
@@ -25,6 +28,8 @@ export type EffectId =
     | 'vault'
     | 'basics'
     | 'pile'
+    | 'hoard'
+    | 'bulk'
     | 'bond'
     | 'kin'
     | 'weak'
@@ -124,7 +129,7 @@ export type GameEvent =
     | { type: 'played'; card: Card; gains: Gains }
     | { type: 'drew'; cardIds: number[]; requested: number; cause: DrawCause }
     | { type: 'reshuffled' }
-    | { type: 'coinFlipped'; currency: GeneratorResource; amount: number }
+    | { type: 'flipped'; currency: GeneratorResource; amount: number }
     | { type: 'swapped' }
     | { type: 'cycled'; count: number; purge: boolean }
     | { type: 'exiled'; card: Card }

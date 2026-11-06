@@ -1,5 +1,5 @@
 {
-    "version": "0.0.9",
+    "version": "0.1.0",
     "query": "?seed=123000369&mode=standard&goal=1",
     "moves": [
         {
@@ -24,7 +24,7 @@
         },
         {
             "type": "take",
-            "rowIndex": 2
+            "rowIndex": 4
         },
         {
             "type": "take",
@@ -32,7 +32,7 @@
         },
         {
             "type": "take",
-            "rowIndex": 2
+            "rowIndex": 0
         },
         {
             "type": "endTurn"
@@ -52,6 +52,265 @@
         {
             "type": "play",
             "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "take",
+            "rowIndex": 1
+        },
+        {
+            "type": "take",
+            "rowIndex": 1
+        },
+        {
+            "type": "take",
+            "rowIndex": 0
+        },
+        {
+            "type": "exile",
+            "handIndex": 0
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "take",
+            "rowIndex": 1
+        },
+        {
+            "type": "take",
+            "rowIndex": 0
+        },
+        {
+            "type": "exile",
+            "handIndex": 3
+        },
+        {
+            "type": "take",
+            "rowIndex": 1
+        },
+        {
+            "type": "take",
+            "rowIndex": 0
+        },
+        {
+            "type": "exile",
+            "handIndex": 1
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "take",
+            "rowIndex": 1
+        },
+        {
+            "type": "redraw"
+        },
+        {
+            "type": "take",
+            "rowIndex": 2
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "take",
+            "rowIndex": 3
+        },
+        {
+            "type": "take",
+            "rowIndex": 1
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "exile",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "take",
+            "rowIndex": 0
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "exile",
+            "handIndex": 0
+        },
+        {
+            "type": "redraw"
+        },
+        {
+            "type": "take",
+            "rowIndex": 3
+        },
+        {
+            "type": "take",
+            "rowIndex": 2
+        },
+        {
+            "type": "take",
+            "rowIndex": 0
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "take",
+            "rowIndex": 4
+        },
+        {
+            "type": "take",
+            "rowIndex": 1
+        },
+        {
+            "type": "take",
+            "rowIndex": 1
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 0
         },
         {
             "type": "play",
@@ -62,27 +321,11 @@
             "rowIndex": 4
         },
         {
-            "type": "exile",
-            "handIndex": 4
-        },
-        {
             "type": "take",
-            "rowIndex": 2
-        },
-        {
-            "type": "take",
-            "rowIndex": 2
+            "rowIndex": 0
         },
         {
             "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "play",
-            "handIndex": 3
         },
         {
             "type": "play",
@@ -90,522 +333,38 @@
         },
         {
             "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
             "handIndex": 0
         },
         {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
             "type": "take",
-            "rowIndex": 2
+            "rowIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 2
         },
         {
             "type": "exile",
-            "handIndex": 0
-        },
-        {
-            "type": "take",
-            "rowIndex": 4
-        },
-        {
-            "type": "take",
-            "rowIndex": 1
-        },
-        {
-            "type": "skipExile"
+            "handIndex": 3
         },
         {
             "type": "take",
             "rowIndex": 0
         },
         {
-            "type": "skipExile"
-        },
-        {
-            "type": "take",
-            "rowIndex": 3
-        },
-        {
-            "type": "take",
-            "rowIndex": 3
-        },
-        {
             "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "play",
-            "handIndex": 1
         },
         {
             "type": "play",
             "handIndex": 2
-        },
-        {
-            "type": "take",
-            "rowIndex": 1
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "take",
-            "rowIndex": 1
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "take",
-            "rowIndex": 1
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "take",
-            "rowIndex": 1
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "take",
-            "rowIndex": 1
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "redraw"
-        },
-        {
-            "type": "take",
-            "rowIndex": 2
-        },
-        {
-            "type": "take",
-            "rowIndex": 1
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "take",
-            "rowIndex": 2
-        },
-        {
-            "type": "exile",
-            "handIndex": 4
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "exile",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "take",
-            "rowIndex": 1
-        },
-        {
-            "type": "take",
-            "rowIndex": 3
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "skipExile"
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "take",
-            "rowIndex": 1
-        },
-        {
-            "type": "take",
-            "rowIndex": 4
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "take",
-            "rowIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "take",
-            "rowIndex": 1
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "skipExile"
-        },
-        {
-            "type": "redraw"
-        },
-        {
-            "type": "redraw"
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "take",
-            "rowIndex": 3
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "take",
-            "rowIndex": 1
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "redraw"
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "skipExile"
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "take",
-            "rowIndex": 3
-        },
-        {
-            "type": "redraw"
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "play",
-            "handIndex": 3
         },
         {
             "type": "play",
@@ -617,37 +376,7 @@
         },
         {
             "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
             "handIndex": 0
-        },
-        {
-            "type": "redraw"
-        },
-        {
-            "type": "take",
-            "rowIndex": 2
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 2
         },
         {
             "type": "play",
@@ -655,7 +384,54 @@
         },
         {
             "type": "take",
+            "rowIndex": 0
+        },
+        {
+            "type": "take",
+            "rowIndex": 3
+        },
+        {
+            "type": "take",
             "rowIndex": 1
+        },
+        {
+            "type": "take",
+            "rowIndex": 0
+        },
+        {
+            "type": "take",
+            "rowIndex": 0
+        },
+        {
+            "type": "take",
+            "rowIndex": 0
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "take",
+            "rowIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 0
         },
         {
             "type": "take",
@@ -666,77 +442,6 @@
         },
         {
             "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "skipExile"
-        },
-        {
-            "type": "redraw"
-        },
-        {
-            "type": "take",
-            "rowIndex": 1
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "skipExile"
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "take",
-            "rowIndex": 3
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
             "handIndex": 0
         },
         {
@@ -748,52 +453,23 @@
             "handIndex": 1
         },
         {
-            "type": "take",
-            "rowIndex": 3
-        },
-        {
-            "type": "take",
-            "rowIndex": 3
-        },
-        {
-            "type": "redraw"
-        },
-        {
-            "type": "endTurn"
-        },
-        {
             "type": "play",
             "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 4
         },
         {
             "type": "play",
             "handIndex": 2
         },
         {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "skipExile"
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
             "type": "endTurn"
         },
         {
             "type": "play",
-            "handIndex": 4
+            "handIndex": 0
         },
         {
             "type": "play",
-            "handIndex": 1
+            "handIndex": 4
         },
         {
             "type": "play",
@@ -805,7 +481,299 @@
         },
         {
             "type": "exile",
+            "handIndex": 4
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "take",
+            "rowIndex": 0
+        },
+        {
+            "type": "take",
+            "rowIndex": 4
+        },
+        {
+            "type": "take",
+            "rowIndex": 0
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
             "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "take",
+            "rowIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "redraw"
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "take",
+            "rowIndex": 1
+        },
+        {
+            "type": "take",
+            "rowIndex": 2
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "take",
+            "rowIndex": 3
+        },
+        {
+            "type": "take",
+            "rowIndex": 1
+        },
+        {
+            "type": "take",
+            "rowIndex": 0
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "exile",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "take",
+            "rowIndex": 0
+        },
+        {
+            "type": "take",
+            "rowIndex": 1
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "exile",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "take",
+            "rowIndex": 0
+        },
+        {
+            "type": "exile",
+            "handIndex": 1
+        },
+        {
+            "type": "take",
+            "rowIndex": 0
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "redraw"
+        },
+        {
+            "type": "take",
+            "rowIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "take",
+            "rowIndex": 1
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "take",
+            "rowIndex": 3
+        },
+        {
+            "type": "take",
+            "rowIndex": 2
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "skipExile"
+        },
+        {
+            "type": "take",
+            "rowIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "redraw"
+        },
+        {
+            "type": "take",
+            "rowIndex": 0
+        },
+        {
+            "type": "take",
+            "rowIndex": 2
         },
         {
             "type": "endTurn"
@@ -821,20 +789,20 @@
         "phase": null
     },
     "summary": {
-        "hearts": 45,
-        "goalHit": false,
-        "kills": 32,
-        "lostToEscapes": 7,
-        "bought": 17,
-        "exiled": 6,
-        "cards": 21,
-        "plays": 117,
-        "turns": 24,
-        "wastedGold": 40,
-        "wastedPower": 22,
-        "redrawsLeft": 0,
-        "heartsT24": 45,
-        "moves": 212,
+        "hearts": 48,
+        "goalHit": true,
+        "kills": 33,
+        "lostToEscapes": 12,
+        "bought": 20,
+        "exiled": 11,
+        "cards": 19,
+        "plays": 109,
+        "turns": 22,
+        "wastedGold": 18,
+        "wastedPower": 21,
+        "redrawsLeft": 3,
+        "heartsT24": null,
+        "moves": 201,
         "capped": false
     }
 }

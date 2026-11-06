@@ -1,3 +1,4 @@
+import { RETAIN_OFTEN } from '../generator/budget'
 import type { EffectDef } from './types'
 
 export const foes: EffectDef = {
@@ -7,7 +8,8 @@ export const foes: EffectDef = {
     enemies: true,
     needs: ['foe', 'power'],
     lean: ['ember'],
-    retainable: true,
+    pays: 'power',
+    retain: RETAIN_OFTEN,
     apply({ state, source, rowEnemies, gain }) {
         gain('power', source === 'play' ? state.row.filter((card) => card.kind === 'enemy').length : rowEnemies)
     },

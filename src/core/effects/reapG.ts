@@ -1,3 +1,4 @@
+import { RETAIN_OFTEN } from '../generator/budget'
 import type { EffectDef } from './types'
 
 export const reapG: EffectDef = {
@@ -7,6 +8,8 @@ export const reapG: EffectDef = {
     enemies: true,
     needs: ['gold', 'hearts'],
     lean: ['moss'],
+    pays: 'hearts',
+    retain: RETAIN_OFTEN,
     apply({ state }) {
         state.reapGold++
     },

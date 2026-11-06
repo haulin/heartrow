@@ -3,7 +3,7 @@ import type { Policy } from '../types'
 import { handCard } from './util'
 
 const CYCLE_EFFECTS = ['cycle', 'purge']
-const USEFUL_EFFECTS = ['coin', 'draw']
+const USEFUL_EFFECTS = ['flip', 'draw']
 const CONDITIONAL_EFFECTS = ['all3', 'army', 'basics', 'bond', 'kin', 'pile', 'reapG', 'reapP', 'vault']
 
 /** Keeps plain gains before Exile for the lab human bot, with cycling as the main deliberate exception. */

@@ -26,7 +26,7 @@ import {
     redrawWhenStuck,
     standardMode,
 } from '../../src/core'
-import type { Card, Move, Policy } from '../../src/core'
+import type { Card, GameState, Move, Policy } from '../../src/core'
 
 const state = newGame(standardMode(0), 1).state
 const moves: Move[] = [{ type: 'endTurn' }, { type: 'redraw' }, { type: 'skipExile' }]
@@ -119,16 +119,16 @@ describe('profiles', () => {
             fx: [],
             main: 'power' as const,
         }
-        const coin = {
+        const flip = {
             ...power,
             power: 0,
-            fx: ['coin'] as Card['fx'],
+            fx: ['flip'] as Card['fx'],
             fxParams: { currency: 'power' as const },
         }
         const policy = phaseBuy()
         const plainWeight = policy.weight({ ...initial, row: [power, ...initial.row.slice(1)] }, { type: 'take', rowIndex: 0 }, [])
-        const coinWeight = policy.weight({ ...initial, row: [coin, ...initial.row.slice(1)] }, { type: 'take', rowIndex: 0 }, [])
-        expect(coinWeight).toBeGreaterThan(plainWeight)
+        const flipWeight = policy.weight({ ...initial, row: [flip, ...initial.row.slice(1)] }, { type: 'take', rowIndex: 0 }, [])
+        expect(flipWeight).toBeGreaterThan(plainWeight)
     })
 
     it('takes more redraw risk when several redraws remain', () => {
@@ -186,7 +186,7 @@ describe('profiles', () => {
     it('prefers an enemy effect when enemy gains and position tie', () => {
         const initial = newGame(standardMode(0), 1).state
         const plain = { ...initial.row[0]!, kind: 'enemy' as const, cost: 1, hearts: 1, fx: [] }
-        const effect = { ...plain, fx: ['coin'] as Card['fx'] }
+        const effect = { ...plain, fx: ['flip'] as Card['fx'] }
         const state = { ...initial, row: [plain, effect, ...initial.row.slice(2)] }
         const policy = buyEnemies()
 
@@ -275,23 +275,28 @@ describe('profiles', () => {
 
     it('lookahead does not peek at the order of the real deck', () => {
         const bot = composePolicies(makeProfile('mixed').policies)
-        const rng = createRng(3, 'bot')
-        let base = newGame(LONG_MODE, 3).state
-        for (let n = 0; n < 2000 && !(base.turn >= 8 && legalMoves(base).every((m) => m.type !== 'play')); n++) {
-            base = applyMove(base, pickMove(base, legalMoves(base), bot, rng, { mode: 'greedy', epsilon: 0 })!).state
-        }
-        const flipped = cloneState(base)
-        flipped.deck.reverse()
-        expect(flipped.deck.map((c) => c.id)).not.toEqual(base.deck.map((c) => c.id))
         const options = { rollouts: 3, horizon: 8, temperature: 1 }
-        const weights = (s: typeof base) => {
+        const weights = (s: GameState) => {
             const policy = lookahead(() => makeProfile('mixed'), options)
             const all = legalMoves(s)
             return all.map((m) => policy.weight(s, m, all))
         }
-        expect(base.status).toBe('playing')
+        const quiet = (s: GameState) => s.turn >= 8 && s.deck.length > 3 && legalMoves(s).every((m) => m.type !== 'play')
+        // A quiet state where the rollouts actually rank the moves; some seeds reach only states where every weight is 1.
+        const informative = (s: GameState) => s.status === 'playing' && quiet(s) && weights(s).some((w) => w !== 1)
+        let base = newGame(LONG_MODE, 3).state
+        for (let seed = 3; seed < 30 && !informative(base); seed++) {
+            const rng = createRng(seed, 'bot')
+            base = newGame(LONG_MODE, seed).state
+            for (let n = 0; n < 2000 && base.status === 'playing' && !informative(base); n++) {
+                base = applyMove(base, pickMove(base, legalMoves(base), bot, rng, { mode: 'greedy', epsilon: 0 })!).state
+            }
+        }
+        expect(informative(base)).toBe(true)
+        const flipped = cloneState(base)
+        flipped.deck.reverse()
+        expect(flipped.deck.map((c) => c.id)).not.toEqual(base.deck.map((c) => c.id))
         const before = weights(base)
-        expect(before.some((w) => w !== 1)).toBe(true)
         expect(weights(flipped)).toEqual(before)
     })
 

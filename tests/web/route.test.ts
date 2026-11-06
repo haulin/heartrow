@@ -20,7 +20,7 @@ describe('screen routes', () => {
     })
 
     it('shows the generator editor for screen=custom, with its settings from the address', () => {
-        const search = '?screen=custom&goal=2&types=moss,foe&res=gold,power,hearts&sg=3&sp=7&fx=coin'
+        const search = '?screen=custom&goal=2&types=moss,foe&res=gold,power,hearts&sg=3&sp=7&fx=flip'
         expect(isEditor(search)).toBe(true)
         expect(isEditor('?mode=custom')).toBe(false)
         const route = routeFor(search, null)
@@ -30,7 +30,7 @@ describe('screen routes', () => {
             types: ['moss', 'foe'],
             starterGold: 3,
             starterPower: 7,
-            effects: ['coin'],
+            effects: ['flip'],
         })
         // The editor starts no run, even with a run in memory or a seed in the address.
         expect(routeFor(`${search}&seed=5&mode=long`, '?seed=5&mode=long').screen).toBe('custom')
