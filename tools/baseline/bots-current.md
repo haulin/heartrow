@@ -41,4 +41,12 @@ Only `lab-human` is measured here.
 | ----------- | --- | ------ | ------ | --- | --- | ----- | ---- |
 | `lab-human` | 0%  | 48.1   | 48     | 29  | 67  | −9    | 112  |
 
+## Moss economy preset
+
+Custom generator `moss` from `src/core/custom.ts`, 24 turns, only `smart` is measured, with the standard size: `npm run sim -- --games 400 --seeds 100 --seed 1000 --preset moss --goal 1 --policies smart`. Mean ♥ and P90 do not depend on the goal, because the goal does not change the generator.
+
+| Bot     | Goal 48 hit | Mean ♥ | P90 | Moves per game |
+| ------- | ----------- | ------ | --- | -------------- |
+| `smart` | 6.4%        | 30.1   | 44  | 208            |
+
 Not measured at this version: Long Run, `none`, `rush`, `pacifist`, `lookahead`. Older figures for them are in [`docs/history.md`](../../docs/history.md) and are from before the generator and flush changes.

@@ -41,6 +41,18 @@ export interface CustomPreset {
  */
 export const CUSTOM_PRESETS: readonly CustomPreset[] = [
     { id: 'standard', name: 'Standard', generator: DEFAULT_CUSTOM },
+    {
+        id: 'moss',
+        name: 'Moss economy',
+        generator: {
+            ...DEFAULT_CUSTOM,
+            types: ['moss'],
+            resources: ['gold', 'hearts'],
+            effects: ['draw', 'flip', 'exile', 'cheap', 'basics', 'bond', 'kin', 'reapG'],
+            starterGold: STARTER.basicGold + STARTER.basicPower,
+            starterPower: 0,
+        },
+    },
     { id: 'simple', name: 'Simple only', generator: { ...DEFAULT_CUSTOM, effects: [] } },
     {
         id: 'attack',
@@ -62,18 +74,6 @@ export const CUSTOM_PRESETS: readonly CustomPreset[] = [
             types: ['moss', 'tide'],
             resources: ['gold', 'hearts'],
             effects: ['draw', 'flip', 'exile', 'cheap', 'vault', 'bond', 'kin', 'army', 'cycle', 'purge', 'reapG'],
-            starterGold: STARTER.basicGold + STARTER.basicPower,
-            starterPower: 0,
-        },
-    },
-    {
-        id: 'moss',
-        name: 'Moss economy',
-        generator: {
-            ...DEFAULT_CUSTOM,
-            types: ['moss'],
-            resources: ['gold', 'hearts'],
-            effects: ['draw', 'flip', 'exile', 'cheap', 'basics', 'bond', 'kin', 'reapG'],
             starterGold: STARTER.basicGold + STARTER.basicPower,
             starterPower: 0,
         },

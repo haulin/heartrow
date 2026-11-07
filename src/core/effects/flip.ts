@@ -5,7 +5,7 @@ import type { EffectDef } from './types'
 export const flip: EffectDef = {
     id: 'flip',
     price: 2.5,
-    text: 'Flip: +2 or +4 ●',
+    text: '+2 or +4 ●',
     enemies: true,
     needsAny: ['gold', 'power'],
     lean: ['moss'],

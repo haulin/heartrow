@@ -67,11 +67,11 @@ Links: `?seed=N&mode=standard&goal=2`, `?seed=N&mode=long`. Starting any new gam
 
 ### Screens
 
-There are four screens, home, game, the level picker and the generator editor, and the address says which. An address with no `mode` or `seed` is the home screen; one with either starts that run directly; `?screen=custom` plus the generator settings is the editor and `?screen=standard` is the level picker, and neither starts a run by itself. The home screen lists Resume (only when a run is in memory), Standard, Long Run, Custom generator, Settings and About. The level picker is four big buttons (Level 1 to 4, each with its goal and turn limit) that share the screen. Every screen change adds a history entry, so Back returns to the screen you came from. An address that matches the run in memory resumes it, and any other game address starts that run.
+There are five screens, home, game, Standard, the challenge picker and the generator editor, and the address says which. An address with no `mode` or `seed` is the home screen; one with either starts that run directly; `?screen=custom` plus the generator settings is the editor, `?screen=standard` is the Standard picker (the four levels and Long Run as big buttons, each showing its best result), and `?screen=challenges` is the challenge picker, and none of them starts a run by itself. The challenge picker's address also names the card and goal (`&challenge=moss&goal=3`, or `goal=long`), kept up to date as the player moves, so a reload or a link opens the same place. The home screen lists Resume (only when a run is in memory), Standard, Challenges, Settings and About. The challenge picker is one screen high: a scroll-snapping row of cards (Standard, the generator presets of `src/core/custom.ts`, and Custom last), round icon dots that jump to a card, the goals of the current card in a list that scrolls (Level 1 to 4, and Long Run for Standard only), and Start pinned at the bottom. A card shows one star per goal. A finished run is credited to a challenge goal by its mode, or for a custom run by its generator matching a preset at any goal, and the best hearts and the win are kept in `localStorage` (`results`). Replays do not count, Custom keeps no results, and Long Run keeps the best hearts without a win. Every screen change adds a history entry, so Back returns to the screen you came from. An address that matches the run in memory resumes it, and any other game address starts that run.
 
 The editor keeps its settings in the address as you change them, so a reload or a copied address gives the same editor. It opens from the home screen (with the settings of the last run, if there is one) and from the run dialog's "Open in the generator editor" button (with the settings of the run on screen; a Standard run opens with the defaults at its goal). Back from the editor returns to where you came from, for example the run; Start begins a new custom run and replaces the one in memory. The screen state is web only; core knows nothing about screens.
 
-The game screen has only game actions in its button bar (End turn, Play simple, Flush, Undo, Skip exile). Home sits at the top left; New game, Settings and About are on the home screen. The header's other button names the mode (Standard, Custom or Long Run, with an ⓘ) and opens a dialog with the level, goal, turns, the generator summary of a custom run, and the seed with its copy buttons.
+The game screen has only game actions in its button bar (End turn, Play simple, Flush, Undo, Skip exile). Home sits at the top left; New game, Settings and About are on the home screen. The header's other button shows the mode in its own look (see "Look of modes", for example Moss economy for a preset run, otherwise Standard, Custom or Long Run) with an info icon, and opens a dialog with the level, goal, turns, the generator summary of a custom run, and the seed with its copy buttons.
 
 ### Saved run
 
@@ -108,7 +108,7 @@ The web layer saves the current run in `localStorage` after every accepted move,
 ## Interface conventions
 
 - The deck summary breaks effects down by what they give: gold, power, hearts, and other. Each effect counts once per card. Bond and same-type effects count as gold or power based on the card. Other covers draw, exile, discounts, swap, and discard effects.
-- Reaping uses a small heart pill on the gold or power stat box. It shows one heart per reaping card in play, displays `♥×4` above three cards, and explains the current heart total in the tooltip.
+- Reaping uses a small heart pill on the gold or power stat box. It shows one heart per reaping card in play, displays `♥x4` above three cards, and explains the current heart total in the tooltip.
 - Retain uses a regular-weight `↺` line.
 - Text selection is disabled in the game area and enabled inside popups so the log can be copied.
 - Compact resource values use coloured `●` gold, `⚔` power, and `♥` hearts icons on cards and in the log. Explanatory labels and accessible names keep the resource words.
@@ -116,6 +116,18 @@ The web layer saves the current run in `localStorage` after every accepted move,
 - The log uses one copied line per entry instead of paragraph spacing.
 - Enemy defeat logs combine resolved direct heart payouts with the base enemy hearts and append any extra gold or power in the same compact resource line.
 - The game shows the package version (semver from `package.json`) in the About dialog.
+
+### Look of modes, icons and colour (any theme or skin keeps these)
+
+- A mode has one look, an icon and an accent colour, and it shows the same everywhere: on its card in the challenge picker, on the game header's mode button (icon on the left, ring and tint in the accent), and on the dots, the selected goal and the pressed states of the picker. The looks are one table, `PRESET_LOOKS` in `src/platform/web/challenges.ts`, with one line per preset. A test fails when a preset has no look or its icon file is missing. Adding a mode is a preset in `src/core/custom.ts`, a line in that table, and an icon file.
+- Icons are one-colour SVG files in `src/platform/web/glyphs/`, drawn in the text colour with a CSS mask by the `Glyph` component; a new file is picked up by name with no other edit. Multi-colour artwork (coin, swords, heart, retain, lock) lives in `icons/` and is drawn as a background image. Never use a character the font lacks (arrows, ⓘ, ✓, ×, ›): the browser takes it from another font and sizes it differently. Use a glyph, or a plain letter.
+- Colours come from the theme variables (`--moss`, `--ember`, `--gold`, `--heart` and so on), never a fixed hex, so light and dark both work. Surfaces are flat: a tint is `color-mix` of the accent into the background, and a ring is a border or an inset shadow. No gradients, shines or drop shadows.
+- A goal's result is a star and the hearts in the same gold when won, `best N ♥` when only played, and "not played" otherwise. The best hearts never go down and a win is never taken away. Stars are drawn shapes, not characters.
+- Screens scale with the width of the play area (container units with a minimum and a maximum), so a wide desktop screen grows type, buttons and rows and does not just stretch them. Buttons in one header row are the same height.
+- Scrolling rows use the browser's own scroll-snap, so touch, wheel and trackpad momentum are native. A mouse drag is a bonus on top, and dots jump to an item. The row reports its item when it stops, so a jump does not flicker through the items between. Custom scroll physics is not worth the browser differences.
+- Where a screen is, and what it shows, is in the address (the picker's card and goal, the editor's settings), so a reload, a dropped background tab or a link opens the same place. Leaving a screen and coming back keeps its position.
+- A warning that is not urgent sits quietly below the action it concerns, not at the top of the screen.
+- A render error shows a dialog, and the next hot update (or closing it) reloads the page; the saved run survives. Preact cannot keep the old screen behind it.
 
 ## Design boundaries
 

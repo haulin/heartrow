@@ -86,8 +86,49 @@ header {
     display: flex;
     flex-wrap: wrap;
     gap: 6px 14px;
-    align-items: baseline;
+    align-items: center;
     justify-content: space-between;
+}
+/*
+ * One-colour icons from glyphs/, drawn in the text colour. They replace characters the font does not have (arrows, ⓘ, ›),
+ * which the browser would take from another font and size differently.
+ */
+.glyph {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.15em;
+    background-color: currentColor;
+    -webkit-mask: center / contain no-repeat;
+    mask: center / contain no-repeat;
+}
+/* The game header's mode button, in the style of the mode's card. An inset ring, so it is as tall as the button next to it. */
+button.b.alt.mode {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45em;
+    background: color-mix(in srgb, var(--accent) 16%, var(--bg));
+    box-shadow: inset 0 0 0 2px var(--accent);
+}
+/* The mode's icon is as tall as the button: it is drawn larger and pulled up and down by the same amount, so the button keeps its height. */
+button.b.mode .glyph:first-child {
+    width: 2.6em;
+    height: 2.6em;
+    margin: -0.8em 0 -0.8em -0.3em;
+    color: var(--accent);
+}
+button.b.mode .glyph.info {
+    color: var(--dim);
+}
+/* Only the glyphs that always look the same carry a rule here; the mask image itself comes from the component. */
+.glyph.back {
+    margin-right: 0.35em;
+}
+.glyph.star {
+    color: var(--gold);
+}
+.glyph.star-outline {
+    color: var(--dim);
 }
 h1 {
     font-size: 20px;
@@ -462,7 +503,7 @@ dialog::backdrop {
     font-size: 24px;
     margin: 14px 0 4px;
 }
-/* The level picker fills the screen with three big buttons; the more hearts, the stronger the tint. */
+/* The Standard picker fills the screen with big buttons; the more hearts, the stronger the tint. */
 .levelpick h1 {
     font-size: clamp(32px, 9cqw, 64px);
     margin: 10px 0 4px;
@@ -471,19 +512,13 @@ dialog::backdrop {
     margin: 0 0 14px;
     font-size: clamp(13px, 2.4cqw, 18px);
 }
-.replaces {
-    margin: 0 0 14px;
-    font-size: clamp(13px, 2.4cqw, 18px);
-    font-weight: 600;
-    color: var(--heart);
-}
 .levels {
     display: flex;
     flex-direction: column;
     gap: clamp(8px, 1.6cqw, 14px);
 }
 .levels button.b.level {
-    min-height: clamp(88px, 18cqw, 126px);
+    min-height: clamp(80px, 16cqw, 116px);
     display: grid;
     grid-template-columns: 1fr auto;
     grid-template-areas:
@@ -491,7 +526,7 @@ dialog::backdrop {
         'sub goal';
     align-items: center;
     text-align: left;
-    padding: clamp(14px, 4cqw, 28px);
+    padding: clamp(12px, 3.6cqw, 26px);
     border: 2px solid var(--heart);
     border-radius: clamp(12px, 2.4cqw, 20px);
     background: color-mix(in srgb, var(--heart) var(--tint), var(--bg));
@@ -509,23 +544,228 @@ dialog::backdrop {
 .level.l3 {
     --tint: 42%;
 }
+.level.long {
+    --tint: 0%;
+    border-style: dashed;
+}
+.level.won {
+    border-color: var(--gold);
+}
 .level .lv {
     grid-area: lv;
     align-self: end;
-    font-size: clamp(22px, 6cqw, 44px);
+    font-size: clamp(22px, 6cqw, 40px);
     font-weight: 800;
 }
 .level .sub {
     grid-area: sub;
     align-self: start;
-    font-size: clamp(14px, 3cqw, 20px);
+    font-size: clamp(13px, 2.8cqw, 18px);
     color: var(--dim);
 }
 .level .goal {
     grid-area: goal;
-    font-size: clamp(36px, 10.5cqw, 76px);
+    font-size: clamp(32px, 9.5cqw, 68px);
     font-weight: 800;
     line-height: 1;
+}
+.level.long .goal {
+    font-size: clamp(24px, 6cqw, 44px);
+}
+.replaces {
+    margin: 0 0 14px;
+    font-size: clamp(13px, 2.4cqw, 18px);
+    font-weight: 600;
+    color: var(--heart);
+}
+/*
+ * The challenge picker is one screen high: cards, icon dots, a goal list that scrolls, and Start at the bottom.
+ * The cards and the dots grow with the width of the screen (the main element is the container), up to a limit.
+ */
+.challenges {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(8px, 2cqw, 14px);
+    box-sizing: border-box;
+    height: 100vh;
+    height: 100dvh;
+}
+.challenges h1 {
+    flex: 1;
+    text-align: center;
+    margin-right: 66px;
+}
+.challenges header {
+    flex-wrap: nowrap;
+    align-items: center;
+}
+.challenges .replaces {
+    margin: 0;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--dim);
+}
+.cards-scroll {
+    --slide: min(74cqw, 360px);
+    position: relative;
+    display: flex;
+    gap: 8px;
+    flex: 0 0 auto;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding: 4px calc(50% - var(--slide) / 2);
+    scrollbar-width: none;
+    cursor: grab;
+}
+.cards-scroll::-webkit-scrollbar {
+    display: none;
+}
+.slide {
+    flex: 0 0 var(--slide);
+    scroll-snap-align: center;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: clamp(14px, 3cqw, 22px) 12px;
+    border: 2px solid var(--accent);
+    border-radius: 14px;
+    background: color-mix(in srgb, var(--accent) 16%, var(--bg));
+    text-align: center;
+}
+.slide-icon {
+    width: clamp(64px, 14cqw, 96px);
+    aspect-ratio: 1;
+    color: var(--accent);
+}
+.slide-icon .glyph {
+    width: 100%;
+    height: 100%;
+    vertical-align: top;
+}
+.slide-name {
+    font-size: clamp(18px, 4cqw, 24px);
+    font-weight: 800;
+}
+.slide-blurb {
+    margin: 0;
+    min-height: 3em;
+    color: var(--dim);
+    font-size: clamp(12px, 2.2cqw, 15px);
+}
+/* A won goal is a star and its hearts, both in the star's colour. */
+.note.won {
+    color: var(--gold);
+    font-weight: 700;
+}
+.stars {
+    display: flex;
+    gap: 4px;
+    min-height: 18px;
+    font-size: 18px;
+}
+.dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    flex: 0 0 auto;
+    /* Closer to the cards they select, further from the goal list they do not. */
+    margin: -4px 0 6px;
+}
+.dot {
+    flex: 0 1 34px;
+    min-width: 0;
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 1.5px solid var(--dim);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--dim);
+    cursor: pointer;
+}
+.dot .glyph {
+    width: 56%;
+    height: 56%;
+    vertical-align: top;
+}
+.dot.on {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 18%, var(--panel));
+    color: var(--accent);
+}
+.goals {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.goalrow {
+    display: flex;
+    align-items: center;
+    gap: clamp(10px, 2cqw, 16px);
+    padding: clamp(8px, 2cqw, 14px) clamp(10px, 2.4cqw, 18px);
+    border: 1px solid transparent;
+    border-radius: clamp(10px, 1.6cqw, 14px);
+    background: transparent;
+    color: var(--ink);
+    font: inherit;
+    font-size: clamp(15px, 2.6cqw, 21px);
+    text-align: left;
+    cursor: pointer;
+}
+.goalrow.on {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 12%, var(--panel));
+}
+.goalrow .radio {
+    flex: 0 0 clamp(14px, 2.4cqw, 20px);
+    height: clamp(14px, 2.4cqw, 20px);
+    border: 1.5px solid var(--dim);
+    border-radius: 50%;
+}
+.goalrow.on .radio {
+    border-color: var(--accent);
+    background: var(--accent);
+}
+.goalrow-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+.goalrow-label {
+    font-weight: 700;
+}
+.goalrow-detail {
+    font-size: clamp(13px, 2.2cqw, 17px);
+    color: var(--dim);
+}
+.goalrow-result {
+    font-size: clamp(13px, 2.2cqw, 17px);
+    color: var(--dim);
+}
+.goalrow.won .goalrow-result {
+    color: var(--gold);
+    font-size: clamp(17px, 3cqw, 24px);
+    font-weight: 800;
+}
+.goalrow.edit {
+    margin-top: 6px;
+    border-color: var(--panel);
+}
+.goalrow.edit .goalrow-result {
+    color: var(--accent);
+    font-weight: 700;
+}
+.b.start {
+    flex: 0 0 auto;
+    font-size: clamp(15px, 3cqw, 20px);
 }
 .home h1 {
     font-size: clamp(36px, 10cqw, 76px);
@@ -568,8 +808,15 @@ dialog::backdrop {
     border-radius: 10px;
     background: var(--panel);
 }
+/* The legend sits on the edge of the box, so it takes the box's colour and reads as part of it. */
 .picks legend {
-    padding: 0 6px;
+    padding: 3px 10px;
+    border-radius: 8px;
+    background: var(--panel);
+}
+/* The buttons in a box would vanish into the box's own colour. */
+.picks button.b.alt {
+    background: var(--bg);
 }
 .pick {
     display: flex;

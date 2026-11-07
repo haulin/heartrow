@@ -36,9 +36,9 @@ describe('screen routes', () => {
         expect(routeFor(`${search}&seed=5&mode=long`, '?seed=5&mode=long').screen).toBe('custom')
     })
 
-    it('shows the level picker for screen=standard and starts no run', () => {
-        expect(routeFor('?screen=standard', null)).toEqual({ screen: 'standard' })
-        expect(routeFor('?screen=standard&seed=5', '?seed=5')).toEqual({ screen: 'standard' })
+    it('shows the challenge picker for screen=challenges and starts no run', () => {
+        expect(routeFor('?screen=challenges', null)).toEqual({ screen: 'challenges' })
+        expect(routeFor('?screen=challenges&seed=5', '?seed=5')).toEqual({ screen: 'challenges' })
     })
 
     it('resumes the run in memory when the address matches it', () => {

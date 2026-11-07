@@ -8,7 +8,7 @@ const BASE_PRICE = 0.5
 export const bond: EffectDef = {
     id: 'bond',
     price: BASE_PRICE,
-    text: 'Bond: +{n} {m} if you played {T} earlier this turn',
+    text: '+{n} {m} if you played {T} earlier this turn',
     enemies: false,
     lean: ['moss'],
     pays: 'main',

@@ -44,7 +44,7 @@ describe('App home screen', () => {
         const { host } = mount(4, 'off', 'home')
         expect(host.querySelector('[data-zone="row"]')).toBeNull()
         const labels = Array.from(host.querySelectorAll('nav button')).map((b) => b.textContent)
-        expect(labels).toEqual(['Standard', expect.stringMatching(/^Long Run/), 'Custom generator…', 'Settings', 'About'])
+        expect(labels).toEqual(['Standard', 'Challenges', 'Settings', 'About'])
     })
 
     it('describes the game and draws resource icons in About', () => {
@@ -63,12 +63,13 @@ describe('App home screen', () => {
 
     it('starts a Standard run from the menu, goes home, and resumes the same run', () => {
         const { host, store } = mount(4, 'off', 'home')
-        press(host, 'Standard')
-        press(host, 'Level 2')
+        press(host, 'Challenges')
+        void act(() => host.querySelectorAll<HTMLElement>('.goalrow')[1]!.click())
+        press(host, 'Start Standard')
         expect(host.querySelectorAll('[data-zone="row"] [data-card-id]')).toHaveLength(5)
         expect(store.getState().goal).toBe(64)
         const seed = store.getState().seed
-        press(host, '← Home')
+        press(host, 'Home')
         expect(host.querySelector('[data-zone="row"]')).toBeNull()
         press(host, 'Resume game')
         expect(host.querySelector('[data-zone="row"]')).not.toBeNull()
@@ -76,32 +77,106 @@ describe('App home screen', () => {
     })
 })
 
-describe('App level picker screen', () => {
-    it('is a screen with three level buttons, has its own address, and Back from a pasted address goes home', () => {
-        const { host } = mount(4, 'off', 'home')
+describe('App Standard screen', () => {
+    it('lists the four levels and Long Run, has its own address, and starts them', () => {
+        const { host, store } = mount(4, 'off', 'home')
         press(host, 'Standard')
         expect(window.location.search).toBe('?screen=standard')
-        expect(host.querySelectorAll('.levels button')).toHaveLength(4)
-        expect(host.querySelector('.levels button:last-child')?.textContent).toContain('96')
+        expect(host.querySelectorAll('.levels button')).toHaveLength(5)
+        expect(host.querySelector('.levels button:nth-child(4)')?.textContent).toContain('96')
+        press(host, 'Level 3')
+        expect(store.getState().goal).toBe(80)
+        press(host, 'Home')
+        press(host, 'Standard')
+        press(host, 'Long Run')
+        expect(store.getState().config.id).toBe('long')
+    })
+})
+
+describe('App challenge screen', () => {
+    it('keeps the card and goal in the address, and opens the same place from a link', () => {
+        const { host } = mount(4, 'off', 'home')
+        press(host, 'Challenges')
+        void act(() => host.querySelectorAll<HTMLElement>('.dot')[1]!.click())
+        void act(() => host.querySelectorAll<HTMLElement>('.goalrow')[2]!.click())
+        expect(window.location.search).toBe('?screen=challenges&challenge=moss&goal=3')
+        render(null, host)
+        host.remove()
+
+        const again = mount(4, 'off', 'challenges' as 'home')
+        expect(again.host.querySelector('.dot.on')?.getAttribute('aria-label')).toBe('Moss economy')
+        expect(again.host.querySelector('.goalrow.on .goalrow-label')?.textContent).toBe('Level 3')
+    })
+
+    it('has its own address, one icon dot per challenge, the goals of the current one, and Back from a pasted address goes home', () => {
+        const { host } = mount(4, 'off', 'home')
+        press(host, 'Challenges')
+        expect(window.location.search).toBe('?screen=challenges&challenge=standard&goal=1')
+        expect(host.querySelectorAll('.slide')).toHaveLength(8)
+        expect(host.querySelectorAll('.dot')).toHaveLength(8)
+        expect(Array.from(host.querySelectorAll('.goalrow-label')).map((l) => l.textContent)).toEqual([
+            'Level 1',
+            'Level 2',
+            'Level 3',
+            'Level 4',
+            'Long Run',
+        ])
         expect(host.querySelector('dialog')).toBeNull()
-        window.history.replaceState(null, '', '/?screen=standard')
-        press(host, '← Back')
-        expect(host.querySelector('.levels')).toBeNull()
+        window.history.replaceState(null, '', '/?screen=challenges')
+        press(host, 'Back')
+        expect(host.querySelector('.challenges')).toBeNull()
         expect(host.querySelector('nav')).not.toBeNull()
         expect(window.location.search).toBe('')
+    })
+
+    it('starts Long Run from the Standard goals and a preset generator from its card', () => {
+        const { host, store } = mount(4, 'off', 'home')
+        press(host, 'Challenges')
+        void act(() => host.querySelectorAll<HTMLElement>('.goalrow')[4]!.click())
+        press(host, 'Start Standard · Long Run')
+        expect(store.getState().config.id).toBe('long')
+        press(host, 'Home')
+        press(host, 'Challenges')
+        void act(() => host.querySelectorAll<HTMLElement>('.dot')[1]!.click())
+        expect(Array.from(host.querySelectorAll('.goalrow-label')).map((l) => l.textContent)).not.toContain('Long Run')
+        press(host, 'Start Moss economy')
+        expect(store.getState().config.id).toBe('custom')
+        expect(store.getState().config.starter).toEqual({ basicGold: 10, basicPower: 0 })
+    })
+
+    it('returns to the card and goal it was left on after the editor', () => {
+        const { host } = mount(4, 'off', 'home')
+        press(host, 'Challenges')
+        void act(() => host.querySelectorAll<HTMLElement>('.dot')[7]!.click())
+        void act(() => host.querySelectorAll<HTMLElement>('.goalrow')[2]!.click())
+        void act(() => host.querySelector<HTMLElement>('.goalrow.edit')!.click())
+        window.history.replaceState({ in: true }, '', window.location.search)
+        press(host, 'Back')
+        expect(host.querySelector('.gen')).toBeNull()
+        expect(host.querySelector('.dot.on')?.getAttribute('aria-label')).toBe('Custom')
+        expect(host.querySelector('.goalrow.on .goalrow-label')?.textContent).toBe('Level 3')
+    })
+
+    it('opens the generator editor from the Custom card', () => {
+        const { host } = mount(4, 'off', 'home')
+        press(host, 'Challenges')
+        void act(() => host.querySelectorAll<HTMLElement>('.dot')[7]!.click())
+        void act(() => host.querySelector<HTMLElement>('.goalrow.edit')!.click())
+        expect(host.querySelector('.gen')).not.toBeNull()
+        expect(window.location.search).toContain('screen=custom')
     })
 })
 
 describe('App warns before a start replaces the run in progress', () => {
-    it('says so on the level picker only when a run exists', () => {
+    it('says so on the challenge screen only when a run exists', () => {
         const fresh = mount(4, 'off', 'home')
-        press(fresh.host, 'Standard')
+        press(fresh.host, 'Challenges')
         expect(fresh.host.querySelector('.replaces')).toBeNull()
 
         const running = mount(4)
-        press(running.host, '← Home')
-        press(running.host, 'Standard')
-        expect(running.host.querySelector('.replaces')?.textContent).toContain('replaces the one in progress')
+        press(running.host, 'Home')
+        press(running.host, 'Challenges')
+        expect(running.host.querySelector('.replaces')?.textContent).toContain('replaces the run in progress')
     })
 })
 
@@ -129,10 +204,12 @@ describe('App generator editor screen', () => {
     it('opens from the menu, and Back from a pasted editor address goes to the menu', () => {
         window.history.replaceState(null, '', '/?screen=custom')
         const { host } = mount(4, 'off', 'home')
-        press(host, 'Custom generator')
+        press(host, 'Challenges')
+        void act(() => host.querySelectorAll<HTMLElement>('.dot')[7]!.click())
+        void act(() => host.querySelector<HTMLElement>('.goalrow.edit')!.click())
         expect(host.querySelector('.gen')).not.toBeNull()
         window.history.replaceState(null, '', '/?screen=custom')
-        press(host, '← Back')
+        press(host, 'Back')
         expect(host.querySelector('.gen')).toBeNull()
         expect(host.querySelector('nav')).not.toBeNull()
         expect(window.location.search).toBe('')
@@ -216,8 +293,8 @@ describe('App', () => {
         const buttons = () => Array.from(host.querySelectorAll('button'))
         const labels = buttons().map((b) => b.textContent)
         for (const menu of ['Settings', 'About', 'New game']) expect(labels).not.toContain(menu)
-        expect(labels).toContain('← Home')
-        press(host, '← Home')
+        expect(labels).toContain('Home')
+        press(host, 'Home')
         press(host, 'Settings')
         const select = host.querySelector<HTMLSelectElement>('select')!
         select.value = 'light'

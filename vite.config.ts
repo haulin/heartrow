@@ -5,6 +5,7 @@ import { defineConfig } from 'vite-plus'
 
 const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string }
 const PACKAGE_JSON = fileURLToPath(new URL('./package.json', import.meta.url))
+const CORE_DIR = fileURLToPath(new URL('./src/core/', import.meta.url))
 
 const IGNORED = ['prototypes/**', 'local/**', 'dist/**', 'tools/baseline/v7-final.json', 'package-lock.json']
 
@@ -18,6 +19,16 @@ export default defineConfig({
     base: './',
     plugins: [
         preact(),
+        {
+            // A hot update of the engine lets the open game keep calling the old functions, so reload the page instead.
+            name: 'reload-on-core-change',
+            handleHotUpdate({ file, server }) {
+                if (!file.startsWith(CORE_DIR)) return
+                server.config.logger.info(`core change, full reload ${file.slice(CORE_DIR.length)}`, { timestamp: true })
+                server.ws.send({ type: 'full-reload' })
+                return []
+            },
+        },
         {
             name: 'restart-on-package-change',
             configureServer(server) {

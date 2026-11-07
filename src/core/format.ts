@@ -15,7 +15,7 @@ export const TYPE_NAMES: Record<CardType, string> = {
 
 const EFFECT_TEMPLATES: Record<EffectId, string> = {
     draw: 'Draw {n}',
-    flip: 'Flip: +2 or +4 {c}',
+    flip: '+2 or +4 {c}',
     exile: 'Exile a card or river recruit',
     cheap: 'Recruits cost −{a} ● this turn',
     foes: '+1 ⚔ per enemy in the recruit row',
@@ -25,7 +25,7 @@ const EFFECT_TEMPLATES: Record<EffectId, string> = {
     pile: '+1 {c} per 3 cards in your discard',
     hoard: '+{a} {c} per {d} cards in your deck',
     bulk: 'Needs −1 ⚔ per {d} cards in your deck',
-    bond: 'Bond: +{n} {m} if you played {T} earlier this turn',
+    bond: '+{n} {m} if you played {T} earlier this turn',
     kin: '+1 {k} per other {T} card played this turn',
     weak: 'Enemies need −{a} ⚔ this turn',
     army: '+1 {k} per 4 {T} cards in your deck',

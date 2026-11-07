@@ -1,10 +1,15 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks'
 import { DEFAULT_CUSTOM, customMode, customOfMode } from '../../core'
 import type { CustomGenerator, ModeConfig, Move } from '../../core'
+import { FRESH_VIEW, challengeList, challengeQuery, loadResults, recordFinished, runLook, viewFromSearch } from './challenges'
+import type { ChallengeView } from './challenges'
 import { editorQuery } from './custom'
-import { AboutDialog, LoadRunDialog, LogDialog, PilesDialog, RunDialog, SettingsDialog, modeLabel } from './Dialogs'
+import { AboutDialog, LoadRunDialog, LogDialog, PilesDialog, RunDialog, SettingsDialog } from './Dialogs'
 import { GeneratorScreen } from './GeneratorScreen'
-import { Home, StandardScreen } from './Home'
+import { Glyph } from './Glyph'
+import { ChallengeScreen } from './ChallengeScreen'
+import { Home } from './Home'
+import { StandardScreen } from './StandardScreen'
 import { Rich } from './Rich'
 import { Stats } from './Stats'
 import { browserReducedMotion, createPresenter } from './anim/presenter'
@@ -18,7 +23,7 @@ import { spoken, statusMessage } from './text'
 import { buildCardView } from './view/cardView'
 
 type DialogName = 'about' | 'load' | 'log' | 'piles' | 'run' | 'settings'
-type Screen = 'home' | 'game' | 'custom' | 'standard'
+type Screen = 'home' | 'game' | 'custom' | 'standard' | 'challenges'
 
 export interface AppProps {
     store: GameStore
@@ -42,6 +47,10 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
     const [settings, setSettings] = useState(() => loadSettings(storage, SKIN_IDS))
     const [dialog, setDialog] = useState<DialogName | null>(null)
     const [screen, setScreen] = useState<Screen>(initial)
+    const [results, setResults] = useState(() => loadResults(storage))
+    const [challengeView, setChallengeView] = useState(() =>
+        initial === 'challenges' ? viewFromSearch(window.location.search, challengeList(DEFAULT_CUSTOM)) : FRESH_VIEW,
+    )
     // The store always holds a game, but a run only counts once it was started from a link or the menu.
     const [started, setStarted] = useState(startedAtOpen)
     // The editor's settings come from the address, so it opens the same after a reload. The key makes a new visit start from fresh settings.
@@ -49,6 +58,10 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
         def: initial === 'custom' ? (routeFor(window.location.search, null) as { def: CustomGenerator }).def : DEFAULT_CUSTOM,
         key: 0,
     }))
+    // The Custom card starts from the settings of the latest run, so editing and starting again picks up where it left off.
+    const customSettings = started ? customOfMode(state.config) : DEFAULT_CUSTOM
+    const challenges = challengeList(customSettings)
+    const look = runLook(state.config)
     const rootRef = useRef<HTMLDivElement>(null)
     const settingsRef = useRef(settings)
     settingsRef.current = settings
@@ -72,6 +85,13 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
     }
 
     useLayoutEffect(() => presenter.rendered())
+
+    // A finished run counts for its challenge goal. A replay does not, since someone else played it.
+    useEffect(() => {
+        if (store.getReplayProgress()) return
+        const next = recordFinished(storage, state)
+        if (next) setResults(next)
+    }, [state.status, state.seed])
 
     const dispatch = (move: Move) => store.dispatch(move)
     const playing = state.status === 'playing'
@@ -123,7 +143,8 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
             const run = started ? shareQuery(store.getState().config, store.getState().seed) : null
             const route = routeFor(window.location.search, run)
             setDialog(null)
-            if (route.screen === 'home' || route.screen === 'standard') return setScreen(route.screen)
+            if (route.screen === 'challenges') setChallengeView(viewFromSearch(window.location.search, challenges))
+            if (route.screen === 'home' || route.screen === 'standard' || route.screen === 'challenges') return setScreen(route.screen)
             if (route.screen === 'custom') {
                 setEditor((e) => ({ def: route.def, key: e.key + 1 }))
                 return setScreen('custom')
@@ -170,9 +191,20 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
         setScreen('custom')
     }
 
-    const openLevels = () => {
+    const openStandard = () => {
         push('?screen=standard')
         setScreen('standard')
+    }
+
+    const openChallenges = () => {
+        push(challengeQuery(challenges, challengeView, results))
+        setScreen('challenges')
+    }
+
+    /** The address follows the card and goal, so a reload (or a tab the browser dropped) and a shared link open the same place. */
+    const changeChallengeView = (view: ChallengeView) => {
+        setChallengeView(view)
+        globalThis.history?.replaceState(globalThis.history.state, '', challengeQuery(challenges, view, results))
     }
 
     const loadReplay = (text: string): string | null => {
@@ -202,7 +234,6 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
     const overlap = n > 5 ? (n - 5) / (n - 1) : 0
     const replay = store.getReplayProgress()
     const close = () => setDialog(null)
-
     const dialogs = (
         <>
             {dialog === 'about' ? <AboutDialog state={screen === 'game' ? state : undefined} onClose={close} /> : null}
@@ -235,11 +266,28 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                 <Home
                     canResume={started}
                     onResume={resume}
-                    onStandard={openLevels}
-                    onLong={startNew}
-                    onCustom={() => openEditor(started ? customOfMode(state.config) : DEFAULT_CUSTOM)}
+                    onStandard={openStandard}
+                    onChallenges={openChallenges}
                     onSettings={() => setDialog('settings')}
                     onAbout={() => setDialog('about')}
+                />
+                {dialogs}
+            </div>
+        )
+    }
+
+    if (screen === 'challenges') {
+        return (
+            <div ref={rootRef} class="app">
+                <ChallengeScreen
+                    challenges={challenges}
+                    results={results}
+                    replaces={started}
+                    onStart={startNew}
+                    onEdit={() => openEditor(customSettings)}
+                    onBack={leaveEditor}
+                    view={challengeView}
+                    onView={changeChallengeView}
                 />
                 {dialogs}
             </div>
@@ -249,7 +297,7 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
     if (screen === 'standard') {
         return (
             <div ref={rootRef} class="app">
-                <StandardScreen replaces={started} onPick={startNew} onBack={leaveEditor} />
+                <StandardScreen results={results} replaces={started} onPick={startNew} onBack={leaveEditor} />
                 {dialogs}
             </div>
         )
@@ -275,16 +323,20 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
             <main>
                 <header>
                     <button type="button" class="b alt" onClick={goHome} title="Back to the menu. The run stays in memory.">
-                        ← Home
+                        <Glyph name="back" />
+                        Home
                     </button>
                     <button
                         type="button"
-                        class="b alt"
+                        class="b alt mode"
+                        style={{ '--accent': look.accent }}
                         onClick={() => setDialog('run')}
                         aria-haspopup="dialog"
                         title="Mode, goal, seed and settings of this run"
                     >
-                        {modeLabel(state.config.id)} ⓘ
+                        <Glyph name={look.icon} />
+                        {look.name}
+                        <Glyph name="info" />
                     </button>
                 </header>
                 <Stats

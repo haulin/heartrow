@@ -4,6 +4,7 @@ import { render } from 'preact'
 import * as core from '../../core'
 import type { Move } from '../../core'
 import { App } from './App'
+import { ErrorBoundary } from './ErrorBoundary'
 import { createLocalStorage } from './localStorageStore'
 import { modeFromId, shareQuery } from './mode'
 import { openStore, runOf } from './resume'
@@ -32,4 +33,11 @@ if (import.meta.env.DEV) {
 }
 
 const root = document.getElementById('app')
-if (root) render(<App store={store} storage={storage} initial={screen} started={started} />, root)
+if (root) {
+    render(
+        <ErrorBoundary>
+            <App store={store} storage={storage} initial={screen} started={started} />
+        </ErrorBoundary>,
+        root,
+    )
+}

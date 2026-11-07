@@ -8,7 +8,7 @@ const PIPS = [
     ['tide', '--tide'],
 ] as const
 
-const reapBadge = (n: number): string => (n === 0 ? '' : n < 4 ? '♥'.repeat(n) : `♥×${n}`)
+const reapBadge = (n: number): string => (n === 0 ? '' : n < 4 ? '♥'.repeat(n) : `♥x${n}`)
 
 interface StatProps {
     label: string

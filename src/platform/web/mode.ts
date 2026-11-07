@@ -48,8 +48,13 @@ export function isEditor(search: string): boolean {
     return new URLSearchParams(search).get('screen') === 'custom'
 }
 
-/** `screen=standard` is the level picker. Like the editor, it starts no run by itself. */
-export function isLevelPick(search: string): boolean {
+/** `screen=challenges` is the challenge picker. Like the editor, it starts no run by itself. */
+export function isChallenges(search: string): boolean {
+    return new URLSearchParams(search).get('screen') === 'challenges'
+}
+
+/** `screen=standard` is the Standard picker (the levels and Long Run). It starts no run by itself either. */
+export function isStandard(search: string): boolean {
     return new URLSearchParams(search).get('screen') === 'standard'
 }
 
@@ -57,6 +62,7 @@ export type Route =
     | { screen: 'home' }
     | { screen: 'custom'; def: CustomGenerator }
     | { screen: 'standard' }
+    | { screen: 'challenges' }
     | { screen: 'game'; start: StartParams | null }
 
 /**
@@ -65,7 +71,8 @@ export type Route =
  */
 export function routeFor(search: string, runQuery: string | null, fallbackSeed: () => number = randomSeed): Route {
     if (isEditor(search)) return { screen: 'custom', def: parseCustom(new URLSearchParams(search)) }
-    if (isLevelPick(search)) return { screen: 'standard' }
+    if (isStandard(search)) return { screen: 'standard' }
+    if (isChallenges(search)) return { screen: 'challenges' }
     if (!hasRun(search)) return { screen: 'home' }
     if (runQuery !== null && search === runQuery) return { screen: 'game', start: null }
     return { screen: 'game', start: parseStartParams(search, fallbackSeed) }

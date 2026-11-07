@@ -1,6 +1,6 @@
 import { standardMode } from '../../core'
 import type { Move } from '../../core'
-import { hasRun, isEditor, isLevelPick, parseStartParams, randomSeed, shareQuery } from './mode'
+import { hasRun, isChallenges, isEditor, isStandard, parseStartParams, randomSeed, shareQuery } from './mode'
 import type { AppStorage } from './storage'
 import { GameStore } from './store'
 
@@ -50,7 +50,7 @@ export function loadRun(storage: AppStorage, version: string): SavedRun | null {
 export interface Opened {
     store: GameStore
     /** `game` when the address starts a run, `custom` for the generator editor, `home` otherwise. */
-    screen: 'home' | 'game' | 'custom' | 'standard'
+    screen: 'home' | 'game' | 'custom' | 'standard' | 'challenges'
     /** Whether a run is in memory, so the home screen can offer Resume. */
     started: boolean
 }
@@ -65,8 +65,9 @@ export interface Opened {
 export function openStore(storage: AppStorage, search: string, version: string, fallbackSeed: () => number = randomSeed): Opened {
     const saved = loadRun(storage, version)
     const editor = isEditor(search)
-    const picker = isLevelPick(search)
-    const link = hasRun(search) && !editor && !picker
+    const picker = isChallenges(search)
+    const standard = isStandard(search)
+    const link = hasRun(search) && !editor && !picker && !standard
     const wanted = link ? parseStartParams(search, fallbackSeed) : saved ? parseStartParams(saved.query) : null
     const store = new GameStore(wanted?.config ?? standardMode(0), wanted?.seed ?? fallbackSeed())
 
@@ -83,5 +84,5 @@ export function openStore(storage: AppStorage, search: string, version: string, 
         last = store.getMoves()
         storage.set(KEY, runOf(store, version))
     })
-    return { store, screen: link ? 'game' : editor ? 'custom' : picker ? 'standard' : 'home', started }
+    return { store, screen: link ? 'game' : editor ? 'custom' : picker ? 'challenges' : standard ? 'standard' : 'home', started }
 }

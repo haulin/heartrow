@@ -2,6 +2,7 @@ import type { ComponentChildren } from 'preact'
 import { useEffect, useRef, useState } from 'preact/hooks'
 import { GOALS } from '../../core'
 import type { Card, GameState } from '../../core'
+import { runName } from './challenges'
 import { Rich } from './Rich'
 import { ANIM_SPEEDS, THEMES } from './settings'
 import type { Settings } from './settings'
@@ -114,11 +115,6 @@ export function SeedLine({ state, run }: { state: GameState; run?: () => string 
     )
 }
 
-/** The short mode name shown on the game screen. */
-export function modeLabel(id: string): string {
-    return id === 'long' ? 'Long Run' : id === 'custom' ? 'Custom' : 'Standard'
-}
-
 /** What kind of run this is: the mode, its goal and length, the generator settings of a custom run, and the seed. */
 export function RunDialog({
     state,
@@ -137,7 +133,7 @@ export function RunDialog({
     return (
         <Modal onClose={onClose}>
             <h2>
-                {modeLabel(state.config.id)}
+                {runName(state.config)}
                 {state.config.id !== 'long' && level >= 0 ? ` · Level ${level + 1}` : ''}
             </h2>
             <p>

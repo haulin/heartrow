@@ -44,6 +44,8 @@
 - The sandbox blocks some git writes (for example `git init` and hook directories). Run those commands with `all` permissions.
 - A server started with `(cmd &)` inside a foreground command dies when the call ends. Start long-running servers as a background shell command (`block_until_ms` 0), and kill them by port when done.
 - macOS: there is no `timeout` command, `sed -i` needs an empty backup argument (`sed -i '' ...`), and `rg` has no `-E` flag. Edit files with the edit tools (StrReplace, Write), not with `python3` or `sed`, because Cursor does not show the changes of a script. Use scripts only for generated output.
+- Vite's HMR cannot recover when an edit leaves an import pointing at an export that does not exist yet (the console says `does not provide an export named …`), and the open tab then needs a manual reload. When a change spans files, add the new export first and remove the old one last.
+- Icons, mode looks and colour rules are in the design doc under "Look of modes, icons and colour". Read them before adding a mode, an icon or a theme.
 - The Read tool prefixes lines with line numbers. They are not part of the file.
 - Before a destructive-looking experiment in `src/core` (for example a deliberately bad file to test a check), delete it in the same command and confirm it is gone.
 - Vitest hides stdout of passing tests. Use `npm run sim` to see numbers.

@@ -15,6 +15,8 @@ import {
     unmetNeeds,
 } from '../../core'
 import type { CustomGenerator, EffectId, GeneratorCardType, GeneratorResource } from '../../core'
+import { presetIdOf } from './challenges'
+import { Glyph } from './Glyph'
 import { MAX_STARTER, effectName } from './custom'
 
 const TYPE_NAMES: Record<GeneratorCardType, string> = { moss: 'Moss', ember: 'Ember', tide: 'Tide', foe: 'Enemies' }
@@ -43,12 +45,9 @@ export function GeneratorScreen({
 }) {
     const [def, setDef] = useState<CustomGenerator>(initial)
     useEffect(() => onChange(def), [def])
-    // The preset stays picked until a control changes, then the settings count as custom.
-    const [presetId, setPresetId] = useState('')
-    const change = (over: Partial<CustomGenerator>) => {
-        setPresetId('')
-        setDef((d) => ({ ...d, ...over }))
-    }
+    // Settings that equal a preset show that preset, however they got there, and any other settings show Custom.
+    const presetId = presetIdOf(def) ?? ''
+    const change = (over: Partial<CustomGenerator>) => setDef((d) => ({ ...d, ...over }))
     const generator = generatorOf(def)
     const hasGold = def.resources.includes('gold')
     const hasPower = def.resources.includes('power')
@@ -71,9 +70,7 @@ export function GeneratorScreen({
 
     const loadPreset = (id: string) => {
         const picked = CUSTOM_PRESETS.find((p) => p.id === id)
-        if (!picked) return setPresetId('')
-        setDef({ ...picked.generator, goalLevel: def.goalLevel })
-        setPresetId(id)
+        if (picked) setDef({ ...picked.generator, goalLevel: def.goalLevel })
     }
 
     const starterInput = (key: 'starterGold' | 'starterPower', label: string, disabled: boolean) => (
@@ -94,7 +91,8 @@ export function GeneratorScreen({
         <main class="gen">
             <header>
                 <button type="button" class="b alt" onClick={onBack}>
-                    ← Back
+                    <Glyph name="back" />
+                    Back
                 </button>
             </header>
             <h1>Custom generator</h1>
