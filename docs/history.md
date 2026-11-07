@@ -72,6 +72,17 @@ Finished work and evidence, kept for lookup. Do not read it before a change. Cur
 - Browser trick for inspection: `document.getAnimations().forEach((a) => a.pause())` freezes every running animation (resume with `play()`).
 - Reward for spending exactly all gold and power in a turn (a bonus heart or a free draw) felt good in two playtests in a row.
 
+## Results and statistics
+
+- Challenge results keep two separate records per goal, the best hearts and the earliest winning turn, so a faster win with fewer hearts does not replace a slower one with more. Each entry also stores the game version of the run that last changed it. Entries saved before that were never given a migration: the only ones were the designer's, backfilled by hand. Wins are never dropped on a version change. The designer's first results (Moss economy, Attack only, Pacifist, Tide hearts, Ember combat, Simple only at Level 1) were backfilled by hand with the version `0.1.0` and the turns he had logged.
+- Results move between devices and origins through Settings: Copy results, and Paste results with a merge that keeps the better record of each pair. The localStorage of the dev server and of GitHub Pages are separate origins, and a dev port that changes starts a clean slate, so there was no other way. A pasted run replay is refused with a pointer to Paste replay, so a mis-paste cannot replace a game.
+- Hearts by source (`stats.heartsFrom`) and the run summary dialog came from two playtests (Moss economy and Pacifist) that both ended with the question where the hearts came from. The sources are `plain`, `defeat` and each effect by id; they are measured as the change in hearts around each effect, so no effect file knows about it. Gold and power by source are not done.
+- Bond and Flip lost their name prefix on cards ("Bond: +2 ⚔ …"). One prefix looked odd and prefixes on every effect risk overflowing the card, so only Retain keeps its name, because other effect text refers to it.
+
+## Effect origins
+
+- Bulk (an enemy that needs less ⚔ for every few cards in your deck) came from a playtest where a 10-card deck won with 89 ♥ on turn 22: thin decks were too strong against enemies. Bulk and Hoard (`+a ●` per few cards in the deck) shipped in 0.0.10, and the numbers are in the Generator and presets section. Neither is in a preset yet.
+
 ## Research terms
 
 - `Gauntlet` in Gemblades unlocks after Invasion V and combines the five invasions into a harder mode with starting-deck customisation and its own leaderboard.

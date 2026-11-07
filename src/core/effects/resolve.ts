@@ -1,4 +1,5 @@
 import type { Card, Gains, GameEvent, GameState } from '../types'
+import { creditHearts } from '../state'
 import { EFFECT_BY_ID } from './index'
 import type { EffectContext } from './types'
 
@@ -8,6 +9,7 @@ export function resolveCard(state: GameState, card: Card, source: 'play' | 'defe
     state.gold += card.gold
     state.power += card.power
     state.hearts += card.hearts
+    creditHearts(state, source === 'defeat' ? 'defeat' : 'plain', card.hearts)
     let hadType = false
     if (source === 'play') {
         hadType = state.typesPlayed.includes(card.type)
@@ -25,6 +27,10 @@ export function resolveCard(state: GameState, card: Card, source: 'play' | 'defe
             if (source === 'defeat') tracked[resource] += amount
         },
     }
-    for (const id of card.fx) EFFECT_BY_ID[id].apply(ctx)
+    for (const id of card.fx) {
+        const before = state.hearts
+        EFFECT_BY_ID[id].apply(ctx)
+        creditHearts(state, id, state.hearts - before)
+    }
     return tracked
 }

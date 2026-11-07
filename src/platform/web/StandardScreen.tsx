@@ -21,7 +21,7 @@ export function StandardScreen({
     onPick: (config: ModeConfig) => void
     onBack: () => void
 }) {
-    const longBest = resultOf(results, STANDARD, LONG_GOAL).best
+    const longResult = resultOf(results, STANDARD, LONG_GOAL)
     return (
         <main class="levelpick">
             <header>
@@ -48,28 +48,22 @@ export function StandardScreen({
                             onClick={() => onPick(mode)}
                         >
                             <span class="lv">Level {level + 1}</span>
-                            <span class="goal">
-                                <Rich text={`${mode.goal} ♥`} />
-                            </span>
                             <span class="sub">
-                                <Rich text={`in ${mode.turns} turns`} />
-                                {result.best === null ? null : (
-                                    <>
-                                        {' · '}
-                                        <ResultNote result={result} isLong={false} />
-                                    </>
-                                )}
+                                <Rich text={`${mode.goal} ♥ in ${mode.turns} turns`} />
+                            </span>
+                            <span class="result">
+                                <ResultNote result={result} isLong={false} />
                             </span>
                         </button>
                     )
                 })}
                 <button type="button" class="b level long" onClick={() => onPick(LONG_MODE)}>
                     <span class="lv">Long Run</span>
-                    <span class="goal">
-                        <Rich text={longBest === null ? `${LONG_MODE.turns} turns` : `${longBest} ♥`} />
-                    </span>
                     <span class="sub">
-                        <Rich text={longBest === null ? 'no target, high score' : `best of ${LONG_MODE.turns} turns, no target`} />
+                        <Rich text={`${LONG_MODE.turns} turns, no target, high score`} />
+                    </span>
+                    <span class="result">
+                        <ResultNote result={longResult} isLong />
                     </span>
                 </button>
             </nav>

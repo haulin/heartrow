@@ -21,10 +21,11 @@ export interface Challenge {
     mode: (goal: number) => ModeConfig
 }
 
-/** What the player did on one goal. `best` is the most hearts reached; `won` is whether the goal was met. */
+/** What the player did on one goal. `best` is the most hearts reached; `won` is whether the goal was met; `turn` is the earliest turn of a win. */
 export interface Result {
     won: boolean
     best: number | null
+    turn: number | null
 }
 
 /** How a mode looks: the name of a file in `glyphs/` and a colour. The cards and the game header both read this. */
@@ -126,31 +127,39 @@ export function runLook(config: ModeConfig): RunLook {
 
 export const runName = (config: ModeConfig): string => runLook(config).name
 
-export type Results = Record<string, { won: boolean; best: number }>
+/**
+ * The saved record of one goal. `turn` is the earliest turn of a win, null until the goal is won. `version` is the game version
+ * of the run that last changed the entry; results are never dropped when the version changes.
+ */
+export interface StoredResult {
+    won: boolean
+    best: number
+    turn: number | null
+    version: string
+}
+
+export type Results = Record<string, StoredResult>
 
 const KEY = 'results'
 
 const keyOf = ({ challengeId, goal }: ChallengeGoal): string => `${challengeId}:${goal}`
 
 export function loadResults(storage: AppStorage): Results {
-    const raw = storage.get<Record<string, unknown> | null>(KEY, null)
-    const results: Results = {}
-    if (raw === null || typeof raw !== 'object') return results
-    for (const [key, value] of Object.entries(raw)) {
-        const entry = value as { won?: unknown; best?: unknown } | null
-        if (entry && typeof entry.best === 'number' && Number.isFinite(entry.best))
-            results[key] = { won: entry.won === true, best: entry.best }
-    }
-    return results
+    const record = storage.get<Partial<SignedResults> | null>(KEY, null)
+    if (typeof record !== 'object' || record === null || !isSigned(record)) return {}
+    return record.results
 }
 
 export function resultOf(results: Results, challengeId: string, goal: number): Result {
     const found = results[keyOf({ challengeId, goal })]
-    return found ? { won: found.won, best: found.best } : { won: false, best: null }
+    return found ? { won: found.won, best: found.best, turn: found.turn } : { won: false, best: null, turn: null }
 }
 
-/** Notes a finished run: the best hearts of its goal, and whether it was won. Returns the new results, or null when nothing changed. */
-export function recordFinished(storage: AppStorage, state: GameState): Results | null {
+/**
+ * Notes a finished run: the best hearts of its goal, whether it was won, and the earliest turn of a win. The two records are
+ * independent, so a faster win with fewer hearts keeps the old best. Returns the new results, or null when nothing changed.
+ */
+export function recordFinished(storage: AppStorage, state: GameState, version: string): Results | null {
     if (state.status === 'playing') return null
     const target = goalOfMode(state.config)
     if (!target) return null
@@ -158,10 +167,119 @@ export function recordFinished(storage: AppStorage, state: GameState): Results |
     const old = results[keyOf(target)]
     const won = state.status === 'won' || old?.won === true
     const best = Math.max(state.hearts, old?.best ?? state.hearts)
-    if (old && old.won === won && old.best === best) return null
-    const next = { ...results, [keyOf(target)]: { won, best } }
-    storage.set(KEY, next)
+    const turn = state.status === 'won' ? Math.min(state.turn, old?.turn ?? state.turn) : (old?.turn ?? null)
+    if (old && old.won === won && old.best === best && old.turn === turn) return null
+    const next = { ...results, [keyOf(target)]: { won, best, turn, version } }
+    saveResults(storage, next)
     return next
+}
+
+/** The results with a signature over them. It is what is stored and what is copied to another device. */
+export interface SignedResults {
+    results: Results
+    sig: string
+}
+
+/**
+ * Not a secret: the source is readable, so this only stops a number being edited in the paste box or in storage.
+ * Changing the salt or the hash makes every saved record unreadable.
+ */
+const SIGNATURE_SALT = 'heartrow results'
+
+const canonicalText = (results: Results): string =>
+    Object.keys(results)
+        .sort()
+        .map((key) => {
+            const { won, best, turn, version } = results[key]!
+            return `${key}=${won ? 1 : 0},${best},${turn ?? ''},${version}`
+        })
+        .join(';')
+
+/** cyrb53, a small string hash with no dependencies; it needs no secure context, unlike `crypto.subtle`. */
+function hashText(text: string): string {
+    let h1 = 0xdeadbeef
+    let h2 = 0x41c6ce57
+    for (let i = 0; i < text.length; i++) {
+        const code = text.charCodeAt(i)
+        h1 = Math.imul(h1 ^ code, 2654435761)
+        h2 = Math.imul(h2 ^ code, 1597334677)
+    }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909)
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909)
+    return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36)
+}
+
+export const signatureOf = (results: Results): string => hashText(`${SIGNATURE_SALT}\n${canonicalText(results)}`)
+
+const signed = (results: Results): SignedResults => ({ results, sig: signatureOf(results) })
+
+/** Whether the record has well-formed entries and a signature that matches them. */
+function isSigned(record: Partial<SignedResults>): record is SignedResults {
+    const { results, sig } = record
+    if (typeof results !== 'object' || results === null || typeof sig !== 'string') return false
+    return Object.values(results).every(isStoredResult) && sig === signatureOf(results)
+}
+
+export function saveResults(storage: AppStorage, results: Results): void {
+    storage.set(KEY, signed(results))
+}
+
+/** The results as text to carry to another device or origin. */
+export const resultsText = (results: Results): string => JSON.stringify(signed(results))
+
+export type ImportOutcome = { results: Results; improved: number } | { error: string }
+
+const isPositiveInteger = (value: unknown): boolean => Number.isInteger(value) && (value as number) > 0
+
+const isStoredResult = (value: unknown): value is StoredResult => {
+    const entry = value as Partial<StoredResult> | null
+    return (
+        typeof entry === 'object' &&
+        entry !== null &&
+        typeof entry.won === 'boolean' &&
+        typeof entry.best === 'number' &&
+        Number.isFinite(entry.best) &&
+        (entry.turn === null || isPositiveInteger(entry.turn)) &&
+        typeof entry.version === 'string'
+    )
+}
+
+/** Keeps the better of each record. The entry takes the incoming version only when the incoming side improved something. */
+export function mergeResult(local: StoredResult | undefined, incoming: StoredResult): StoredResult {
+    if (!local) return incoming
+    const won = local.won || incoming.won
+    const best = Math.max(local.best, incoming.best)
+    const turn = local.turn === null ? incoming.turn : incoming.turn === null ? local.turn : Math.min(local.turn, incoming.turn)
+    const same = won === local.won && best === local.best && turn === local.turn
+    return { won, best, turn, version: same ? local.version : incoming.version }
+}
+
+const sameRecords = (old: StoredResult | undefined, next: StoredResult): boolean =>
+    old !== undefined && old.won === next.won && old.best === next.best && old.turn === next.turn
+
+/** Merges pasted results into the current ones. A run replay and anything that is not a results record are refused, changing nothing. */
+export function importResults(current: Results, text: string): ImportOutcome {
+    let raw: unknown
+    try {
+        raw = JSON.parse(text)
+    } catch {
+        return { error: 'That is not JSON.' }
+    }
+    const record = raw as (Partial<SignedResults> & { moves?: unknown }) | null
+    if (typeof record !== 'object' || record === null) return { error: 'That is not a results record.' }
+    if (Array.isArray(record.moves)) return { error: 'That is a run replay. Use "Paste replay" in the run menu.' }
+    if (typeof record.results !== 'object' || record.results === null) return { error: 'That is not a results record.' }
+    if (!isSigned(record)) return { error: 'These results were changed after they were copied, or are damaged.' }
+    const incoming = Object.entries(record.results)
+    if (incoming.length === 0) return { error: 'That record has no results.' }
+    const results = { ...current }
+    let improved = 0
+    for (const [key, entry] of incoming) {
+        const merged = mergeResult(current[key], entry)
+        if (!sameRecords(current[key], merged)) improved++
+        results[key] = merged
+    }
+    return { results, improved }
 }
 
 /** Where the player is on the challenge screen: the card in the middle and the goal picked on each card. */

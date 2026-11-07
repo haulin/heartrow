@@ -10,6 +10,9 @@ import { ResultNote } from './ResultNote'
 /** The row counts as stopped when it has not scrolled for this long. */
 const SCROLL_STOP_MS = 120
 
+/** A mouse press that moves less than this is still a click. */
+const CLICK_SLOP_PX = 5
+
 /** One star per goal, filled when won. Long Run fills once it was played. */
 function Stars({ challenge, results }: { challenge: Challenge; results: Results }) {
     if (!challenge.tracked) return <div class="stars" />
@@ -47,6 +50,7 @@ function Cards({
     const ref = useRef<HTMLDivElement>(null)
     const stopTimer = useRef(0)
     const drag = useRef<{ startX: number; startScroll: number } | null>(null)
+    const dragged = useRef(false)
 
     const stepOf = (el: HTMLDivElement): number => {
         const first = el.children[0] as HTMLElement | undefined
@@ -71,6 +75,7 @@ function Cards({
 
     const onDown = (e: PointerEvent) => {
         const el = ref.current
+        dragged.current = false
         if (!el || e.pointerType !== 'mouse' || e.button !== 0) return
         el.setPointerCapture(e.pointerId)
         el.style.scrollSnapType = 'none'
@@ -79,7 +84,20 @@ function Cards({
     const onMove = (e: PointerEvent) => {
         const el = ref.current
         const d = drag.current
-        if (el && d) el.scrollLeft = d.startScroll - (e.clientX - d.startX)
+        if (!el || !d) return
+        if (Math.abs(e.clientX - d.startX) > CLICK_SLOP_PX) dragged.current = true
+        el.scrollLeft = d.startScroll - (e.clientX - d.startX)
+    }
+    // A click on a card that is not in the middle brings it there. A drag that ends over a card is not a click on it.
+    // The slide is found by position, because a captured mouse sends the click to the row and not to the card under it.
+    const onClick = (e: MouseEvent) => {
+        const el = ref.current
+        if (!el || dragged.current) return
+        const hit = [...el.children].findIndex((slide) => {
+            const box = slide.getBoundingClientRect()
+            return e.clientX >= box.left && e.clientX <= box.right
+        })
+        if (hit >= 0 && hit !== index) onIndex(hit)
     }
     const onUp = () => {
         const el = ref.current
@@ -107,6 +125,7 @@ function Cards({
             onPointerMove={onMove}
             onPointerUp={onUp}
             onPointerCancel={onUp}
+            onClick={onClick}
         >
             {challenges.map((c) => (
                 <div class="slide" key={c.id} aria-label={c.name} style={{ '--accent': c.accent }}>

@@ -1,5 +1,5 @@
 import { cloneRng, shuffle } from './rng'
-import type { Card, DrawCause, GameEvent, GameState } from './types'
+import type { Card, DrawCause, GameEvent, GameState, HeartSource } from './types'
 
 export const HAND_SIZE = 5
 export const ROW_SIZE = 5
@@ -31,9 +31,14 @@ export function cloneState(state: GameState): GameState {
         discard: cards(state.discard),
         exile: cards(state.exile),
         row: cards(state.row),
-        stats: { ...state.stats },
+        stats: { ...state.stats, heartsFrom: { ...state.stats.heartsFrom } },
         streams: { gen: cloneRng(state.streams.gen), shuffle: cloneRng(state.streams.shuffle), flip: cloneRng(state.streams.flip) },
     }
+}
+
+/** Notes hearts that were just added to the state, so a finished run can say where they came from. */
+export function creditHearts(state: GameState, source: HeartSource, amount: number): void {
+    if (amount > 0) state.stats.heartsFrom[source] = (state.stats.heartsFrom[source] ?? 0) + amount
 }
 
 export function cardCost(state: GameState, card: Card): number {

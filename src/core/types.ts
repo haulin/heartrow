@@ -57,7 +57,15 @@ export interface Card {
 
 export type GameStatus = 'playing' | 'won' | 'lost' | 'finished'
 
+/**
+ * Where hearts come from: a recruit's own hearts (`plain`), the printed hearts of a defeated enemy (`defeat`), or the effect
+ * that paid them. `reapG` and `reapP` are the end-of-turn reaping, which the effect only arms.
+ */
+export type HeartSource = 'plain' | 'defeat' | EffectId
+
 export interface RunStats {
+    /** Hearts gained per source over the run. Escapes are not here, they are in `lostToEscapes`. */
+    heartsFrom: Partial<Record<HeartSource, number>>
     kills: number
     recruited: number
     exiled: number

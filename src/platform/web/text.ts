@@ -1,5 +1,5 @@
 import { EFFECT_BY_ID } from '../../core'
-import type { Card, EffectId, GameState } from '../../core'
+import type { Card, EffectId, GameState, HeartSource, Move } from '../../core'
 
 export const INTRO_TEXT =
     'Click hand cards to play them, or recruit row cards to buy them. Gold ● buys recruits; power ⚔ defeats enemies for their ♥.'
@@ -33,17 +33,79 @@ export function statsSummary(state: GameState): string {
     return `Defeated ${s.kills}, recruited ${s.recruited}, exiled ${s.exiled}, lost ${s.lostToEscapes} ♥ to escapes. Wasted ${s.wastedGold} ●, ${s.wastedPower} ⚔; ${state.flushes} flushes left.`
 }
 
-export function statusMessage(state: GameState): string | null {
+/** How many moves each turn took, oldest first. A turn ends with its `endTurn` move, and a turn the run never reached is not listed. */
+export function movesPerTurn(moves: readonly Move[]): number[] {
+    const counts: number[] = []
+    let current = 0
+    for (const move of moves) {
+        current++
+        if (move.type === 'endTurn') {
+            counts.push(current)
+            current = 0
+        }
+    }
+    if (current > 0) counts.push(current)
+    return counts
+}
+
+export interface MoveFacts {
+    total: number
+    perTurn: string
+    busiest: number
+    busiestTurn: number
+}
+
+/** How many moves the run took, null before the first one. */
+export function moveFacts(moves: readonly Move[]): MoveFacts | null {
+    const counts = movesPerTurn(moves)
+    if (counts.length === 0) return null
+    const busiest = Math.max(...counts)
+    return { total: moves.length, perTurn: (moves.length / counts.length).toFixed(1), busiest, busiestTurn: counts.indexOf(busiest) + 1 }
+}
+
+export function movesSummary(moves: readonly Move[]): string {
+    const facts = moveFacts(moves)
+    if (!facts) return ''
+    return `${facts.total} moves, ${facts.perTurn} per turn; the most in one turn: ${facts.busiest} (T${facts.busiestTurn}).`
+}
+
+const HEART_SOURCE_NAMES: Partial<Record<HeartSource, string>> = { plain: 'plain gains', defeat: 'enemies' }
+
+const heartSourceName = (source: HeartSource): string => HEART_SOURCE_NAMES[source] ?? source[0]!.toUpperCase() + source.slice(1)
+
+/** Where the hearts of the run came from, most first. Effects use their id as a name (`reapG` reads "ReapG"). */
+export function heartsBreakdown(state: GameState): { name: string; amount: number }[] {
+    const sources = Object.entries(state.stats.heartsFrom).filter(([, amount]) => (amount ?? 0) > 0) as [HeartSource, number][]
+    return sources.sort((a, b) => b[1] - a[1]).map(([source, amount]) => ({ name: heartSourceName(source), amount }))
+}
+
+export function heartsSummary(state: GameState): string {
+    const sources = heartsBreakdown(state)
+    if (sources.length === 0) return ''
+    return `Hearts from: ${sources.map(({ name, amount }) => `${name} ${amount}`).join(', ')}.`
+}
+
+function runSummary(state: GameState, moves: readonly Move[]): string {
+    return [statsSummary(state), heartsSummary(state), movesSummary(moves)].filter((part) => part !== '').join(' ')
+}
+
+/** How a finished run ended, in one sentence, or null while it is being played. */
+export function outcomeLine(state: GameState): string | null {
     switch (state.status) {
         case 'won':
-            return `You won with ${state.hearts} ♥ on turn ${state.turn}. ${statsSummary(state)}`
+            return `You won with ${state.hearts} ♥ on turn ${state.turn}.`
         case 'lost':
-            return `Out of turns: ${state.hearts}/${state.goal} ♥. ${statsSummary(state)}`
+            return `Out of turns: ${state.hearts}/${state.goal} ♥.`
         case 'finished':
-            return `Long Run complete: ${state.hearts} ♥ after ${state.maxTurns} turns. ${statsSummary(state)}`
+            return `Long Run complete: ${state.hearts} ♥ after ${state.maxTurns} turns.`
         default:
             return null
     }
+}
+
+export function statusMessage(state: GameState, moves: readonly Move[] = []): string | null {
+    const outcome = outcomeLine(state)
+    return outcome === null ? null : `${outcome} ${runSummary(state, moves)}`
 }
 
 export const TYPE_ORDER = ['plain', 'moss', 'ember', 'tide', 'foe'] as const

@@ -61,6 +61,7 @@ Everything here is not done yet. Log each idea as one undated line, and mark its
 - Bosses with two resource tracks and persistent partial payments (pay 3 ● and 4 ⚔ one turn, 4 ● and 6 ⚔ the next). Bosses should not be affected by the normal flush; a special effect could reroll them and the fifth card.
 - More enemy variety, and more enemies at higher levels.
 - Easier early rounds (open, from a playtest): the first river was 4●, 3⚔, 3●, 2●, 4● ("not even that good"), and the early turns can make or break a run. Bulk enemies now offset the cheap 1 ⚔ for 1 ♥ enemies, so an early Bulk no longer feels guaranteed. Candidates: a lower early cost range, more cheap cards in the first rows, or cheaper early enemies. Measure with the bots before changing anything.
+- Add Bulk to the Ember combat preset (queued for 0.2): Ember already has `pile`, which rewards a big discard, and Bulk is the other side of the same trade-off. Hoard is a candidate too: it pays the card's rolled main currency, so on Ember it would pay ⚔ as often as ●. Bump the version, re-measure the Ember baseline, and keep the stored Ember win.
 - Bulk tuning (open): at 12 cards a Bulk enemy costs only 1 ⚔ more than normal, which the designer finds barely noticeable, and it is rolled mostly on cheap early enemies because it costs no budget. Check the premium (reference deck size 16, 4 cards per step) and its frequency after playtests.
 
 ## Starters, builds and modes
@@ -88,6 +89,7 @@ Candidate archetypes, not approved balance targets. Test constrained generators 
 - Tide heart engine: draw, discard, Retain, exile and direct hearts (a Tide-heavy run has won).
 - Exile vault: exile Basics and use `+1 ♥ per 3 cards in exile`. Depends on exile availability.
 - Ember combat: power, `foes`, `weak`, discard-pile power and enemy rewards. Pure Ember has one Level 4 win; repeat it before treating it as reliable.
+- Simple only, a dilution strategy (untested): with no thinning, drawing or cycling, a player won by keeping the deck thin by buying only cards better than any owned. The alternative is to drown the 10 Basics in cheap `+2 ●` and `+2 ♥` cards after securing 4 to 6 damage per turn for escapes. Try it by hand, then with a bot rule, and compare with the thin-deck run.
 - Moss economy: `flip`, Basic-count gold, gold Reaping, expensive recruits, Swap as an outlet. Pure Moss is unproven.
 - Swap converter: generate one resource and exchange it. Probably a bridge, not an archetype.
 - Discard-pile engine: cycle or purge to grow the discard, then `+1 ⚔ per 3 cards in discard`. An Ember/Tide hybrid.
@@ -115,7 +117,7 @@ Candidate archetypes, not approved balance targets. Test constrained generators 
 - Standard screen for newcomers (open): the Standard screen with Long Run is built. Still open: a new player sees only one or two difficulties (perhaps a tutorial and 48 ♥) and the rest locked, which gives something to look forward to. It builds on Sequential Standard unlocks.
 - Generated card art for the challenge cards (parked): the icons are hand-drawn paths, and Simple, Pacifist and Custom have the weakest ones. Leave them unless they bother a player.
 - Maximum hearts as a challenge (open): show or reward the most hearts a run reached beyond the goal, for example a score tier per goal. A win ends the run at the goal turn, so the final hearts are already the score.
-- Long Run for the preset challenges (open, engine change, next batch): only Standard has a Long Run goal, since a custom generator always takes a Standard level. It needs a goal of `null` in the custom generator and its link.
+- Long Run for the preset challenges (open, engine change, next batch): only Standard has a Long Run goal, since a custom generator always takes a Standard level. It needs a goal of `null` in the custom generator and its link. Moss economy is the first one asked for: a player ended 57 / 64 ♥ out of turns with a draw card unplayed and said it would be fun in a long run.
 - Stars as a charm-shop currency (parked, premature): the per-goal results of the Challenge screen can be drawn as stars and later be spent on charms.
 - Simple preset with Exile (open): allow Exile in the beginner card pool as a deliberate exception to “Simple only,” then consider renaming it to “Simple start” or “Plain cards.”
 - Sequential Standard unlocks (open): keep Level 1 available, unlock each later level after the player wins the previous one, and show locked buttons such as “Win Level 1 to unlock.”
@@ -177,9 +179,11 @@ Candidate archetypes, not approved balance targets. Test constrained generators 
 
 ## Statistics and progression
 
-- Move results between devices (open): carry the challenge results (and later achievements) from a phone to a desktop by copying a string into a box, like the replay paste. The results record is plain JSON in `localStorage`, so the string can be that record with the game version.
+- Results as a link (open, small): a "Copy link" for the results that puts the record in the URL hash, so it can be messaged and tapped on another device. It only opens on one origin and puts results in the browser history.
 
-- Contribution statistics (open, raise the priority): attribute gold, power and hearts to the card or enemy that produced them, so a finished run can show how its hearts came about: plain gains, ReapG, Vault, Bond, enemies and so on. Playtests of the Moss economy and Pacifist presets both ended with the player asking where the hearts came from. Decide grouping by definition or instance, and owners for Reap and enemy payouts.
+- Run summary as a proper screen (open): the summary dialog and log lines are the first version (moves, heart sources). Next: a nicer layout (a bar or list per heart source), and further statistics the player now counts by hand.
+- Show the stored game version of a result (open): each result already stores the version of the run that last changed it. A later screen can say "won on 0.1.0", and an optional "beat it again on this version" badge is an open question; old wins keep counting either way.
+- Contribution statistics for gold and power (open): hearts by source are done (`stats.heartsFrom`). The same for gold and power would show what paid for each purchase and how much was wasted by source. Decide grouping by definition or instance (today it is by effect id).
 - Between-run progression loop (open): add collectible out-of-run resources, such as gems, from completed runs and let players buy and equip limited lucky charms that alter the generator, for example making Draw twice as likely; decide whether rewards come from wins, final hearts, kills, or a capped combination, and protect core balance with slots and trade-offs.
 - Achievements, run statistics, cloud support, leaderboards, unlockable effects and progression after the core run is stable.
 

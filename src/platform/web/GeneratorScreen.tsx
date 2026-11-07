@@ -78,6 +78,7 @@ export function GeneratorScreen({
             {label}{' '}
             <input
                 type="number"
+                name={key}
                 min={0}
                 max={MAX_STARTER}
                 value={def[key]}
@@ -102,7 +103,7 @@ export function GeneratorScreen({
             <div class="col">
                 <label>
                     Preset{' '}
-                    <select value={presetId} onChange={(e) => loadPreset(e.currentTarget.value)}>
+                    <select name="preset" value={presetId} onChange={(e) => loadPreset(e.currentTarget.value)}>
                         <option value="">Custom</option>
                         {CUSTOM_PRESETS.map((p) => (
                             <option key={p.id} value={p.id}>
@@ -114,7 +115,7 @@ export function GeneratorScreen({
                 <p class="rules">{customSummary(def)}</p>
                 <label>
                     Goal{' '}
-                    <select value={def.goalLevel} onChange={(e) => change({ goalLevel: Number(e.currentTarget.value) })}>
+                    <select name="goalLevel" value={def.goalLevel} onChange={(e) => change({ goalLevel: Number(e.currentTarget.value) })}>
                         {GOALS.map((goal, level) => (
                             <option key={goal} value={level}>
                                 Level {level + 1}: {goal} ♥ in {standardMode(level).turns} turns
@@ -136,6 +137,8 @@ export function GeneratorScreen({
                         >
                             <input
                                 type="checkbox"
+                                name="type"
+                                value={type}
                                 checked={def.types.includes(type)}
                                 disabled={off}
                                 onChange={() => change({ types: toggle(def.types, CUSTOM_TYPES, type) })}
@@ -154,7 +157,13 @@ export function GeneratorScreen({
                         class="pick"
                         title={resource === 'gold' ? 'Recruits cost gold, so without it only enemies can be beaten.' : undefined}
                     >
-                        <input type="checkbox" checked={def.resources.includes(resource)} onChange={() => toggleResource(resource)} />
+                        <input
+                            type="checkbox"
+                            name="resource"
+                            value={resource}
+                            checked={def.resources.includes(resource)}
+                            onChange={() => toggleResource(resource)}
+                        />
                         {RESOURCE_NAMES[resource]}
                     </label>
                 ))}
@@ -184,6 +193,8 @@ export function GeneratorScreen({
                         <label key={effect.id} class={`pick${off ? ' off' : ''}`} title={title}>
                             <input
                                 type="checkbox"
+                                name="effect"
+                                value={effect.id}
                                 checked={def.effects.includes(effect.id)}
                                 disabled={off}
                                 onChange={() => change({ effects: toggle<EffectId>(def.effects, CUSTOM_EFFECTS, effect.id) })}

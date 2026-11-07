@@ -473,6 +473,73 @@ select:focus-visible {
 .summary .tide {
     color: var(--tide);
 }
+/* The run summary: a headline, a bar per heart source, and a grid of figures that wraps on a narrow screen. */
+.outcome {
+    margin: 4px 0 14px;
+    font-size: 20px;
+    font-weight: 800;
+}
+.outcome.won {
+    color: var(--gold);
+}
+dialog h3 {
+    margin: 14px 0 6px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--dim);
+}
+.bars {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.bars li {
+    display: grid;
+    grid-template-columns: minmax(5.5em, 8em) 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 3px 0;
+}
+.bar-track {
+    height: 10px;
+    border-radius: 5px;
+    background: var(--panel);
+    overflow: hidden;
+}
+.bar-fill {
+    display: block;
+    height: 100%;
+    border-radius: 5px;
+    background: var(--heart);
+}
+.bar-value {
+    min-width: 3.2em;
+    text-align: right;
+    font-weight: 700;
+}
+.facts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    min-width: min(21em, 80vw);
+    gap: 8px;
+    margin: 0;
+}
+.fact {
+    padding: 6px 10px;
+    border-radius: 8px;
+    background: var(--panel);
+}
+.fact dt {
+    font-size: 12px;
+    color: var(--dim);
+}
+.fact dd {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 700;
+}
 .logline {
     margin: 0 0 4px;
 }
@@ -518,15 +585,17 @@ dialog::backdrop {
     gap: clamp(8px, 1.6cqw, 14px);
 }
 .levels button.b.level {
-    min-height: clamp(80px, 16cqw, 116px);
+    --title-size: clamp(18px, 4cqw, 28px);
+    --detail-size: clamp(13px, 2.4cqw, 18px);
+    min-height: clamp(56px, 11cqw, 88px);
     display: grid;
     grid-template-columns: 1fr auto;
     grid-template-areas:
-        'lv goal'
-        'sub goal';
+        'lv result'
+        'sub result';
     align-items: center;
     text-align: left;
-    padding: clamp(12px, 3.6cqw, 26px);
+    padding: clamp(8px, 2.2cqw, 16px) clamp(12px, 3.6cqw, 26px);
     border: 2px solid var(--heart);
     border-radius: clamp(12px, 2.4cqw, 20px);
     background: color-mix(in srgb, var(--heart) var(--tint), var(--bg));
@@ -554,23 +623,27 @@ dialog::backdrop {
 .level .lv {
     grid-area: lv;
     align-self: end;
-    font-size: clamp(22px, 6cqw, 40px);
+    font-size: var(--title-size);
     font-weight: 800;
 }
 .level .sub {
     grid-area: sub;
     align-self: start;
-    font-size: clamp(13px, 2.8cqw, 18px);
+    font-size: var(--detail-size);
     color: var(--dim);
 }
-.level .goal {
-    grid-area: goal;
-    font-size: clamp(32px, 9.5cqw, 68px);
-    font-weight: 800;
-    line-height: 1;
+/* The result uses the title and detail sizes of its own button, so a played level does not move the layout. */
+.level .result {
+    grid-area: result;
+    font-size: var(--detail-size);
+    color: var(--dim);
+    text-align: right;
 }
-.level.long .goal {
-    font-size: clamp(24px, 6cqw, 44px);
+.level .note-main {
+    font-size: var(--title-size);
+}
+.level .note-sub {
+    font-size: var(--detail-size);
 }
 .replaces {
     margin: 0 0 14px;
@@ -657,8 +730,18 @@ dialog::backdrop {
 }
 /* A won goal is a star and its hearts, both in the star's colour. */
 .note.won {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-end;
     color: var(--gold);
+}
+.note-main {
     font-weight: 700;
+    font-size: clamp(17px, 3cqw, 24px);
+}
+.note-sub {
+    font-weight: 300;
+    font-size: clamp(13px, 2.2cqw, 17px);
 }
 .stars {
     display: flex;
@@ -741,6 +824,7 @@ dialog::backdrop {
 }
 .goalrow-label {
     font-weight: 700;
+    font-size: clamp(17px, 3cqw, 24px);
 }
 .goalrow-detail {
     font-size: clamp(13px, 2.2cqw, 17px);
@@ -752,8 +836,6 @@ dialog::backdrop {
 }
 .goalrow.won .goalrow-result {
     color: var(--gold);
-    font-size: clamp(17px, 3cqw, 24px);
-    font-weight: 800;
 }
 .goalrow.edit {
     margin-top: 6px;

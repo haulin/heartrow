@@ -6,6 +6,7 @@ import { standardMode } from '../../src/core'
 import { App } from '../../src/platform/web/App'
 import { planAfter, planBefore, resolveSpeed } from '../../src/platform/web/anim'
 import { createPresenter } from '../../src/platform/web/anim/presenter'
+import { loadResults, resultsText } from '../../src/platform/web/challenges'
 import { copy } from '../../src/platform/web/Dialogs'
 import { DEFAULT_SETTINGS, saveSettings } from '../../src/platform/web/settings'
 import type { AnimSpeed } from '../../src/platform/web/settings'
@@ -93,6 +94,44 @@ describe('App Standard screen', () => {
     })
 })
 
+describe('App run summary', () => {
+    const endTheRun = (store: GameStore) =>
+        void act(() => {
+            let guard = 0
+            while (store.getState().status === 'playing' && guard++ < 500) store.dispatch({ type: 'endTurn' })
+        })
+
+    it('opens by itself when a run ends in front of the player, with the sources of the hearts and the moves', () => {
+        const { host, store } = mount(4, 'off', 'game')
+        expect(host.querySelector('dialog')).toBeNull()
+        endTheRun(store)
+        const dialog = host.querySelector('dialog')!
+        expect(dialog.textContent).toContain('Run summary')
+        expect(dialog.textContent).toContain('Out of turns')
+        expect(dialog.textContent).toMatch(/Moves\d+Moves per turn[\d.]+Busiest turn\d+ \(T\d+\)/)
+    })
+
+    it('opens on demand from the log, also for a run in progress', () => {
+        const { host } = mount(4, 'off', 'game')
+        void act(() => host.querySelector<HTMLElement>('[aria-label*="full log"]')!.click())
+        press(host, 'Run summary')
+        const dialog = host.querySelector('dialog')!
+        expect(dialog.textContent).toContain('So far: 0 ♥ on turn 1.')
+        expect(dialog.textContent).toContain('Defeated')
+    })
+
+    it('does not open for a run that was already over when the page opened', () => {
+        host = document.createElement('div')
+        document.body.append(host)
+        const store = new GameStore(standardMode(0), 4)
+        endTheRun(store)
+        const storage = createMemoryStorage()
+        saveSettings(storage, { ...DEFAULT_SETTINGS, anim: 'off' })
+        void act(() => render(h(App, { store, storage, initial: 'game' }), host!))
+        expect(host.querySelector('dialog')).toBeNull()
+    })
+})
+
 describe('App challenge screen', () => {
     it('keeps the card and goal in the address, and opens the same place from a link', () => {
         const { host } = mount(4, 'off', 'home')
@@ -106,6 +145,26 @@ describe('App challenge screen', () => {
         const again = mount(4, 'off', 'challenges' as 'home')
         expect(again.host.querySelector('.dot.on')?.getAttribute('aria-label')).toBe('Moss economy')
         expect(again.host.querySelector('.goalrow.on .goalrow-label')?.textContent).toBe('Level 3')
+    })
+
+    it('brings a card that sticks out of the row to the middle when it is clicked', () => {
+        const { host } = mount(4, 'off', 'home')
+        press(host, 'Challenges')
+        // The test DOM has no layout, so each card gets a 100 px wide box side by side.
+        host.querySelectorAll<HTMLElement>('.slide').forEach((slide, i) => {
+            slide.getBoundingClientRect = () => ({ left: i * 100, right: (i + 1) * 100 }) as DOMRect
+        })
+        const row = host.querySelector<HTMLElement>('.cards-scroll')!
+        const clickAt = (clientX: number) =>
+            void act(() => {
+                row.dispatchEvent(new MouseEvent('click', { bubbles: true, clientX }))
+            })
+        clickAt(150)
+        expect(host.querySelector('.dot.on')?.getAttribute('aria-label')).toBe('Moss economy')
+        clickAt(150)
+        expect(host.querySelector('.dot.on')?.getAttribute('aria-label')).toBe('Moss economy')
+        clickAt(450)
+        expect(host.querySelector('.dot.on')?.getAttribute('aria-label')).toBe('Pacifist')
     })
 
     it('has its own address, one icon dot per challenge, the goals of the current one, and Back from a pasted address goes home', () => {
@@ -164,6 +223,30 @@ describe('App challenge screen', () => {
         void act(() => host.querySelector<HTMLElement>('.goalrow.edit')!.click())
         expect(host.querySelector('.gen')).not.toBeNull()
         expect(window.location.search).toContain('screen=custom')
+    })
+})
+
+describe('App results import', () => {
+    it('merges pasted results from Settings, shows them on the challenge screen, and refuses a replay', () => {
+        const { host, storage } = mount(4, 'off', 'home')
+        const paste = (text: string) => {
+            const box = host.querySelector<HTMLTextAreaElement>('textarea')!
+            box.value = text
+            void act(() => {
+                box.dispatchEvent(new Event('input', { bubbles: true }))
+            })
+            press(host, 'Import results')
+        }
+        press(host, 'Settings')
+        press(host, 'Paste results')
+        paste('{"version":"1","query":"?x","moves":[]}')
+        expect(host.querySelector('dialog')!.textContent).toContain('That is a run replay')
+        const moss = { 'moss:0': { won: true, best: 61, turn: 24, version: '0.1.0' } }
+        paste(resultsText(moss).replace('"turn":24', '"turn":10'))
+        expect(host.querySelector('dialog')!.textContent).toContain('changed after they were copied')
+        paste(resultsText(moss))
+        expect(host.querySelector('dialog')!.textContent).toContain('Imported: 1 goal improved.')
+        expect(loadResults(storage)).toEqual(moss)
     })
 })
 

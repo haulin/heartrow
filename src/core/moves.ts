@@ -1,7 +1,7 @@
 import { resolveCard } from './effects/resolve'
 import { makeCard } from './generator/make'
 import { createStreams, shuffle } from './rng'
-import { canAfford, cardCost, cloneCard, cloneState, drawCards, HAND_SIZE, ROW_SIZE } from './state'
+import { canAfford, cardCost, cloneCard, cloneState, creditHearts, drawCards, HAND_SIZE, ROW_SIZE } from './state'
 import type { Card, GameEvent, GameState, ModeConfig, Move, RejectReason, StepResult } from './types'
 
 const FLUSHED_SLOTS = ROW_SIZE - 1
@@ -48,7 +48,7 @@ export function newGame(config: ModeConfig, seed: number): StepResult {
         exile: [],
         row: [],
         nextCardId: 1,
-        stats: { kills: 0, recruited: 0, exiled: 0, playedCards: 0, lostToEscapes: 0, wastedGold: 0, wastedPower: 0 },
+        stats: { heartsFrom: {}, kills: 0, recruited: 0, exiled: 0, playedCards: 0, lostToEscapes: 0, wastedGold: 0, wastedPower: 0 },
         streams,
     }
     const { basicGold, basicPower } = config.starter
@@ -237,9 +237,13 @@ function endTurn(state: GameState, events: GameEvent[]): void {
     state.hand = keep
     if (keep.length > 0) events.push({ type: 'retained', count: keep.length })
 
-    const reaped = state.reapGold * Math.floor(state.gold / 3) + state.reapPower * Math.floor(state.power / 2)
+    const reapedGold = state.reapGold * Math.floor(state.gold / 3)
+    const reapedPower = state.reapPower * Math.floor(state.power / 2)
+    const reaped = reapedGold + reapedPower
     if (reaped) {
         state.hearts += reaped
+        creditHearts(state, 'reapG', reapedGold)
+        creditHearts(state, 'reapP', reapedPower)
         events.push({ type: 'reaped', hearts: reaped })
     }
     // Resources that reaping turned into hearts were used, so only the remainder is wasted.

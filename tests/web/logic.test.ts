@@ -8,7 +8,7 @@ import type { Session } from '../../src/platform/web/session'
 import { DEFAULT_SETTINGS, loadSettings, saveSettings } from '../../src/platform/web/settings'
 import { GameStore } from '../../src/platform/web/store'
 import { createJsonStorage, createMemoryStorage } from '../../src/platform/web/storage'
-import { deckSummary, richParts, spoken, statusMessage } from '../../src/platform/web/text'
+import { deckSummary, heartsSummary, movesPerTurn, movesSummary, richParts, spoken, statusMessage } from '../../src/platform/web/text'
 import { cardArt } from '../../src/platform/web/view/art'
 import { buildCardView } from '../../src/platform/web/view/cardView'
 
@@ -227,6 +227,22 @@ describe('store and session', () => {
         expect(store.getState().status).toBe('finished')
         expect(statusMessage(store.getState())).toContain('Long Run complete')
         expect(store.getSession().history.at(-1)).toContain('Long Run complete')
+        expect(store.getSession().history.at(-1)).toContain(`${store.getMoves().length} moves,`)
+    })
+
+    it('counts the moves of each turn, ending a turn with its endTurn move', () => {
+        const play: Move = { type: 'play', handIndex: 0 }
+        const end: Move = { type: 'endTurn' }
+        expect(movesPerTurn([play, play, end, end, play])).toEqual([3, 1, 1])
+        expect(movesPerTurn([])).toEqual([])
+        expect(movesSummary([play, play, end, end, play])).toBe('5 moves, 1.7 per turn; the most in one turn: 3 (T1).')
+    })
+
+    it('names the sources of hearts, most first', () => {
+        const state = startSession(standardMode(0), 1).state
+        state.stats.heartsFrom = { plain: 6, vault: 9, reapG: 3, defeat: 4 }
+        expect(heartsSummary(state)).toBe('Hearts from: Vault 9, plain gains 6, enemies 4, ReapG 3.')
+        expect(heartsSummary(startSession(standardMode(0), 1).state)).toBe('')
     })
 
     it('summarises the deck', () => {

@@ -1,10 +1,22 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks'
 import { DEFAULT_CUSTOM, customMode, customOfMode } from '../../core'
 import type { CustomGenerator, ModeConfig, Move } from '../../core'
-import { FRESH_VIEW, challengeList, challengeQuery, loadResults, recordFinished, runLook, viewFromSearch } from './challenges'
+import {
+    FRESH_VIEW,
+    challengeList,
+    challengeQuery,
+    importResults,
+    loadResults,
+    recordFinished,
+    resultsText,
+    runLook,
+    saveResults,
+    viewFromSearch,
+} from './challenges'
 import type { ChallengeView } from './challenges'
 import { editorQuery } from './custom'
-import { AboutDialog, LoadRunDialog, LogDialog, PilesDialog, RunDialog, SettingsDialog } from './Dialogs'
+import { AboutDialog, LoadResultsDialog, LoadRunDialog, LogDialog, PilesDialog, RunDialog, SettingsDialog, SummaryDialog } from './Dialogs'
+import type { PasteFeedback } from './Dialogs'
 import { GeneratorScreen } from './GeneratorScreen'
 import { Glyph } from './Glyph'
 import { ChallengeScreen } from './ChallengeScreen'
@@ -22,7 +34,7 @@ import type { AppStorage } from './storage'
 import { spoken, statusMessage } from './text'
 import { buildCardView } from './view/cardView'
 
-type DialogName = 'about' | 'load' | 'log' | 'piles' | 'run' | 'settings'
+type DialogName = 'about' | 'load' | 'log' | 'loadResults' | 'piles' | 'run' | 'settings' | 'summary'
 type Screen = 'home' | 'game' | 'custom' | 'standard' | 'challenges'
 
 export interface AppProps {
@@ -89,8 +101,17 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
     // A finished run counts for its challenge goal. A replay does not, since someone else played it.
     useEffect(() => {
         if (store.getReplayProgress()) return
-        const next = recordFinished(storage, state)
+        const next = recordFinished(storage, state, __APP_VERSION__)
         if (next) setResults(next)
+    }, [state.status, state.seed])
+
+    // The summary opens when a run ends in front of the player. A run that was already over when the page opened, and a replay, do not open it.
+    const lastSeen = useRef({ seed: state.seed, status: state.status })
+    useEffect(() => {
+        const before = lastSeen.current
+        lastSeen.current = { seed: state.seed, status: state.status }
+        const justEnded = state.status !== 'playing' && before.seed === state.seed && before.status === 'playing'
+        if (justEnded && screen === 'game' && !store.getReplayProgress()) setDialog('summary')
     }, [state.status, state.seed])
 
     const dispatch = (move: Move) => store.dispatch(move)
@@ -207,6 +228,19 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
         globalThis.history?.replaceState(globalThis.history.state, '', challengeQuery(challenges, view, results))
     }
 
+    const importPastedResults = (text: string): PasteFeedback => {
+        const outcome = importResults(results, text)
+        if ('error' in outcome) return { message: outcome.error, ok: false }
+        saveResults(storage, outcome.results)
+        setResults(outcome.results)
+        const { improved } = outcome
+        return {
+            message:
+                improved === 0 ? 'Nothing new in that record.' : `Imported: ${improved} ${improved === 1 ? 'goal' : 'goals'} improved.`,
+            ok: true,
+        }
+    }
+
     const loadReplay = (text: string): string | null => {
         const saved = parseRunText(text, __APP_VERSION__)
         if (!saved) return 'This is not a valid replay for this game version.'
@@ -226,7 +260,7 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
         setScreen('home')
     }
 
-    const over = statusMessage(state)
+    const over = statusMessage(state, session.moves)
     const text = over ?? (state.pendingExile ? 'Exile a card or river recruit, or skip.' : session.message)
     const label = `${spoken(text)}${over !== null ? ' Activate to open the full log.' : state.pendingExile ? ' Select a card to exile, or skip.' : ' Activate to open the full log.'}`
 
@@ -242,6 +276,7 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                     state={state}
                     history={session.history}
                     run={() => JSON.stringify(runOf(store, __APP_VERSION__))}
+                    onSummary={() => setDialog('summary')}
                     onClose={close}
                 />
             ) : null}
@@ -254,9 +289,19 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                     onClose={close}
                 />
             ) : null}
+            {dialog === 'summary' ? <SummaryDialog state={state} moves={session.moves} onClose={close} /> : null}
             {dialog === 'load' ? <LoadRunDialog onLoad={loadReplay} onClose={close} /> : null}
             {dialog === 'piles' ? <PilesDialog state={state} skin={skin} onClose={close} /> : null}
-            {dialog === 'settings' ? <SettingsDialog settings={settings} onChange={changeSettings} onClose={close} /> : null}
+            {dialog === 'loadResults' ? <LoadResultsDialog onImport={importPastedResults} onClose={close} /> : null}
+            {dialog === 'settings' ? (
+                <SettingsDialog
+                    settings={settings}
+                    onChange={changeSettings}
+                    results={() => resultsText(results)}
+                    onPasteResults={() => setDialog('loadResults')}
+                    onClose={close}
+                />
+            ) : null}
         </>
     )
 
