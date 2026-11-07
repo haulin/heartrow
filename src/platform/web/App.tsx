@@ -289,7 +289,7 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                 </header>
                 <Stats
                     state={{ ...state, ...store.getHolds() }}
-                    onRedraw={() => dispatch({ type: 'redraw' })}
+                    onFlush={() => dispatch({ type: 'flush' })}
                     onPiles={() => setDialog('piles')}
                 />
 
@@ -358,11 +358,11 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                     <button
                         type="button"
                         class="b alt"
-                        disabled={!playing || state.pendingExile || state.redraws < 1}
+                        disabled={!playing || state.pendingExile || state.flushes < 1}
                         title="Replaces the four left cards of the recruit row; the right-edge card stays."
-                        onClick={() => dispatch({ type: 'redraw' })}
+                        onClick={() => dispatch({ type: 'flush' })}
                     >
-                        Redraw
+                        Flush
                     </button>
                     <button
                         type="button"

@@ -44,11 +44,11 @@ describe('formatEvent', () => {
             [{ type: 'cycled', count: 3, purge: false }, 'Cycled 3 cards.'],
             [{ type: 'exiled', card: card('moss') }, 'Exiled a Moss card.'],
             [{ type: 'exileSkipped' }, 'Skipped the exile.'],
-            [{ type: 'rowRedrawn', cards: [], kept: card('foe') }, 'Redrew the four left cards. The right-edge card cannot be redrawn.'],
+            [{ type: 'rowFlushed', cards: [], kept: card('foe') }, 'Flushed the four left cards. The right-edge card cannot be flushed.'],
             [{ type: 'escaped', card: card('foe'), hearts: 3 }, 'An enemy escaped: −3 ♥.'],
             [{ type: 'reaped', hearts: 2 }, 'Leftovers reaped: +2 ♥.'],
             [{ type: 'goalReached' }, 'Goal reached! End your turn to win, or keep going for a bigger margin.'],
-            [{ type: 'turnStarted', turn: 5, redrawGained: true }, 'Turn 5. You gained a redraw.'],
+            [{ type: 'turnStarted', turn: 5, flushGained: true }, 'Turn 5. You gained a flush.'],
             [{ type: 'rejected', reason: 'cannotAfford', short: 3, currency: 'gold' }, 'Need 3 more ●.'],
             [{ type: 'rejected', reason: 'cannotAfford', short: 2, currency: 'power' }, 'Need 2 more ⚔.'],
             [{ type: 'rejected', reason: 'alreadyPlayed' }, 'That card is already played this turn.'],
@@ -70,7 +70,7 @@ describe('formatEvent', () => {
         for (const event of silent) expect(formatEvent(event, ctx)).toBeNull()
     })
 
-    it.each([['gameOver'], ['pendingExile'], ['noRedraws']] as const)('explains a rejected move (%s)', (reason) => {
+    it.each([['gameOver'], ['pendingExile'], ['noFlushes']] as const)('explains a rejected move (%s)', (reason) => {
         expect(formatEvent({ type: 'rejected', reason }, ctx)).toEqual(expect.any(String))
     })
 })
@@ -90,13 +90,13 @@ describe('formatEvents', () => {
             { type: 'rowRefilled', card: card('moss') },
             { type: 'reaped', hearts: 2 },
             { type: 'retained', count: 1 },
-            { type: 'turnStarted', turn: 4, redrawGained: true },
+            { type: 'turnStarted', turn: 4, flushGained: true },
             { type: 'drew', cardIds: [1, 2, 3, 4, 5], requested: 5, cause: 'turnStart' },
         ]
         expect(formatEvents(events, { turn: 4, edgeEnemyHearts: 4 })).toEqual([
-            'Turn 4. An enemy escaped: −3 ♥. Leftovers reaped: +2 ♥. You gained a redraw. Kept 1 with Retain. The enemy on the right edge costs 4 ♥ if it escapes.',
+            'Turn 4. An enemy escaped: −3 ♥. Leftovers reaped: +2 ♥. You gained a flush. Kept 1 with Retain. The enemy on the right edge costs 4 ♥ if it escapes.',
         ])
-        expect(formatEvents([{ type: 'turnStarted', turn: 2, redrawGained: false }], ctx)).toEqual(['Turn 2.'])
+        expect(formatEvents([{ type: 'turnStarted', turn: 2, flushGained: false }], ctx)).toEqual(['Turn 2.'])
     })
 
     it('keeps played effects as separate lines and hides cycle draws', () => {
@@ -163,7 +163,7 @@ describe('edgeEnemyHearts', () => {
 describe('engine integration', () => {
     const firstMove = (state: GameState): Move => {
         const moves = legalMoves(state)
-        return moves.find((m) => m.type !== 'redraw' && m.type !== 'endTurn') ?? moves.find((m) => m.type === 'endTurn')!
+        return moves.find((m) => m.type !== 'flush' && m.type !== 'endTurn') ?? moves.find((m) => m.type === 'endTurn')!
     }
 
     for (const mode of [standardMode(0), LONG_MODE]) {

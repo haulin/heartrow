@@ -4,7 +4,7 @@ import { createStreams, shuffle } from './rng'
 import { canAfford, cardCost, cloneCard, cloneState, drawCards, HAND_SIZE, ROW_SIZE } from './state'
 import type { Card, GameEvent, GameState, ModeConfig, Move, RejectReason, StepResult } from './types'
 
-const REDRAWN_SLOTS = ROW_SIZE - 1
+const FLUSHED_SLOTS = ROW_SIZE - 1
 
 function basic(id: number, gold: number, power: number): Card {
     return { id, type: 'plain', kind: 'basic', cost: 0, gold, power, hearts: 0, fx: [], main: gold > 0 ? 'gold' : 'power' }
@@ -39,7 +39,7 @@ export function newGame(config: ModeConfig, seed: number): StepResult {
         enemyDiscount: 0,
         reapGold: 0,
         reapPower: 0,
-        redraws: 1,
+        flushes: 1,
         typesPlayed: [],
         pendingExile: false,
         deck: [],
@@ -79,7 +79,7 @@ export function legalMoves(state: GameState): Move[] {
     state.row.forEach((card, rowIndex) => {
         if (canAfford(state, card)) moves.push({ type: 'take', rowIndex })
     })
-    if (state.redraws > 0) moves.push({ type: 'redraw' })
+    if (state.flushes > 0) moves.push({ type: 'flush' })
     moves.push({ type: 'endTurn' })
     return moves
 }
@@ -115,9 +115,9 @@ function validate(state: GameState, move: Move): GameEvent | null {
             const currency = card.kind === 'recruit' ? 'gold' : 'power'
             return reject('cannotAfford', { short: cardCost(state, card) - state[currency], currency })
         }
-        case 'redraw':
+        case 'flush':
             if (state.pendingExile) return reject('pendingExile')
-            return state.redraws < 1 ? reject('noRedraws') : null
+            return state.flushes < 1 ? reject('noFlushes') : null
         case 'endTurn':
             return state.pendingExile ? reject('pendingExile') : null
         default:
@@ -161,8 +161,8 @@ export function applyMove(state: GameState, move: Move): StepResult {
         case 'take':
             take(next, move.rowIndex, events)
             break
-        case 'redraw':
-            redraw(next, events)
+        case 'flush':
+            flush(next, events)
             break
         case 'endTurn':
             endTurn(next, events)
@@ -210,14 +210,14 @@ function take(state: GameState, rowIndex: number, events: GameEvent[]): void {
     checkGoal(state, events)
 }
 
-function redraw(state: GameState, events: GameEvent[]): void {
-    state.redraws--
-    const kept = state.row[REDRAWN_SLOTS]!
+function flush(state: GameState, events: GameEvent[]): void {
+    state.flushes--
+    const kept = state.row[FLUSHED_SLOTS]!
     const cards: Card[] = []
-    for (let i = 0; i < REDRAWN_SLOTS; i++) cards.push(makeCard(state, state.turn))
+    for (let i = 0; i < FLUSHED_SLOTS; i++) cards.push(makeCard(state, state.turn))
     cards.reverse()
     state.row = [...cards, kept]
-    events.push({ type: 'rowRedrawn', cards: cards.map(cloneCard), kept: cloneCard(kept) })
+    events.push({ type: 'rowFlushed', cards: cards.map(cloneCard), kept: cloneCard(kept) })
 }
 
 function endTurn(state: GameState, events: GameEvent[]): void {
@@ -261,8 +261,8 @@ function endTurn(state: GameState, events: GameEvent[]): void {
     }
 
     state.turn++
-    const redrawGained = (state.turn - 1) % state.config.redrawEvery === 0
-    if (redrawGained) state.redraws++
-    events.push({ type: 'turnStarted', turn: state.turn, redrawGained })
+    const flushGained = (state.turn - 1) % state.config.flushEvery === 0
+    if (flushGained) state.flushes++
+    events.push({ type: 'turnStarted', turn: state.turn, flushGained })
     drawCards(state, HAND_SIZE, events, 'turnStart')
 }

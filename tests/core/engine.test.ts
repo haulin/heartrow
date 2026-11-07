@@ -13,7 +13,7 @@ function randomGame(
     const moves: Move[] = []
     for (let i = 0; i < 5000 && state.status === 'playing'; i++) {
         const legal = legalMoves(state)
-        const others = legal.filter((m) => m.type !== 'endTurn' && !(m.type === 'redraw' && state.redraws > 1))
+        const others = legal.filter((m) => m.type !== 'endTurn' && !(m.type === 'flush' && state.flushes > 1))
         const move = others.length === 0 || chance(rng, 0.12) ? { type: 'endTurn' as const } : pick(rng, others)
         const choice = state.pendingExile ? pick(rng, legal) : move
         const result = applyMove(state, choice)
@@ -61,7 +61,7 @@ describe('engine', () => {
         randomGame(LONG_MODE, 12, (before) => {
             const key = (m: Move) => JSON.stringify(m)
             const legal = new Set(legalMoves(before).map(key))
-            const candidates: Move[] = [{ type: 'endTurn' }, { type: 'redraw' }, { type: 'skipExile' }]
+            const candidates: Move[] = [{ type: 'endTurn' }, { type: 'flush' }, { type: 'skipExile' }]
             for (let i = -1; i <= before.hand.length; i++) candidates.push({ type: 'play', handIndex: i }, { type: 'exile', handIndex: i })
             for (let i = -1; i <= before.row.length; i++) candidates.push({ type: 'exile', rowIndex: i })
             for (let i = -1; i <= before.row.length; i++) candidates.push({ type: 'take', rowIndex: i })
@@ -84,7 +84,7 @@ describe('engine', () => {
         expect(state.hand).toHaveLength(5)
         expect(state.deck).toHaveLength(5)
         expect(state.row).toHaveLength(5)
-        expect([state.redraws, state.turn, state.hearts, state.goal, state.mode]).toEqual([1, 1, 0, 48, 'standard'])
+        expect([state.flushes, state.turn, state.hearts, state.goal, state.mode]).toEqual([1, 1, 0, 48, 'standard'])
         const all = [...state.deck, ...state.hand]
         expect(all.filter((c) => c.gold === 1)).toHaveLength(6)
         expect(all.filter((c) => c.power === 1)).toHaveLength(4)

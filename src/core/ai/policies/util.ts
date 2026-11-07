@@ -18,11 +18,11 @@ export const HEART_FX: Partial<Record<EffectId, number>> = { all3: 10, vault: 8,
 /** Common policy factors. Most preferences stay between 1 and 10; smaller values reserve the last-resort phase. */
 export const PLAY_LAYER = 10
 export const END_TURN_WEIGHT = 0.1
-export const IDLE_REDRAW_WEIGHT = 0.2
+export const IDLE_FLUSH_WEIGHT = 0.2
 export const STRONG_WEIGHT = 8
 export const MEDIUM_WEIGHT = 4
 export const LIGHT_WEIGHT = 2
-const REDRAW_RISK_STEP = 5
+const FLUSH_RISK_STEP = 5
 
 /** Maps an unbounded score to the ordinary sampled-weight range, with zero kept as a deliberate veto. */
 export function scoreWeight(score: number, scale: number): number {
@@ -73,7 +73,7 @@ export function expectedCardCost(state: GameState, kind: 'recruit' | 'enemy'): n
 
 /** Returns true when at least one resource exceeds the current average cost estimate. */
 export function hasReasonableResources(state: GameState): boolean {
-    const costAllowance = Math.max(0, state.redraws - 1) / REDRAW_RISK_STEP
+    const costAllowance = Math.max(0, state.flushes - 1) / FLUSH_RISK_STEP
     return (
         (canGenerate(state, 'recruit') && state.gold > expectedCardCost(state, 'recruit') - costAllowance) ||
         (canGenerate(state, 'enemy') && state.power > expectedCardCost(state, 'enemy') - costAllowance)
@@ -90,27 +90,27 @@ function canGenerate(state: GameState, kind: 'recruit' | 'enemy'): boolean {
     return kind === 'enemy' ? limits.enemies : limits.colours.length > 0
 }
 
-export interface RedrawMemory {
-    (state: GameState): { redrawn: boolean; stuck: boolean }
+export interface FlushMemory {
+    (state: GameState): { flushed: boolean; stuck: boolean }
 }
 
-/** Remembers whether the row was redrawn this turn, and whether that redraw happened with nothing affordable. Call it with every state a policy sees. */
-export function redrawMemory(): RedrawMemory {
+/** Remembers whether the row was flushed this turn, and whether that flush happened with nothing affordable. Call it with every state a policy sees. */
+export function flushMemory(): FlushMemory {
     let prev: GameState | null = null
-    let redrawn = false
+    let flushed = false
     let stuck = false
     return (state) => {
         if (state !== prev) {
             if (!prev || state.seed !== prev.seed || state.turn !== prev.turn) {
-                redrawn = false
+                flushed = false
                 stuck = false
-            } else if (state.redraws < prev.redraws) {
-                redrawn = true
+            } else if (state.flushes < prev.flushes) {
+                flushed = true
                 const before = prev
                 if (!before.row.some((card) => canAfford(before, card))) stuck = true
             }
             prev = state
         }
-        return { redrawn, stuck }
+        return { flushed, stuck }
     }
 }

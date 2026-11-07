@@ -15,10 +15,10 @@ export const flip: EffectDef = {
         card.fxParams = { ...card.fxParams, currency: card.main }
         return flip.price
     },
-    apply({ state, card, events }) {
+    apply({ state, card, events, gain }) {
         const amount = chance(state.streams.flip, 0.5) ? 2 : 4
         const currency = card.fxParams?.currency === 'power' ? 'power' : 'gold'
-        state[currency] += amount
+        gain(currency, amount)
         events.push({ type: 'flipped', currency, amount })
     },
 }

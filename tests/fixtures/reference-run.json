@@ -148,7 +148,7 @@
             "rowIndex": 1
         },
         {
-            "type": "redraw"
+            "type": "flush"
         },
         {
             "type": "take",
@@ -244,7 +244,7 @@
             "handIndex": 0
         },
         {
-            "type": "redraw"
+            "type": "flush"
         },
         {
             "type": "take",
@@ -546,7 +546,7 @@
             "handIndex": 2
         },
         {
-            "type": "redraw"
+            "type": "flush"
         },
         {
             "type": "play",
@@ -689,7 +689,7 @@
             "handIndex": 0
         },
         {
-            "type": "redraw"
+            "type": "flush"
         },
         {
             "type": "take",
@@ -765,7 +765,7 @@
             "handIndex": 2
         },
         {
-            "type": "redraw"
+            "type": "flush"
         },
         {
             "type": "take",
@@ -800,7 +800,7 @@
         "turns": 22,
         "wastedGold": 18,
         "wastedPower": 21,
-        "redrawsLeft": 3,
+        "flushesLeft": 3,
         "heartsT24": null,
         "moves": 201,
         "capped": false

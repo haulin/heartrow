@@ -83,7 +83,7 @@ export interface GameState {
     enemyDiscount: number
     reapGold: number
     reapPower: number
-    redraws: number
+    flushes: number
     typesPlayed: CardType[]
     pendingExile: boolean
     deck: Card[]
@@ -102,7 +102,7 @@ export type Move =
     | { type: 'exile'; rowIndex: number }
     | { type: 'skipExile' }
     | { type: 'take'; rowIndex: number }
-    | { type: 'redraw' }
+    | { type: 'flush' }
     | { type: 'endTurn' }
 
 export interface Gains {
@@ -119,7 +119,7 @@ export type RejectReason =
     | 'alreadyPlayed'
     | 'cannotExile'
     | 'cannotAfford'
-    | 'noRedraws'
+    | 'noFlushes'
     | 'noSuchCard'
     | 'noExilePending'
     | 'unknownMove'
@@ -137,11 +137,11 @@ export type GameEvent =
     | { type: 'recruited'; card: Card; paid: number }
     | { type: 'defeated'; card: Card; paid: number; gains: Gains }
     | { type: 'rowRefilled'; card: Card }
-    | { type: 'rowRedrawn'; cards: Card[]; kept: Card }
+    | { type: 'rowFlushed'; cards: Card[]; kept: Card }
     | { type: 'escaped'; card: Card; hearts: number }
     | { type: 'reaped'; hearts: number }
     | { type: 'retained'; count: number }
-    | { type: 'turnStarted'; turn: number; redrawGained: boolean }
+    | { type: 'turnStarted'; turn: number; flushGained: boolean }
     | { type: 'goalReached' }
     | { type: 'gameOver'; status: GameStatus }
 
@@ -162,7 +162,7 @@ export interface ModeConfig {
     name: string
     description?: string
     turns: number
-    redrawEvery: number
+    flushEvery: number
     goal: number | null
     difficultyCapTurn: number
     steps: DifficultyStep[]

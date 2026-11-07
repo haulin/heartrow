@@ -213,7 +213,8 @@ button.stat {
 }
 .rb {
     position: absolute;
-    right: 6px;
+    left: 50%;
+    transform: translateX(-50%);
     bottom: -6px;
     font-size: 10px;
     line-height: 1;

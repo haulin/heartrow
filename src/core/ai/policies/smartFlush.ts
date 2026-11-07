@@ -2,11 +2,11 @@ import { canAfford } from '../../state'
 import type { GameState } from '../../types'
 import type { Policy } from '../types'
 import { smartScore } from './smartBuy'
-import { IDLE_REDRAW_WEIGHT, redrawMemory, STRONG_WEIGHT } from './util'
-import type { RedrawMemory } from './util'
+import { IDLE_FLUSH_WEIGHT, flushMemory, STRONG_WEIGHT } from './util'
+import type { FlushMemory } from './util'
 
-/** Redraws once per turn when the best affordable card is clearly worse than the best card in the row, or nothing is affordable. */
-export function smartRedraw(memory: RedrawMemory = redrawMemory()): Policy {
+/** Flushes once per turn when the best affordable card is clearly worse than the best card in the row, or nothing is affordable. */
+export function smartFlush(memory: FlushMemory = flushMemory()): Policy {
     const wanted = (state: GameState): boolean => {
         if (state.turn >= state.maxTurns - 2) return false
         let bestAny = -Infinity
@@ -19,11 +19,11 @@ export function smartRedraw(memory: RedrawMemory = redrawMemory()): Policy {
         return bestCan === -Infinity || bestAny - bestCan >= 12
     }
     return {
-        id: 'smartRedraw',
+        id: 'smartFlush',
         weight(state, move) {
-            const { redrawn } = memory(state)
-            if (move.type !== 'redraw') return 1
-            return !redrawn && wanted(state) ? STRONG_WEIGHT * IDLE_REDRAW_WEIGHT : 0
+            const { flushed } = memory(state)
+            if (move.type !== 'flush') return 1
+            return !flushed && wanted(state) ? STRONG_WEIGHT * IDLE_FLUSH_WEIGHT : 0
         },
     }
 }

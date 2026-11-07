@@ -5,7 +5,7 @@ import type { EffectDef } from './types'
 export const purge: EffectDef = {
     id: 'purge',
     price: 1.25,
-    text: 'Discard all your unplayed cards, even Retain, draw as many',
+    text: 'Redraw all unplayed cards, even Retain ones',
     enemies: true,
     lean: ['tide'],
     retain: RETAIN_SOMETIMES,

@@ -152,7 +152,7 @@ describe('exile', () => {
         for (const move of [
             { type: 'take', rowIndex: 0 },
             { type: 'endTurn' },
-            { type: 'redraw' },
+            { type: 'flush' },
             { type: 'play', handIndex: 1 },
         ] as Move[]) {
             expect(applyMove(pending, move).events).toEqual([{ type: 'rejected', reason: 'pendingExile' }])
@@ -302,6 +302,15 @@ describe('enemies', () => {
         const { state, events } = applyMove(s, { type: 'take', rowIndex: 1 })
         expect(state.power).toBe(3)
         expect(events.find((e) => e.type === 'defeated')).toMatchObject({ paid: 1, gains: { power: 3, hearts: 1, gold: 0 } })
+    })
+
+    it('reports a Flip on a defeated enemy in the defeat event', () => {
+        const s = blank()
+        s.power = 1
+        s.row = [enemy({ cost: 1, fx: ['flip'], fxParams: { currency: 'gold' } }), ...s.row.slice(1)]
+        const { state, events } = applyMove(s, { type: 'take', rowIndex: 0 })
+        expect([2, 4]).toContain(state.gold)
+        expect(events.find((event) => event.type === 'defeated')).toMatchObject({ gains: { gold: state.gold, power: 0, hearts: 1 } })
     })
 
     it('reports direct enemy gains in the defeat event', () => {

@@ -35,6 +35,7 @@ function replay(path: string): void {
     let state = newGame(config, seed).state
     let rejected = 0
     for (const move of run.moves) {
+        if (move.type === 'endTurn') console.log(turnLine(state))
         const out = applyMove(state, move)
         if (out.events.some((e) => e.type === 'rejected')) rejected++
         state = out.state
@@ -42,7 +43,7 @@ function replay(path: string): void {
     const d = deckSummary(state)
     console.log(`run from version ${run.version}, ${run.moves.length} moves, ${rejected} rejected, seed ${seed}, ${config.id}`)
     console.log(`turn ${state.turn}/${state.maxTurns}, status ${state.status}, hearts ${state.hearts}${state.goal ? `/${state.goal}` : ''}`)
-    console.log(`now: gold ${state.gold}, power ${state.power}, redraws ${state.redraws}`)
+    console.log(`now: gold ${state.gold}, power ${state.power}, flushes ${state.flushes}`)
     console.log(
         `deck ${d.total} cards (draw ${state.deck.length}, hand ${state.hand.length}, discard ${state.discard.length}, exile ${state.exile.length})`,
     )
@@ -51,10 +52,18 @@ function replay(path: string): void {
     console.log(`types: ${d.moss} Moss, ${d.ember} Ember, ${d.tide} Tide, ${d.plain} Basic`)
 }
 
+/** One line per turn end: what was left unspent, and the river the player left behind (cost, gains, effects). */
+function turnLine(state: GameState): string {
+    const river = state.row.map(
+        (c) => `${c.kind === 'enemy' ? 'E' : 'R'}${c.cost}:${c.gold}G${c.power}P${c.hearts}H${c.fx.length ? `[${c.fx.join(',')}]` : ''}`,
+    )
+    return `T${state.turn} end: hearts ${state.hearts}, unspent ${state.gold}G ${state.power}P, hand ${state.hand.length}, river ${river.join(' ')}`
+}
+
 const moveKey = (move: Move): string => JSON.stringify(move)
 
 function moveLabel(state: GameState, move: Move): string {
-    if (move.type === 'redraw' || move.type === 'endTurn' || move.type === 'skipExile') return move.type
+    if (move.type === 'flush' || move.type === 'endTurn' || move.type === 'skipExile') return move.type
     let index: number
     let card: GameState['hand'][number] | undefined
     if (move.type === 'take' || (move.type === 'exile' && 'rowIndex' in move)) {
@@ -106,7 +115,7 @@ function explain(path: string, rawMove: string | undefined): void {
         `explain ${path}: ${record.bot.profile}, ${profile.pick.mode}, seed ${seed}, move ${moveNumber}/${record.moves.length}, turn ${state.turn}`,
     )
     console.log(
-        `state: ${state.hearts}H, ${state.gold}G, ${state.power}P, ${state.redraws} redraws, hand ${state.hand.length}, row ${state.row.length}, expected costs ${expectedCardCost(state, 'recruit').toFixed(1)}G/${expectedCardCost(state, 'enemy').toFixed(1)}P`,
+        `state: ${state.hearts}H, ${state.gold}G, ${state.power}P, ${state.flushes} flushes, hand ${state.hand.length}, row ${state.row.length}, expected costs ${expectedCardCost(state, 'recruit').toFixed(1)}G/${expectedCardCost(state, 'enemy').toFixed(1)}P`,
     )
     console.log(`recorded: ${moveLabel(state, actual)}`)
     console.log(`predicted: ${predicted ? moveLabel(state, predicted) : 'none'}`)
@@ -195,7 +204,7 @@ function writeWorstRun(
     )
 }
 
-/** Compares the cards previewed by redraw+undo with the cards generated after ending the turn. */
+/** Compares the cards previewed by flush+undo with the cards generated after ending the turn. */
 function undoPreview(args: Record<string, string>): void {
     const games = Math.max(1, Math.round(Number(args.games ?? 1000)))
     const baseSeed = Number(args.seed ?? 1)
@@ -207,13 +216,13 @@ function undoPreview(args: Record<string, string>): void {
     for (let game = 0; game < games; game++) {
         let state = newGame(config, batchSeed(baseSeed, game)).state
         while (state.status === 'playing' && state.turn < state.maxTurns) {
-            if (state.redraws > 0) {
-                const preview = applyMove(state, { type: 'redraw' }).state.row.slice(0, 4)
+            if (state.flushes > 0) {
+                const preview = applyMove(state, { type: 'flush' }).state.row.slice(0, 4)
                 const afterEnd = applyMove(state, { type: 'endTurn' }).state
                 if (afterEnd.status === 'playing') {
-                    const nextRedraw = applyMove(afterEnd, { type: 'redraw' }).state.row.slice(0, 4)
+                    const nextFlush = applyMove(afterEnd, { type: 'flush' }).state.row.slice(0, 4)
                     const first = cardKey(preview[0]!) === cardKey(afterEnd.row[0]!)
-                    const shifted = preview.slice(1).filter((card, i) => cardKey(card) === cardKey(nextRedraw[i]!)).length
+                    const shifted = preview.slice(1).filter((card, i) => cardKey(card) === cardKey(nextFlush[i]!)).length
                     const all = first && shifted === 3
                     const stats = byTurn.get(state.turn) ?? { samples: 0, first: 0, shifted: 0, all: 0 }
                     stats.samples++
@@ -233,12 +242,12 @@ function undoPreview(args: Record<string, string>): void {
 
     console.log(`undo-preview ${config.name}: ${games} games, ${overall.samples} turn states, no row purchases`)
     console.log(`first preview card becomes next row card: ${percent(overall.first, overall.samples)}`)
-    console.log(`preview cards 2–4 match next redraw cards 1–3: ${percent(overall.shifted, overall.samples * 3)}`)
+    console.log(`preview cards 2–4 match next flush cards 1–3: ${percent(overall.shifted, overall.samples * 3)}`)
     console.log(`all four preview cards match their future positions: ${percent(overall.all, overall.samples)}`)
     console.log('by turn:')
     for (const [turn, stats] of byTurn) {
         console.log(
-            `T${turn}: first ${percent(stats.first, stats.samples)}, next redraw ${percent(stats.shifted, stats.samples * 3)}, all four ${percent(stats.all, stats.samples)}`,
+            `T${turn}: first ${percent(stats.first, stats.samples)}, next flush ${percent(stats.shifted, stats.samples * 3)}, all four ${percent(stats.all, stats.samples)}`,
         )
     }
 }
@@ -308,9 +317,19 @@ export function main(argv: string[]): void {
     }
     const results = new Map<ProfileId, ReturnType<typeof runBatch>[number][]>()
     for (const id of ids) results.set(id, [])
+    // `--game-seed <n>` plays that exact game (the seed in a "Copy run" address) `--games` times, varying only the bot's own randomness.
+    const gameSeed = args['game-seed'] === undefined ? undefined : Number(args['game-seed'])
     for (let offset = 0; offset < seeds; offset++) {
-        for (const id of ids)
-            results.get(id)!.push(...runBatch(config, () => makeProfile(id, selection, profileOptions), games, seed + offset))
+        for (const id of ids) {
+            const make = () => makeProfile(id, selection, profileOptions)
+            results
+                .get(id)!
+                .push(
+                    ...(gameSeed === undefined
+                        ? runBatch(config, make, games, seed + offset)
+                        : Array.from({ length: games }, (_, i) => playGame(config, gameSeed, make(), batchSeed(seed + offset, i)).summary)),
+                )
+        }
     }
     const rows = ids.map((id) => {
         const s = aggregate(results.get(id)!)
@@ -348,8 +367,8 @@ export function main(argv: string[]): void {
             f(s.meanBought),
             'exiled',
             f(s.meanExiled),
-            'redraws left',
-            f(s.meanRedrawsLeft),
+            'flushes left',
+            f(s.meanFlushesLeft),
             'plays/turn',
             f(s.meanPlaysPerTurn),
             'turns',

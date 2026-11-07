@@ -4,12 +4,14 @@ Everything here is not done yet. Log each idea as one undated line, and mark its
 
 ## Open bugs and questions
 
+- Card body overflow safety net (parked): the card body sits at the bottom of a fixed-size card, so a body taller than the card clips its last line. The shortened Cycle and Purge text fixed the known case (Cycle with Retain and three gains); letting an overlong body grow upward over the art would cover the rest.
+- Rename the effects (todo for the next version): the effect ids and names `cycle` and `purge` do not match the card text any more (Purge reads "Redraw"), and "purge" often means permanent removal in other games, which is what Exile does. "Redraw" is the verb on the Purge card and "Flush" is now the river button, so the two effects could take those verbs as names.
 - Win check (open): the river shifts as part of End turn, so ending the turn exactly on the goal can lose hearts to an escape and undo the win. It is rare (about every tenth enemy escape, not measured), and the player can avoid it by picking kills or rerolling. Options: keep it and warn near the goal, or check the goal after the reap and before the escape. Measure the bots before changing it. Undecided.
 - Carry on after the goal: today "End your turn to win, or keep going" only means keep playing the current turn. A real choice could be a mode option where ending the turn does not win and a separate "Claim win" move does, with the run scored by final hearts.
 - Stop early or carry on: when the goal is reached, let the player stop or continue to the full turn limit.
 - Level 4 harder since 0.0.9 (open): the designer lost two Standard Level 4 runs (63 and 81 of 96) after clearing it regularly. Suspect the wider effect variety from parameterized effects or the enemy Gold/Power gains; the bot did not see it (`lab-human` is about 1 ♥ better on 0.0.9 at every goal), so it needs more human runs before a balance change.
 - Level 4 needs exile and draw (open): every logged Level 4 win exiled 15 to 18 cards and had draw support, and the designer and the bots rarely buy Hearts cards. Try a Tide-heavy and a reaping run to see whether Hearts-first builds can win; the planned effects (Basic conversion, exile bonus, Basic engine) should widen the ways to get rid of Basics or make them worth keeping.
-- Undo peeking at random outcomes (open): free undo supports resource planning, but undo after redraw, draw, cycle, purge or take can reveal an alternate random branch without spending the resource. Prefer to keep undo free for solo play; if competitive modes arrive, consider a no-undo or undo-flagged mode instead of making undo a resource.
+- Undo peeking at random outcomes (open): free undo supports resource planning, but undo after flush, draw, cycle, purge or take can reveal an alternate random branch without spending the resource. Prefer to keep undo free for solo play; if competitive modes arrive, consider a no-undo or undo-flagged mode instead of making undo a resource.
 - Free enemies (open): stacked `weak` makes the discount larger than any enemy cost, so enemies cost 0 and the run can become infinite. `cardCost` floors enemy cost at 0. Options: a floor of 1, a cap on stacking, or keep it as a degenerate case in the preset library. Same question for `cheap` on recruits.
 - Cheap enemy alternate rewards (open): a cost-1 enemy can show its minimum 1 ♥ plus an alternate resource even though that exceeds its 1.4 budget. It may be rare enough to keep as a special reward; decide whether to reserve the minimum Heart and suppress the alternate gain.
 - A recruit that only draws one card (a 2 ● Draw 1 with nothing else) appears again. An earlier rule said it should not. Decide later.
@@ -30,19 +32,19 @@ Everything here is not done yet. Log each idea as one undated line, and mark its
 - Exile from the recruit row: weak (rarely more than one per turn) but saves wasted exiles. Does the card go to your exile pile (Vault counts it) or leave the game?
 - Type-conversion effect that turns Basic cards into a chosen gem type. Decide whether it is permanent and how it competes with exile.
 - Parametrized Basics (open): roll the amount and the card count of `basics` the way `hoard` does, so a Basic-heavy deck can pay more than `+1` per 4. Not done with Hoard; Basics are still fixed at `+1` per 4 basic cards.
-- Swap river cards (open): let the player swap the 4th and 5th river card, for a redraw or through a card effect (probably with Retain, since it is only useful at the right moment). Motivated by a wanted card that could not be bought with the resources at hand.
+- Swap river cards (open): let the player swap the 4th and 5th river card, for a flush or through a card effect (probably with Retain, since it is only useful at the right moment). Motivated by a wanted card that could not be bought with the resources at hand.
 - Retain on Cycle (open): neither Draw nor Cycle can roll Retain today. Retain on Draw is pointless, since a Draw card is always played, but a retained Cycle could wait in hand for a bad draw.
 - Strip-colour effect (open): the opposite of conversion, it turns a coloured card into a Basic, working like exile. It only helps the Basics effect, so it needs more than that to be worth a card.
 - Basic as a generator type (open, daring): let Basic recruits roll in the row (see "Basic row recruits"). It dilutes the pool, but a diluted Standard pool is the aim: players adapt to what they are dealt, and presets and challenges serve those who commit to a style before the game.
 - Growing cards whose payout increases after each play. Decide whether growth belongs to the card instance or its definition and how duplication interacts.
-- Redraw counter as an effect input (gains grow with each redraw). Do not store "was stuck" in `GameState`: a human's reason for redrawing is not knowable.
+- Flush counter as an effect input (gains grow with each flush). Do not store "was stuck" in `GameState`: a human's reason for flushing is not knowable.
 - Opening-turn trigger for drafted Basics when no coloured type has been played yet (starter Basics would not carry it).
 - Three enemy effect variants that, when defeated, double the selection weight of non-lean effects for future Moss, Ember or Tide recruits for the rest of the run (2× weight, not "+200%").
 - Enemy cost minimum of one after discounts (see free enemies).
-- Reprice `weak`. Add a `redraw` effect (probably enemies only), a duplicate-rightmost-unused-card effect, and a `haste` effect that resolves a recruit's effect when recruited.
+- Reprice `weak`. Add a `flush` effect (probably enemies only), a duplicate-rightmost-unused-card effect, and a `haste` effect that resolves a recruit's effect when recruited.
 - Untap effect (open): replay a selected played card to give Ember a way to reuse scarce gold without Swap, but suppress the selected card's Untap effect during the replay so Untap cards cannot recurse.
 - Count recruiting as playing a type. Let draw-only cards count as simple. Cap stacked Retain cards.
-- Reward rare runs of identical recruit cards as an achievement; prevent redraw farming.
+- Reward rare runs of identical recruit cards as an achievement; prevent flush farming.
 - If Basics are removed, test starter compositions such as 3 Moss / 3 Ember / 3 Tide.
 - Parametrised effects (open question): `foes`, `pile`, `all3` and `vault` are fixed text today (`hoard`, `weak` and `cheap` are the model). Possible parameters: the currency, the divisor and the amount. `basics`, `pile` and `vault` could roll amount and divisor through the shared count-gain helper. Each would need a price per step. Generator settings must not change rolled parameters except through the allowed resources and types.
 - Smarter Retain for bots (open): `retainChanges` says playing `exile`, `cheap`, `weak`, `flip` and the reaps always changes something, so bots never hold them and Retain on those cards is a pure budget cost for them. Exile could wait until a hand has a card worth exiling, Weak until an enemy is in the row, Cheap until a recruit is buyable, Draw while the deck is small. Retain usefulness by effect, from the designer's play: useful to wait on are Exile, Cycle, Cheap, Weak, Foes, All3, Pile and the reaps (wait for a double or triple), situational are Swap, Bond, Kin, Basics and Coin, and rarely useful are Army, Hoard, Vault, Draw and Purge (it often breaks Retain plans). Possible shape: one chance per effect by usefulness, flat price 0.5, Exile at 1.
@@ -56,8 +58,9 @@ Everything here is not done yet. Log each idea as one undated line, and mark its
 ## Enemies
 
 - Boss enemies every tenth turn that cost two resources, or bosses that create pressure while they remain in the row. Open: whether board effects expire or persist, and how the player removes them.
-- Bosses with two resource tracks and persistent partial payments (pay 3 ● and 4 ⚔ one turn, 4 ● and 6 ⚔ the next). Bosses should not be affected by the normal redraw; a special effect could reroll them and the fifth card.
+- Bosses with two resource tracks and persistent partial payments (pay 3 ● and 4 ⚔ one turn, 4 ● and 6 ⚔ the next). Bosses should not be affected by the normal flush; a special effect could reroll them and the fifth card.
 - More enemy variety, and more enemies at higher levels.
+- Easier early rounds (open, from a playtest): the first river was 4●, 3⚔, 3●, 2●, 4● ("not even that good"), and the early turns can make or break a run. Bulk enemies now offset the cheap 1 ⚔ for 1 ♥ enemies, so an early Bulk no longer feels guaranteed. Candidates: a lower early cost range, more cheap cards in the first rows, or cheaper early enemies. Measure with the bots before changing anything.
 - Bulk tuning (open): at 12 cards a Bulk enemy costs only 1 ⚔ more than normal, which the designer finds barely noticeable, and it is rolled mostly on cheap early enemies because it costs no budget. Check the premium (reference deck size 16, 4 cards per step) and its frequency after playtests.
 
 ## Starters, builds and modes
@@ -95,12 +98,12 @@ Candidate archetypes, not approved balance targets. Test constrained generators 
 - Draw engine: enough Draw, cycle, purge and Retain for reliable resources. Possibly shared by several colours.
 - Bot policy ladder (open): build benchmark bots from random by adding policies one at a time, compare greedy and sampled selection, and keep strategic rules such as early resources or exile targets as explicit profile hypotheses.
 - Bot outlier analysis (open): report the best run's seed and replayable context, then compare its sampled decisions with the greedy run on the same game to learn when randomness finds a stronger line.
-- Late redraw (open): remove the generic final-two-turn redraw veto because late costs are scaled up; compare named greedy bots and restore the veto only if the extra redraws reduce hearts.
+- Late flush (open): remove the generic final-two-turn flush veto because late costs are scaled up; compare named greedy bots and restore the veto only if the extra flushes reduce hearts.
 - Human-style bot (open): value early gold, power above the deck's best power card, up to three diminishing exiles, varied effects, late hearts, right-side enemy kills except when Foes benefits from leaving enemies, and a short Swap plan that targets an affordable river card.
 - Human bot readiness rules (open): estimate current-hand gold with Coin worth 3 expected gold, deprioritise early Reaping but reconsider ReapG and ReapP as late Heart candidates, require setup for Bond, Army, Kin, all3, Pile and Vault, and use one effect-value policy instead of one permanent policy per effect.
 - Human bot play order (open): play plain resource gains first, make Cycle/Purge the main effect exception, and ignore unsupported conditional effects such as all3, Kin, Army and Bond unless a dedicated build bot can evaluate them.
-- Redraw edge lookahead (open): when the affordable right-edge enemy would leave the next enemy to its left unaffordable, consider redrawing instead of taking the edge enemy.
-- Bot redraw resource gate (open): do not redraw when all remaining resources are below the expected current card cost, even when an affordable row card is later vetoed by the buying policy.
+- Flush edge lookahead (open): when the affordable right-edge enemy would leave the next enemy to its left unaffordable, consider flushing instead of taking the edge enemy.
+- Bot flush resource gate (open): do not flush when all remaining resources are below the expected current card cost, even when an affordable row card is later vetoed by the buying policy.
 - Average-gain buying (open): combine phase priorities with a soft bonus for how much a purchase raises the relevant deck average, so a 3 Power card can beat a 2 Gold card when Power is the needed resource without vetoing useful low-gain cards; compare this with `phaseBuy`.
 - Average-relative exile (open): choose exile targets by their value against the current resource average, with a roughly 15% retention threshold and Weak/Foes worth about 1 Power, so early Gold is protected and later Power can be thinned.
 
@@ -127,8 +130,9 @@ Candidate archetypes, not approved balance targets. Test constrained generators 
 
 ## Interface and presentation
 
-- Stats bar restyle: coloured chips with an icon, a big number and a small label, with Redraws and Piles styled like the other buttons. Draw it in the style of today's cards (rounded corners, header strips, pill badges), without riso hard shadows. Keep the fluid mobile-like layout up to iPad portrait; no separate desktop layout today.
-- Riso game screen edits (for later): on desktop, bundle all stats into one bordered panel with Redraws and Piles outside it; drop the border around the hand; too many borders overall. On phones the cards are squeezed and the transparency on real-style cards looks bad.
+- Better replay controls (open): "Next move" is one click per move, so reaching move 112 takes 112 clicks. Add a jump to a move number or turn, or a run-to-end-of-turn button.
+- Stats bar restyle: coloured chips with an icon, a big number and a small label, with Flushs and Piles styled like the other buttons. Draw it in the style of today's cards (rounded corners, header strips, pill badges), without riso hard shadows. Keep the fluid mobile-like layout up to iPad portrait; no separate desktop layout today.
+- Riso game screen edits (for later): on desktop, bundle all stats into one bordered panel with Flushs and Piles outside it; drop the border around the hand; too many borders overall. On phones the cards are squeezed and the transparency on real-style cards looks bad.
 - Mockup lessons: keep the real card ratio (118 × 175), round the inner border corners, never let descriptions overlap the border, brief mockup agents with the real card CSS and not a style name. Skip exile needs a place on narrow screens.
 - Alternative phone skin: bigger card text without effect descriptions, with keyword meanings in a help section or on long press. Styling is swappable on the web, so it can be a skin.
 - Large hands on phones (confirmed awkward): an 11-card hand required clicking off the hand and aiming precisely at a card. From 10 cards, try offsetting every other card down by about half a card height; this should overlap only every second card and avoid overlap through nine cards. Prove the idea on a phone before keeping it.
@@ -142,6 +146,7 @@ Candidate archetypes, not approved balance targets. Test constrained generators 
 
 ## Platforms and architecture
 
+- Dev reload after core changes (open): after the Flip fix, the dev page kept the old engine until a manual refresh, and nothing said so. A dev-only Vite plugin could force a full reload whenever a file in `src/core` changes (or show a "reload needed" banner), because the open session probably still holds events computed by the old engine (not confirmed).
 - Terminal platform: an ASCII renderer and a CLI with `--seed`, `--moves` and `--moves-file`, so agents can playtest and replay a game headless. It would print events as log lines.
 - Capacitor (an Android wrapper around the static web build) is far away, but honour it now: a static relative-path build with no server, the font bundled locally (done), touch-first UI with safe-area insets and no hover-only affordances, no essential keyboard shortcuts, and persistence behind a small `Storage` interface (`get`, `set`, `list`, `remove`) so game logic never calls `localStorage`. Android back, pause and resume are platform concerns; core state is serialisable, so the web layer can autosave on pause. Defer app id, icons, splash, signing and the store listing until a one-afternoon spike.
 - TIC-80 (maybe never): core stays small, plain data and free of ambient APIs, which `check-portability` already enforces. It would need a `platform/tic80` adapter, a bundle script (`vp pack` with `target: es2020`) and a size check. Platforms would declare capabilities (`saveDecks`, `deckBuilder`, `animations`, `themes`) and the menus would hide what a platform lacks.
@@ -153,7 +158,8 @@ Candidate archetypes, not approved balance targets. Test constrained generators 
 
 ## Naming
 
-The working title stays Heartrow until something clearly better turns up. The repo name and the game name do not have to match.
+- River theme (open, leaning keep): the designer is not sold on "river", but it is shorter than "top row" and clearer than "recruit row", and "Flush the river" reads well. Keep it unless a better term turns up.
+  The working title stays Heartrow until something clearly better turns up. The repo name and the game name do not have to match.
 
 - Heartrow is unique and easy to search on itch.io, but Google autocorrects it to Heathrow, and it keeps the word "row", which the owner dislikes. "Ascension" and "heart row" each match over 1000 itch.io projects.
 - A coined name can become a genre label (Balatro), but invented words like Ebbrow are disliked. The owner likes Mossfall, but it ties the brand to Moss, which may not survive a Lovecraft reskin.
@@ -175,8 +181,8 @@ The working title stays Heartrow until something clearly better turns up. The re
 - Human bot cycle readiness (open): refine the expected-resource comparison with effect budgets as a small value prior; direct gains from the Cycle/Purge card now count, and the estimate still needs to cover the draw pile and discard reshuffle.
 - Deck-relative buying value (open): compare a recruit's expected gain with the post-purchase average of the non-exiled deck, require roughly 10% average uplift, and use a diminishing smooth score so 2, 3, 4, 5 and 6 gains are ranked fluidly rather than by fixed bands; Coin counts as 3 expected Gold.
 - Gold and power balance (open): a recruit's main currency follows its colour (Ember always power, Moss always gold, Tide half and half), so a deck heavy in one colour can be short of the other and wastes what it has. Look at whether Standard needs a gold-or-power correction, using bot data over many seeds.
-- Better bot (open): combine `mixed` buying with `smartRedraw` as a new profile (not a change to `mixed`, which is the v7 baseline). Evidence is in the history file.
+- Better bot (open): combine `mixed` buying with `smartFlush` as a new profile (not a change to `mixed`, which is the v7 baseline). Evidence is in the history file.
 - Tutorial mode (open): a predefined seed with a status bar that explains more, as the way in for new players, since Standard is where they will go first and the Moss economy and Ember combat presets have fewer or more decisions than it does.
 - Bot tuning (a thread of its own): the bots are very deterministic, with policy weights in the millions. Look at softer weights or sampling, and at teaching them goals above 48, where they hit 0 to 4%.
 - Replace the huge and tiny magnitudes (1e12, 1e-9) with human-sized numbers (about 1 to 100) and accept a different move about 1 time in 100. Measure first, change, compare, then judge. Priority tiers (a tier plus a weight within it) are a cleaner alternative.
-- Make the bot redraw memory pure without a "stuck" flag in `GameState`: a redraw counter in state, or the driver passing memory in.
+- Make the bot flush memory pure without a "stuck" flag in `GameState`: a flush counter in state, or the driver passing memory in.

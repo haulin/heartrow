@@ -284,6 +284,18 @@ describe('animation module', () => {
         expect(flight?.el.tagName).toBe('I')
     })
 
+    it('pulses the piles for a Cycle only when it moves cards', () => {
+        const pilesPulse = (extraCards: number): boolean => {
+            const { host, store } = mount()
+            const state = store.getState()
+            Object.assign(state.hand[0]!, { gold: 0, power: 0, hearts: 0, fx: ['cycle'], retain: false })
+            state.hand.splice(1 + extraCards)
+            return planAfter(store.dispatch({ type: 'play', handIndex: 0 }), host).some((e) => e.kind === 'pulse')
+        }
+        expect(pilesPulse(0)).toBe(false)
+        expect(pilesPulse(2)).toBe(true)
+    })
+
     it('flies every card that leaves the hand to the piles when the turn ends', () => {
         const { host, store } = mount()
         const before = store.getState().hand

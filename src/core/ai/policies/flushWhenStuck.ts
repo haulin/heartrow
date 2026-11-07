@@ -1,11 +1,11 @@
 import { canAfford } from '../../state'
 import type { GameState } from '../../types'
 import type { Policy } from '../types'
-import { hasReasonableResources, IDLE_REDRAW_WEIGHT, redrawMemory, STRONG_WEIGHT, wantsToBuy } from './util'
-import type { RedrawMemory } from './util'
+import { hasReasonableResources, IDLE_FLUSH_WEIGHT, flushMemory, STRONG_WEIGHT, wantsToBuy } from './util'
+import type { FlushMemory } from './util'
 
-export interface RedrawOptions {
-    /** From this turn on, leftover Power is worth a redraw when no enemy or direct-Heart recruit is affordable. */
+export interface FlushOptions {
+    /** From this turn on, leftover Power is worth a flush when no enemy or direct-Heart recruit is affordable. */
     lateStart?: number | undefined
     /** The bot's buying policies. A card they all veto does not count as something to buy. */
     buyers?: readonly Policy[]
@@ -13,16 +13,16 @@ export interface RedrawOptions {
 
 const LATE_SPARE_POWER = 3
 
-/** The single owner of redraw weights: how much a redraw is worth in this state. Takes and end turn are weighed elsewhere. */
-export function redrawWhenStuck(memory: RedrawMemory = redrawMemory(), { lateStart, buyers = [] }: RedrawOptions = {}): Policy {
+/** The single owner of flush weights: how much a flush is worth in this state. Takes and end turn are weighed elsewhere. */
+export function flushWhenStuck(memory: FlushMemory = flushMemory(), { lateStart, buyers = [] }: FlushOptions = {}): Policy {
     return {
-        id: 'redrawWhenStuck',
+        id: 'flushWhenStuck',
         weight(state, move, moves) {
-            const { redrawn, stuck } = memory(state)
-            if (move.type === 'take') return stuck && !redrawn ? 0 : 1
-            if (move.type !== 'redraw') return 1
+            const { flushed, stuck } = memory(state)
+            if (move.type === 'take') return stuck && !flushed ? 0 : 1
+            if (move.type !== 'flush') return 1
             const stuckFactor = wantsToBuy(state, moves, buyers) ? 1 : hasReasonableResources(state) ? STRONG_WEIGHT : 0
-            return IDLE_REDRAW_WEIGHT * stuckFactor * lateFactor(state, lateStart)
+            return IDLE_FLUSH_WEIGHT * stuckFactor * lateFactor(state, lateStart)
         },
     }
 }

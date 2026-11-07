@@ -45,7 +45,7 @@ This makes buying a card beside an enemy a meaningful choice. Buying the edge ca
 - The starter deck has six Basic gold cards and four Basic power cards.
 - The hand normally draws five cards.
 - Retain cards stay in hand when unplayed.
-- Redraw replaces the four left cards and leaves the edge card in place.
+- Flush replaces the four left cards and leaves the edge card in place.
 - Reaching the goal wins only when the turn ends.
 - “Play simple” plays cards without worded effects.
 - Exile is optional. The player can skip it. It can target any hand card, or a recruit in river slots 1–4; enemies and the right-edge card are not valid targets. Exiling a river recruit refills the left edge.
@@ -61,7 +61,7 @@ Modes are data (`ModeConfig` in `src/core/modes.ts`), not code.
 
 - **Standard** lasts 24 turns. The goal is 48, 64, 80 or 96 hearts (`goal` 1 to 4). `goal` is apart from the mode id.
 - **Custom** is Standard with a generator: which card types, resources and effects may appear, and how many Basic gold and power cards you start with. The settings are plain data (`CustomGenerator` in `src/core/custom.ts`) with a small library of presets (Standard, Simple only, Attack only, Pacifist, Moss economy, Tide hearts, Ember combat). The web layer puts them in the link, so a run can be shared (`?mode=custom&goal=2&types=…&res=…&sg=…&sp=…&fx=…&seed=N`).
-- **Long Run** lasts 42 turns, postpones the win check, and reports final hearts as a high score. Turns 1–24 use the standard cost curve. Turns 25–36 add one cost step and use 40% enemy frequency. Turns 37–42 add a second cost step and use 45% enemy frequency. Late pure-resource filler is bounded and rerolled more often from turn 21 (`lateFillerFromTurn`), while utility cards stay eligible. The run grants one redraw every three turns; a four-turn cadence left too little row control late in the run.
+- **Long Run** lasts 42 turns, postpones the win check, and reports final hearts as a high score. Turns 1–24 use the standard cost curve. Turns 25–36 add one cost step and use 40% enemy frequency. Turns 37–42 add a second cost step and use 45% enemy frequency. Late pure-resource filler is bounded and rerolled more often from turn 21 (`lateFillerFromTurn`), while utility cards stay eligible. The run grants one flush every three turns; a four-turn cadence left too little row control late in the run.
 
 Links: `?seed=N&mode=standard&goal=2`, `?seed=N&mode=long`. Starting any new game rewrites the address, so a reload replays the same run.
 
@@ -71,7 +71,7 @@ There are four screens, home, game, the level picker and the generator editor, a
 
 The editor keeps its settings in the address as you change them, so a reload or a copied address gives the same editor. It opens from the home screen (with the settings of the last run, if there is one) and from the run dialog's "Open in the generator editor" button (with the settings of the run on screen; a Standard run opens with the defaults at its goal). Back from the editor returns to where you came from, for example the run; Start begins a new custom run and replaces the one in memory. The screen state is web only; core knows nothing about screens.
 
-The game screen has only game actions in its button bar (End turn, Play simple, Redraw, Undo, Skip exile). Home sits at the top left; New game, Settings and About are on the home screen. The header's other button names the mode (Standard, Custom or Long Run, with an ⓘ) and opens a dialog with the level, goal, turns, the generator summary of a custom run, and the seed with its copy buttons.
+The game screen has only game actions in its button bar (End turn, Play simple, Flush, Undo, Skip exile). Home sits at the top left; New game, Settings and About are on the home screen. The header's other button names the mode (Standard, Custom or Long Run, with an ⓘ) and opens a dialog with the level, goal, turns, the generator summary of a custom run, and the seed with its copy buttons.
 
 ### Saved run
 
@@ -112,7 +112,7 @@ The web layer saves the current run in `localStorage` after every accepted move,
 - Retain uses a regular-weight `↺` line.
 - Text selection is disabled in the game area and enabled inside popups so the log can be copied.
 - Compact resource values use coloured `●` gold, `⚔` power, and `♥` hearts icons on cards and in the log. Explanatory labels and accessible names keep the resource words.
-- The fifth row card shows a lock marker because redraw replaces only the four cards to its left. The redraw log states that the right-edge card cannot be redrawn.
+- The fifth row card shows a lock marker because flush replaces only the four cards to its left. The flush log states that the right-edge card cannot be flushed.
 - The log uses one copied line per entry instead of paragraph spacing.
 - Enemy defeat logs combine resolved direct heart payouts with the base enemy hearts and append any extra gold or power in the same compact resource line.
 - The game shows the package version (semver from `package.json`) in the About dialog.
@@ -154,12 +154,12 @@ Some quirks come from the original prototype. The core keeps them unless listed 
 
 ## Bots and balance
 
-- Bots live in `src/core/ai`. A bot is a list of policies. Each policy returns a non-negative factor for every legal move; the factors are multiplied, `0` vetoes a move, and the sampled profiles choose from the resulting weights with their own seeded RNG. The `random` profile has no policies and is a uniform control. These bots give a relative balance signal, not a substitute for human play.
-- Policies cover turn order and hand use (`playsFirst`, `retainAware`, `drawFirst`, `effectCardsFirst`, `exileChoices`), row priorities (`buyEnemies`, `buyBuild`, `buyValue`, `noRecruits`, `rush`, `pacifist`, `smartBuy`), redraw control (`protectEdge`, `redrawWhenStuck`, `smartRedraw`), and turn completion (`endTurnWhenDone`). Redraw weights belong to the redraw policies (`redrawWhenStuck`, `smartRedraw`, `protectEdge`) and end turn to `endTurnWhenDone`; neither policy sets the other's weight. Both are given the profile's buying policies and count a legal take as something to buy only when none of them vetoes it. Most preference factors use the ordinary 1–10 range; zero remains a deliberate veto, and small factors keep redraw and ending the turn as last-resort actions.
-- The named profiles are `mixed` (balanced fighter), `none` (no recruits), `build` (early deck building), `rush` (early recruiting only), `pacifist` (no combat and engine cards), and `smart` (unified purchase and redraw scoring). `lookahead` remains a separate, greedy rollout experiment.
-- Performance comparisons use greedy selection. Sampled selection remains available for randomness experiments, but it is not a bot-balance benchmark.
+- Bots live in `src/core/ai`. A bot is a list of policies. Each policy returns a non-negative factor for every legal move; the factors are multiplied, `0` vetoes a move, and the profiles take the move with the highest product (ties go to the first legal move). The `random` profile has no policies and samples uniformly as a control. These bots give a relative balance signal, not a substitute for human play.
+- Policies cover turn order and hand use (`playsFirst`, `retainAware`, `drawFirst`, `effectCardsFirst`, `exileChoices`), row priorities (`buyEnemies`, `buyBuild`, `buyValue`, `noRecruits`, `rush`, `pacifist`, `smartBuy`), flush control (`protectEdge`, `flushWhenStuck`, `smartFlush`), and turn completion (`endTurnWhenDone`). Flush weights belong to the flush policies (`flushWhenStuck`, `smartFlush`, `protectEdge`) and end turn to `endTurnWhenDone`; neither policy sets the other's weight. Both are given the profile's buying policies and count a legal take as something to buy only when none of them vetoes it. Most preference factors use the ordinary 1–10 range; zero remains a deliberate veto, and small factors keep flush and ending the turn as last-resort actions.
+- The named profiles are `mixed` (balanced fighter), `none` (no recruits), `build` (early deck building), `rush` (early recruiting only), `pacifist` (no combat and engine cards), and `smart` (unified purchase and flush scoring). `lookahead` remains a separate, greedy rollout experiment.
+- Bots select greedily by default. Sampled selection (`--selection sample`) remains available for randomness experiments, but it is a failed experiment and not a bot-balance benchmark.
 - The current bot comparison is recorded in `tools/baseline/bots-current.md`. These figures are balance signals, not targets. Earlier measurements and the experiments behind the bots are in [`history.md`](history.md).
-- The Long Run bot redraws before defeating an affordable right-edge enemy when another enemy sits to its left, so that left enemy does not become the new escape threat.
+- The Long Run bot flushes before defeating an affordable right-edge enemy when another enemy sits to its left, so that left enemy does not become the new escape threat.
 - The core was checked against the original prototype over 100 seeds. The generator matches. The bots are 2–4% stronger than the prototype and that was accepted. The report is in `tools/baseline/V7_PARITY.md`.
 - Run the simulator with `npm run sim`.
 
@@ -169,5 +169,5 @@ Some quirks come from the original prototype. The core keeps them unless listed 
 2. Run `npm run verify`.
 3. If generation or effects change, run `npm run sim` for crashes and large balance changes, in both modes.
 4. Test the page in a browser at about 360 px and 760 px wide.
-5. Check the row, seven-card hands, popups, redraws, Retain, exile, and undo.
+5. Check the row, seven-card hands, popups, flushes, Retain, exile, and undo.
 6. Record a design decision here before changing the rules.

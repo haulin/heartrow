@@ -31,7 +31,7 @@ export function startSession(config: ModeConfig, seed: number): Session {
  * Undo rules:
  * - Every accepted move except `endTurn` pushes a snapshot of the session from before the move.
  * - `endTurn` clears the stack, so undo never crosses a turn boundary.
- * - Undo is allowed after draws, flips, cycles, takes and redraws. The RNG streams live in GameState, so a restored snapshot
+ * - Undo is allowed after draws, flips, cycles, takes and flushes. The RNG streams live in GameState, so a restored snapshot
  *   replays the same random outcomes. Undoing therefore cannot be used to fish for better luck.
  */
 function nextUndo(session: Session, move: Move): Snapshot[] {

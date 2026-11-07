@@ -28,10 +28,11 @@ describe('reference run', () => {
             hearts: state.hearts,
             gold: state.gold,
             power: state.power,
-            redraws: state.redraws,
+            flushes: state.flushes,
             piles: [state.deck.length, state.hand.length, state.discard.length, state.exile.length],
         }).toMatchInlineSnapshot(`
           {
+            "flushes": 3,
             "gold": 0,
             "hearts": 48,
             "piles": [
@@ -41,7 +42,6 @@ describe('reference run', () => {
               11,
             ],
             "power": 0,
-            "redraws": 3,
             "turn": 22,
           }
         `)

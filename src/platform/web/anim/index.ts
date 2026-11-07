@@ -132,14 +132,14 @@ export function planBefore(frame: Frame, root: ParentNode): Effect[] {
                     if (slot && to) out.push({ kind: 'flyCard', el: slot, to })
                 }
                 break
-            case 'rowRedrawn':
+            case 'rowFlushed':
                 // The four replaced cards shrink away one after another.
                 // The rightmost goes first, like the row moving to the right.
                 frame.before.state.row.slice(0, event.cards.length).forEach((c, i, all) => {
                     const slot = cardEls(root, 'row', c.id)?.parentElement
                     if (slot) out.push({ kind: 'shrink', el: slot, order: all.length - 1 - i })
                 })
-                out.push(...pulseOf(root, 'redraws'))
+                out.push(...pulseOf(root, 'flushes'))
                 break
             default:
                 break
@@ -218,8 +218,10 @@ export function planAfter(frame: Frame, root: ParentNode): Effect[] {
             case 'recruited':
             case 'exiled':
             case 'reshuffled':
-            case 'cycled':
                 changed.add('piles')
+                break
+            case 'cycled':
+                if (event.count > 0) changed.add('piles')
                 break
             case 'swapped':
                 changed.add('gold')
@@ -231,16 +233,16 @@ export function planAfter(frame: Frame, root: ParentNode): Effect[] {
                 break
             case 'turnStarted':
                 changed.add('turn')
-                if (event.redrawGained) changed.add('redraws')
+                if (event.flushGained) changed.add('flushes')
                 break
-            case 'rowRedrawn':
+            case 'rowFlushed':
                 event.cards.forEach((c, i, all) => {
                     const slot = cardEls(root, 'row', c.id)?.parentElement
                     if (slot) out.push({ kind: 'enter', el: slot, order: all.length - 1 - i })
                 })
                 break
             case 'drew':
-                changed.add('piles')
+                if (event.cardIds.length > 0) changed.add('piles')
                 event.cardIds.forEach((id, order) => {
                     const slot = cardEls(root, 'hand', id)?.parentElement
                     if (slot) out.push({ kind: 'deal', el: slot, order })

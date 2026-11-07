@@ -36,11 +36,11 @@ function Stat({ label, id, cls = '', title, badge, children }: StatProps) {
 
 export interface StatsProps {
     state: GameState
-    onRedraw: () => void
+    onFlush: () => void
     onPiles: () => void
 }
 
-export function Stats({ state: s, onRedraw, onPiles }: StatsProps) {
+export function Stats({ state: s, onFlush, onPiles }: StatsProps) {
     const long = s.goal === null
     const discountTip = [
         s.recruitDiscount && `Recruits cost ${s.recruitDiscount} less gold ●.`,
@@ -106,13 +106,13 @@ export function Stats({ state: s, onRedraw, onPiles }: StatsProps) {
             <button
                 type="button"
                 class="stat"
-                data-stat="redraws"
-                onClick={onRedraw}
-                title={`Replace the four left cards of the recruit row. You gain one every ${s.config.redrawEvery} turns and they stack.`}
-                aria-disabled={s.redraws < 1 ? 'true' : undefined}
+                data-stat="flushes"
+                onClick={onFlush}
+                title={`Replace the four left cards of the recruit row. You gain one every ${s.config.flushEvery} turns and they stack.`}
+                aria-disabled={s.flushes < 1 ? 'true' : undefined}
             >
-                {s.redraws}
-                <small>redraws</small>
+                {s.flushes}
+                <small>flushes</small>
             </button>
             <Stat label="types played" title="Moss, Ember and Tide cards played this turn. Some cards reward playing all three.">
                 <span class="pips">

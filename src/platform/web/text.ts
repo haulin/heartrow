@@ -30,7 +30,7 @@ export function richParts(s: string): RichPart[] {
 
 export function statsSummary(state: GameState): string {
     const s = state.stats
-    return `Defeated ${s.kills}, recruited ${s.recruited}, exiled ${s.exiled}, lost ${s.lostToEscapes} ♥ to escapes. Wasted ${s.wastedGold} ●, ${s.wastedPower} ⚔; ${state.redraws} redraws left.`
+    return `Defeated ${s.kills}, recruited ${s.recruited}, exiled ${s.exiled}, lost ${s.lostToEscapes} ♥ to escapes. Wasted ${s.wastedGold} ●, ${s.wastedPower} ⚔; ${state.flushes} flushes left.`
 }
 
 export function statusMessage(state: GameState): string | null {

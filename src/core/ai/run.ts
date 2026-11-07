@@ -25,7 +25,7 @@ export interface GameSummary {
     turns: number
     wastedGold: number
     wastedPower: number
-    redrawsLeft: number
+    flushesLeft: number
     heartsT24: number | null
     moves: number
     capped: boolean
@@ -92,7 +92,7 @@ export function playGame(
             turns: state.turn,
             wastedGold: state.stats.wastedGold,
             wastedPower: state.stats.wastedPower,
-            redrawsLeft: state.redraws,
+            flushesLeft: state.flushes,
             heartsT24,
             moves,
             capped: state.status === 'playing',
@@ -134,7 +134,7 @@ export interface BatchStats {
     meanExiled: number
     meanCards: number
     meanPlaysPerTurn: number
-    meanRedrawsLeft: number
+    meanFlushesLeft: number
     meanWastedGold: number
     meanWastedPower: number
     meanHeartsT24: number | null
@@ -162,7 +162,7 @@ export function aggregate(results: readonly GameSummary[]): BatchStats {
         meanExiled: mean((r) => r.exiled),
         meanCards: mean((r) => r.cards),
         meanPlaysPerTurn: mean((r) => r.plays / r.turns),
-        meanRedrawsLeft: mean((r) => r.redrawsLeft),
+        meanFlushesLeft: mean((r) => r.flushesLeft),
         meanWastedGold: mean((r) => r.wastedGold),
         meanWastedPower: mean((r) => r.wastedPower),
         meanHeartsT24: t24.length ? t24.reduce((sum, r) => sum + r.heartsT24!, 0) / t24.length : null,

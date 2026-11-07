@@ -17,12 +17,12 @@ import {
     phaseBuy,
     playsFirst,
     protectEdge,
-    redrawMemory,
-    redrawWhenStuck,
+    flushMemory,
+    flushWhenStuck,
     retainAware,
     rush,
     smartBuy,
-    smartRedraw,
+    smartFlush,
 } from './policies'
 import type { PhaseThresholds } from './policies'
 
@@ -42,18 +42,19 @@ const SAMPLED = { mode: 'sample', epsilon: 0, samplePower: 2 } as const
 function pickOptions(id: ProfileId, selection?: SelectionMode): PickOptions {
     if (selection === 'greedy') return GREEDY
     if (selection === 'sample') return SAMPLED
-    return id === 'lookahead' ? GREEDY : SAMPLED
+    // Only the uniform control samples: greedy on a flat product would just take the first legal move.
+    return id === 'random' ? SAMPLED : GREEDY
 }
 
-/** Plays come before takes, takes before redraws and ending the turn (see the layers in policies/util.ts). */
+/** Plays come before takes, takes before flushes and ending the turn (see the layers in policies/util.ts). */
 const turnOrder = (): Policy[] => [playsFirst(), retainAware(), drawFirst()]
 
 export function makeProfile(id: ProfileId, selection?: SelectionMode, options?: ProfileOptions): Profile {
-    const memory = redrawMemory()
+    const memory = flushMemory()
     const fighter = (): Policy[] => [...turnOrder(), exileChoices(), effectCardsFirst()]
-    /** Redraw and end turn ask the buying policies whether any card in the row is worth taking. */
+    /** Flush and end turn ask the buying policies whether any card in the row is worth taking. */
     const tail = (buyers: readonly Policy[], lateStart?: number): Policy[] => [
-        redrawWhenStuck(memory, { lateStart, buyers }),
+        flushWhenStuck(memory, { lateStart, buyers }),
         endTurnWhenDone(buyers),
     ]
     let policies: Policy[]
@@ -111,7 +112,7 @@ export function makeProfile(id: ProfileId, selection?: SelectionMode, options?: 
         }
         case 'smart': {
             const buyers = [smartBuy()]
-            policies = [...turnOrder(), exileChoices(), ...buyers, smartRedraw(memory), protectEdge(memory), endTurnWhenDone(buyers)]
+            policies = [...turnOrder(), exileChoices(), ...buyers, smartFlush(memory), protectEdge(memory), endTurnWhenDone(buyers)]
             break
         }
         case 'lookahead':

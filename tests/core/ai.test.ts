@@ -22,19 +22,19 @@ import {
     phaseBuy,
     pickMove,
     playGame,
-    redrawMemory,
-    redrawWhenStuck,
+    flushMemory,
+    flushWhenStuck,
     standardMode,
 } from '../../src/core'
 import type { Card, GameState, Move, Policy } from '../../src/core'
 
 const state = newGame(standardMode(0), 1).state
-const moves: Move[] = [{ type: 'endTurn' }, { type: 'redraw' }, { type: 'skipExile' }]
+const moves: Move[] = [{ type: 'endTurn' }, { type: 'flush' }, { type: 'skipExile' }]
 const fixed = (id: string, weights: Record<string, number>): Policy => ({ id, weight: (_s, m) => weights[m.type] ?? 1 })
 
 describe('composePolicies', () => {
     it('multiplies weights', () => {
-        const p = composePolicies([fixed('a', { endTurn: 2 }), fixed('b', { endTurn: 3.5, redraw: 0.5 })])
+        const p = composePolicies([fixed('a', { endTurn: 2 }), fixed('b', { endTurn: 3.5, flush: 0.5 })])
         expect(p.weight(state, moves[0]!, moves)).toBe(7)
         expect(p.weight(state, moves[1]!, moves)).toBe(0.5)
         expect(p.id).toBe('a*b')
@@ -47,7 +47,7 @@ describe('composePolicies', () => {
 })
 
 describe('pickMove', () => {
-    const policy = fixed('p', { endTurn: 1, redraw: 3, skipExile: 0 })
+    const policy = fixed('p', { endTurn: 1, flush: 3, skipExile: 0 })
 
     it('is deterministic for a seed and respects vetoes', () => {
         const run = (seed: number) => {
@@ -57,13 +57,13 @@ describe('pickMove', () => {
         expect(run(3)).toEqual(run(3))
         expect(run(3)).not.toEqual(run(4))
         expect(run(3)).not.toContain('skipExile')
-        expect(run(3)).toContain('redraw')
+        expect(run(3)).toContain('flush')
     })
 
     it('falls back to a uniform choice when every weight is 0', () => {
         const rng = createRng(1, 'bot')
         const picked = new Set<string>()
-        for (let i = 0; i < 100; i++) picked.add(pickMove(state, moves, fixed('z', { endTurn: 0, redraw: 0, skipExile: 0 }), rng)!.type)
+        for (let i = 0; i < 100; i++) picked.add(pickMove(state, moves, fixed('z', { endTurn: 0, flush: 0, skipExile: 0 }), rng)!.type)
         expect(picked.size).toBe(3)
     })
 
@@ -74,7 +74,7 @@ describe('pickMove', () => {
     it('greedy picks the best move, and epsilon explores', () => {
         const rng = createRng(1, 'bot')
         const greedy = { mode: 'greedy', epsilon: 0 } as const
-        for (let i = 0; i < 20; i++) expect(pickMove(state, moves, policy, rng, greedy)!.type).toBe('redraw')
+        for (let i = 0; i < 20; i++) expect(pickMove(state, moves, policy, rng, greedy)!.type).toBe('flush')
         const explore = new Set<string>()
         for (let i = 0; i < 200; i++) explore.add(pickMove(state, moves, policy, rng, { mode: 'greedy', epsilon: 0.5 })!.type)
         expect(explore.size).toBe(3)
@@ -90,7 +90,7 @@ describe('profiles', () => {
         for (let i = 0; i < 100; i++) picked.add(pickMove(state, moves, policy, rng, profile.pick)!.type)
         expect(profile.policies).toHaveLength(0)
         expect(profile.pick.mode).toBe('sample')
-        expect(picked).toEqual(new Set(['endTurn', 'redraw', 'skipExile']))
+        expect(picked).toEqual(new Set(['endTurn', 'flush', 'skipExile']))
     })
 
     it('estimates the rising card cost curve for resource decisions', () => {
@@ -131,10 +131,10 @@ describe('profiles', () => {
         expect(flipWeight).toBeGreaterThan(plainWeight)
     })
 
-    it('takes more redraw risk when several redraws remain', () => {
+    it('takes more flush risk when several flushes remain', () => {
         const early = newGame(standardMode(0), 1).state
-        expect(hasReasonableResources({ ...early, gold: 3, power: 0, redraws: 1 })).toBe(false)
-        expect(hasReasonableResources({ ...early, gold: 3, power: 0, redraws: 2 })).toBe(true)
+        expect(hasReasonableResources({ ...early, gold: 3, power: 0, flushes: 1 })).toBe(false)
+        expect(hasReasonableResources({ ...early, gold: 3, power: 0, flushes: 2 })).toBe(true)
     })
 
     it('ignores resources for card kinds disabled by a custom generator', () => {
@@ -194,12 +194,12 @@ describe('profiles', () => {
         expect(policy.weight(state, { type: 'take', rowIndex: 1 }, [])).toBe(6)
     })
 
-    it('allows an affordable take after a stuck redraw', () => {
+    it('allows an affordable take after a stuck flush', () => {
         const initial = newGame(standardMode(0), 1).state
-        const before = { ...initial, gold: 1, power: 0, redraws: 1, row: initial.row.map((card) => ({ ...card, cost: 99 })) }
+        const before = { ...initial, gold: 1, power: 0, flushes: 1, row: initial.row.map((card) => ({ ...card, cost: 99 })) }
         const affordable = { ...before.row[0]!, kind: 'recruit' as const, cost: 1, gold: 1 }
-        const after = { ...before, redraws: 0, row: [affordable, ...before.row.slice(1)] }
-        const policy = redrawWhenStuck(redrawMemory())
+        const after = { ...before, flushes: 0, row: [affordable, ...before.row.slice(1)] }
+        const policy = flushWhenStuck(flushMemory())
 
         policy.weight(before, { type: 'endTurn' }, [{ type: 'endTurn' }])
         expect(policy.weight(after, { type: 'take', rowIndex: 0 }, [{ type: 'take', rowIndex: 0 }])).toBe(1)
@@ -209,12 +209,12 @@ describe('profiles', () => {
         const initial = newGame(standardMode(0), 1).state
         const cheap = { ...initial.row[0]!, kind: 'recruit' as const, cost: 1, gold: 1 }
         const poor = { ...initial, gold: 1, power: 0, row: [cheap, ...initial.row.slice(1)] }
-        const legal: Move[] = [{ type: 'take', rowIndex: 0 }, { type: 'redraw' }, { type: 'endTurn' }]
+        const legal: Move[] = [{ type: 'take', rowIndex: 0 }, { type: 'flush' }, { type: 'endTurn' }]
         const veto = fixed('veto', { take: 0 })
-        const redraw = (buyers: Policy[]) => redrawWhenStuck(redrawMemory(), { buyers }).weight(poor, { type: 'redraw' }, legal)
+        const flush = (buyers: Policy[]) => flushWhenStuck(flushMemory(), { buyers }).weight(poor, { type: 'flush' }, legal)
 
-        expect(redraw([])).toBeGreaterThan(0)
-        expect(redraw([veto])).toBe(0)
+        expect(flush([])).toBeGreaterThan(0)
+        expect(flush([veto])).toBe(0)
     })
 
     it('exiles a played Basic only when the deck average of its resource stays within the allowed drop', () => {
@@ -231,15 +231,15 @@ describe('profiles', () => {
         expect(policy.weight(state, { type: 'exile', handIndex: 1 }, [])).toBe(0)
     })
 
-    it('redraws before defeating the edge enemy only when its neighbour would escape and nothing else is worth buying', () => {
+    it('flushes before defeating the edge enemy only when its neighbour would escape and nothing else is worth buying', () => {
         const initial = newGame(standardMode(0), 1).state
         const enemy = { ...initial.row[0]!, kind: 'enemy' as const, cost: 3, fx: [] }
         const row = [...initial.row.slice(0, 3), enemy, enemy]
         const state = { ...initial, power: 4, row }
-        const legal: Move[] = [{ type: 'take', rowIndex: 4 }, { type: 'take', rowIndex: 3 }, { type: 'redraw' }, { type: 'endTurn' }]
+        const legal: Move[] = [{ type: 'take', rowIndex: 4 }, { type: 'take', rowIndex: 3 }, { type: 'flush' }, { type: 'endTurn' }]
         const onlyEdge: Policy = { id: 'onlyEdge', weight: (_s, m) => (m.type === 'take' && m.rowIndex !== 4 ? 0 : 1) }
         const weights = (buyers: Policy[], from = state) =>
-            legal.map((move) => edgeFollowUp(redrawMemory(), buyers).weight(from, move, legal))
+            legal.map((move) => edgeFollowUp(flushMemory(), buyers).weight(from, move, legal))
 
         // 4 Power pays the edge (3) and leaves 1, which cannot pay the neighbour (3).
         expect(weights([onlyEdge])).toEqual([0, 1, 8, 1])

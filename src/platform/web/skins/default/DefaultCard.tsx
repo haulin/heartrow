@@ -28,7 +28,7 @@ export function DefaultCard({ view, onActivate }: CardSkinProps) {
                 <em>{view.typeName}</em>
             </div>
             {view.edge ? (
-                <span class="lock" role="img" title="This card stays when you redraw" aria-label="This card stays when you redraw"></span>
+                <span class="lock" role="img" title="This card stays when you flush" aria-label="This card stays when you flush"></span>
             ) : null}
             <svg class="art" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
                 {view.art.map((shape, i) => {

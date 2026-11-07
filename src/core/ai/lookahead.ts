@@ -35,7 +35,7 @@ function rollout(start: GameState, move: Move, base: Profile, rng: Rng, futureSe
     return state.hearts
 }
 
-/** Scores take, redraw and endTurn by short rollouts of a base profile with reseeded future draws and a reshuffled deck, so the bot never peeks at the real streams. */
+/** Scores take, flush and endTurn by short rollouts of a base profile with reseeded future draws and a reshuffled deck, so the bot never peeks at the real streams. */
 export function lookahead(makeBase: () => Profile, options: LookaheadOptions = DEFAULT_LOOKAHEAD): Policy {
     let cachedState: GameState | null = null
     let cached: Record<string, number> = {}
@@ -43,12 +43,12 @@ export function lookahead(makeBase: () => Profile, options: LookaheadOptions = D
     return {
         id: 'lookahead',
         weight(state, move, moves) {
-            if (move.type !== 'take' && move.type !== 'redraw' && move.type !== 'endTurn') return 1
+            if (move.type !== 'take' && move.type !== 'flush' && move.type !== 'endTurn') return 1
             if (moves.some((m) => m.type === 'play' && retainChanges(state, state.hand[m.handIndex]!))) return 1
             if (state !== cachedState) {
                 cachedState = state
                 cached = {}
-                const candidates = moves.filter((m) => m.type === 'take' || m.type === 'redraw' || m.type === 'endTurn')
+                const candidates = moves.filter((m) => m.type === 'take' || m.type === 'flush' || m.type === 'endTurn')
                 const endTurn = state.turn + 1 + options.horizon
                 const scores: Record<string, number> = {}
                 for (const m of candidates) scores[key(m)] = 0

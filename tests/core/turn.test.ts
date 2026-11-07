@@ -67,34 +67,34 @@ describe('endTurn ordering', () => {
         expect(events.find((e) => e.type === 'retained')).toMatchObject({ count: 1 })
     })
 
-    it('grants a redraw when entering turns 4, 7, ...', () => {
+    it('grants a flush when entering turns 4, 7, ...', () => {
         let s = blank()
         const gained: boolean[] = []
         for (let i = 0; i < 6; i++) {
             const r = applyMove(s, { type: 'endTurn' })
             s = r.state
-            gained.push((r.events.find((e) => e.type === 'turnStarted') as { redrawGained: boolean }).redrawGained)
+            gained.push((r.events.find((e) => e.type === 'turnStarted') as { flushGained: boolean }).flushGained)
         }
         expect(gained).toEqual([false, false, true, false, false, true])
-        expect(s.redraws).toBe(3)
+        expect(s.flushes).toBe(3)
     })
 })
 
-describe('redraw and rejections', () => {
-    it('replaces the four left cards, keeps the edge card and spends a redraw', () => {
+describe('flush and rejections', () => {
+    it('replaces the four left cards, keeps the edge card and spends a flush', () => {
         const s = blank()
         const edge = s.row[4]!
         const generated = cloneState(s)
         const expected = Array.from({ length: 4 }, () => makeCard(generated, generated.turn))
             .map((card) => card.id)
             .reverse()
-        const { state, events } = applyMove(s, { type: 'redraw' })
-        expect(state.redraws).toBe(0)
+        const { state, events } = applyMove(s, { type: 'flush' })
+        expect(state.flushes).toBe(0)
         expect(state.row[4]).toEqual(edge)
         expect(state.row.slice(0, 4).map((card) => card.id)).toEqual(expected)
         expect(state.row.slice(0, 4).every((c, i) => c.id !== s.row[i]!.id)).toBe(true)
-        expect(eventTypes(events)).toEqual(['rowRedrawn'])
-        expect(applyMove(state, { type: 'redraw' }).events).toEqual([{ type: 'rejected', reason: 'noRedraws' }])
+        expect(eventTypes(events)).toEqual(['rowFlushed'])
+        expect(applyMove(state, { type: 'flush' }).events).toEqual([{ type: 'rejected', reason: 'noFlushes' }])
     })
 
     it('returns the same state and one rejected event for invalid moves', () => {
@@ -113,7 +113,7 @@ describe('redraw and rejections', () => {
         }
     })
 
-    it('lists only unplayed plays, affordable takes, redraw and endTurn', () => {
+    it('lists only unplayed plays, affordable takes, flush and endTurn', () => {
         const s = blank(standardMode(0))
         s.hand = [mk({ played: true }), mk()]
         s.row = [mk({ cost: 2 }), mk({ cost: 5 }), enemy({ cost: 3 }), enemy({ cost: 1 }), mk({ cost: 9 })]
@@ -123,7 +123,7 @@ describe('redraw and rejections', () => {
             { type: 'play', handIndex: 1 },
             { type: 'take', rowIndex: 0 },
             { type: 'take', rowIndex: 3 },
-            { type: 'redraw' },
+            { type: 'flush' },
             { type: 'endTurn' },
         ])
     })

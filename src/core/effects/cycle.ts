@@ -13,7 +13,7 @@ export function discardUnplayed({ state, card, events }: EffectContext, purge: b
 export const cycle: EffectDef = {
     id: 'cycle',
     price: 1.5,
-    text: 'Discard your unplayed cards except Retain ones, draw as many',
+    text: 'Cycle unplayed cards except Retain ones',
     enemies: true,
     lean: ['tide'],
     retain: RETAIN_OFTEN,

@@ -29,8 +29,8 @@ const EFFECT_TEMPLATES: Record<EffectId, string> = {
     kin: '+1 {k} per other {T} card played this turn',
     weak: 'Enemies need −{a} ⚔ this turn',
     army: '+1 {k} per 4 {T} cards in your deck',
-    cycle: 'Discard your unplayed cards except Retain ones, draw as many',
-    purge: 'Discard all your unplayed cards, even Retain, draw as many',
+    cycle: 'Cycle unplayed cards except Retain ones',
+    purge: 'Redraw all unplayed cards, even Retain ones',
     swap: 'Swap ● and ⚔',
     reapG: 'End of turn: +1 ♥ per 3 unspent ●',
     reapP: 'End of turn: +1 ♥ per 2 unspent ⚔',
@@ -79,7 +79,7 @@ const defeatedLine = (card: Card, gains: Gains): string => {
 const escapedText = (hearts: number): string => `An enemy escaped: −${hearts} ♥.`
 const reapedText = (hearts: number): string => `Leftovers reaped: +${hearts} ♥.`
 const retainedText = (count: number): string => `Kept ${count} with Retain.`
-const REDRAW_GAINED_TEXT = 'You gained a redraw.'
+const FLUSH_GAINED_TEXT = 'You gained a flush.'
 const edgeText = (hearts: number): string => `The enemy on the right edge costs ${hearts} ♥ if it escapes.`
 
 export function formatEvent(event: GameEvent, ctx: FormatContext): string | null {
@@ -89,7 +89,7 @@ export function formatEvent(event: GameEvent, ctx: FormatContext): string | null
             if (event.reason === 'pendingExile') return 'Choose a card to exile, or skip the exile.'
             if (event.reason === 'cannotExile') return 'Only recruits in the first four river slots can be exiled.'
             if (event.reason === 'gameOver') return 'The run is over. Start a new game.'
-            if (event.reason === 'noRedraws') return 'No redraws left.'
+            if (event.reason === 'noFlushes') return 'No flushes left.'
             if (event.reason === 'cannotAfford' && event.short !== undefined) {
                 return `Need ${event.short} more ${symbol(event.currency === 'power' ? 'power' : 'gold')}.`
             }
@@ -112,8 +112,8 @@ export function formatEvent(event: GameEvent, ctx: FormatContext): string | null
             return `Recruited a ${TYPE_NAMES[event.card.type]} card for ${event.paid} ●.`
         case 'defeated':
             return defeatedLine(event.card, event.gains)
-        case 'rowRedrawn':
-            return 'Redrew the four left cards. The right-edge card cannot be redrawn.'
+        case 'rowFlushed':
+            return 'Flushed the four left cards. The right-edge card cannot be flushed.'
         case 'escaped':
             return escapedText(event.hearts)
         case 'reaped':
@@ -121,7 +121,7 @@ export function formatEvent(event: GameEvent, ctx: FormatContext): string | null
         case 'retained':
             return event.count > 0 ? retainedText(event.count) : null
         case 'turnStarted':
-            return turnLine(event.turn, [], event.redrawGained, 0, ctx.edgeEnemyHearts)
+            return turnLine(event.turn, [], event.flushGained, 0, ctx.edgeEnemyHearts)
         case 'goalReached':
             return 'Goal reached! End your turn to win, or keep going for a bigger margin.'
         case 'reshuffled':
@@ -135,9 +135,9 @@ export function formatEvent(event: GameEvent, ctx: FormatContext): string | null
     }
 }
 
-function turnLine(turn: number, notes: string[], redrawGained: boolean, kept: number, edgeHearts: number | undefined): string {
+function turnLine(turn: number, notes: string[], flushGained: boolean, kept: number, edgeHearts: number | undefined): string {
     const parts = [`Turn ${turn}.`, ...notes]
-    if (redrawGained) parts.push(REDRAW_GAINED_TEXT)
+    if (flushGained) parts.push(FLUSH_GAINED_TEXT)
     if (kept > 0) parts.push(retainedText(kept))
     if (edgeHearts !== undefined && edgeHearts > 0) parts.push(edgeText(edgeHearts))
     return parts.join(' ')
@@ -159,7 +159,7 @@ export function formatEvents(events: readonly GameEvent[], ctx: FormatContext): 
                     else if (e.type === 'reaped') notes.push(reapedText(e.hearts))
                     else if (e.type === 'retained') kept += e.count
                 }
-                lines.push(turnLine(event.turn, notes, event.redrawGained, kept, ctx.edgeEnemyHearts))
+                lines.push(turnLine(event.turn, notes, event.flushGained, kept, ctx.edgeEnemyHearts))
                 continue
             }
         } else if (event.type === 'retained') {

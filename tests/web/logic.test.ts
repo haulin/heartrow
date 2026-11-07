@@ -128,10 +128,10 @@ describe('undo', () => {
         expect(undoSession(undoSession(skipped)).state.hand[0]!.played).toBeFalsy()
     })
 
-    it('is cleared by endTurn, allowed after redraw, and untouched by a rejected move', () => {
+    it('is cleared by endTurn, allowed after flush, and untouched by a rejected move', () => {
         const played = play(withHand([card({ id: 1 })]))
         expect(stepSession(played, { type: 'endTurn' }).session.undo).toEqual([])
-        expect(stepSession(played, { type: 'redraw' }).session.undo).toHaveLength(2)
+        expect(stepSession(played, { type: 'flush' }).session.undo).toHaveLength(2)
         const rejected = stepSession(played, { type: 'play', handIndex: 0 })
         expect(rejected.rejected).toBe(true)
         expect(rejected.session.undo).toBe(played.undo)
@@ -141,8 +141,8 @@ describe('undo', () => {
 
     it('restores RNG so the replayed game is identical', () => {
         const s = startSession(standardMode(0), 11)
-        const first = stepSession(s, { type: 'redraw' })
-        const again = stepSession(undoSession(first.session), { type: 'redraw' })
+        const first = stepSession(s, { type: 'flush' })
+        const again = stepSession(undoSession(first.session), { type: 'flush' })
         expect(again.session.state).toEqual(first.session.state)
     })
 })

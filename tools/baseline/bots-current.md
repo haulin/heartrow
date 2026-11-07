@@ -2,9 +2,9 @@
 
 The one place for the latest greedy bot numbers. Compare a bot change against these tables instead of re-running the baseline. Replace the tables in the same change that keeps a bot or engine change, and list what moved in [`docs/history.md`](../../docs/history.md).
 
-Command, one process per bot, at most seven at a time: `npm run sim -- --games 400 --seeds 100 --seed 1000 --goal <1|2|3|4> --selection greedy --policies <bot>`. Goal 1 is Standard goal 48 and goal 2 is goal 64, goal 3 is goal 80, goal 4 is goal 96. Hit rates have a standard error of about 0.25 points at this size.
+Command, one process per bot, at most seven at a time: `npm run sim -- --games 400 --seeds 100 --seed 1000 --goal <1|2|3|4> --policies <bot>`. Goal 1 is Standard goal 48 and goal 2 is goal 64, goal 3 is goal 80, goal 4 is goal 96. Hit rates have a standard error of about 0.25 points at this size.
 
-Version 0.1.0, with redraw and end turn counting only takes the buying policies allow, `lab-human` exiling by deck average (10% drop), and `edgeFollowUp` in `lab-human`, `mixed` and `build`. `lab-human` values Exile at 7 and counts Cycle and Purge as one family when pricing effect copies. The Hoard and Bulk effects are in the pool, Weak and Cheap roll an amount of 1 or 2, and every recruit effect can roll Retain at 0.5 budget with its own chance. `retainAware` holds a Retain Weak card until an enemy is in the row; no bot values these effects specially.
+Version 0.1.0, with flush and end turn counting only takes the buying policies allow, `lab-human` exiling by deck average (10% drop), and `edgeFollowUp` in `lab-human`, `mixed` and `build`. `lab-human` values Exile at 7 and counts Cycle and Purge as one family when pricing effect copies. The Hoard and Bulk effects are in the pool, Weak and Cheap roll an amount of 1 or 2, and every recruit effect can roll Retain at 0.5 budget with its own chance. `retainAware` holds a Retain Weak card until an enemy is in the row; no bot values these effects specially.
 
 ## Standard goal 48
 
@@ -41,4 +41,4 @@ Only `lab-human` is measured here.
 | ----------- | --- | ------ | ------ | --- | --- | ----- | ---- |
 | `lab-human` | 0%  | 48.1   | 48     | 29  | 67  | −9    | 112  |
 
-Not measured at this version: Long Run, `none`, `rush`, `pacifist`, `lookahead`. Older figures for them are in [`docs/history.md`](../../docs/history.md) and are from before the generator and redraw changes.
+Not measured at this version: Long Run, `none`, `rush`, `pacifist`, `lookahead`. Older figures for them are in [`docs/history.md`](../../docs/history.md) and are from before the generator and flush changes.
