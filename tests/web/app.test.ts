@@ -108,6 +108,7 @@ describe('App run summary', () => {
         const dialog = host.querySelector('dialog')!
         expect(dialog.textContent).toContain('Run summary')
         expect(dialog.textContent).toContain('Out of turns')
+        expect(dialog.textContent).toContain('First result recorded')
         expect(dialog.textContent).toMatch(/Moves\d+Moves per turn[\d.]+Busiest turn\d+ \(T\d+\)/)
     })
 

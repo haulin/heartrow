@@ -49,4 +49,14 @@ Custom generator `moss` from `src/core/custom.ts`, 24 turns, only `smart` is mea
 | ------- | ----------- | ------ | --- | -------------- |
 | `smart` | 6.4%        | 30.1   | 44  | 208            |
 
+Variants of the same preset with its effects replaced (`--effects`), `smart`, goal 48, the same size and seeds. Mean ♥ and P90 do not depend on the goal.
+
+| Effects                                                                | Goal 48 hit | Mean ♥ | P90 |
+| ---------------------------------------------------------------------- | ----------- | ------ | --- |
+| `moss` as it is (draw, flip, exile, cheap, basics, bond, kin, reapG)   | 6.4%        | 30.0   | 44  |
+| without Flip                                                           | 5.4%        | 29.6   | 44  |
+| without Cheap                                                          | 9.0%        | 31.9   | 47  |
+| without Flip and Cheap (draw, exile, basics, bond, kin, reapG)         | 10.9%       | 32.8   | 48  |
+| draw, exile, kin, cycle, reapG (the designer's win at 85 ♥ on turn 19) | 7%          | 31.0   | 45  |
+
 Not measured at this version: Long Run, `none`, `rush`, `pacifist`, `lookahead`. Older figures for them are in [`docs/history.md`](../../docs/history.md) and are from before the generator and flush changes.

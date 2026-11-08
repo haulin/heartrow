@@ -66,6 +66,8 @@ Everything here is not done yet. Log each idea as one undated line, and mark its
 
 ## Starters, builds and modes
 
+- Turns per generator (open, from playtests): Moss economy ended 1 to 13 ♥ short of Level 2 in four tries and may be too hard at Level 3 and above with 24 turns, since its engine peaks in the last turns. Each preset could carry its own number of turns per goal, or a turn bonus. By the reframe rule this is a difference in numbers, so a plain field on the preset and on the custom generator (and its link and editor), not a branch on the preset id. Today `standardMode` fixes 24 turns for every level.
+- Moss effect set (open, from a playtest): a custom Moss set of only Draw, Exile, Kin, Cycle and ReapG won Level 2 at 85 ♥ on turn 19, against 57, 51, 60 and 63 ♥ out of turns for Moss economy. A second run without Flip and Cheap won Level 2 at 88 ♥ on turn 20. `smart` at goal 48 (40,000 games each): Moss economy 6.4%, without Flip 5.4%, without Cheap 9.0%, without both 10.9%, so Cheap is the weak effect for the bot and Flip alone does not matter (details in `tools/baseline/bots-current.md`); the human results are larger than the bot's, since `smart` never seeks ReapG. Decide the Moss preset: add Cycle, or remove Bond, Flip and other effects that pay no hearts. A Hoard that pays hearts or a Vault would overlap with Tide hearts, which is built on Vault. Note that `smart` has no Cycle policy.
 - Starter builds: begin with a small synergistic deck or a turn-10 setup. Decide whether the player chooses or gets one at random. Also two experimental formats: constrained generators (tests viability) and curated starter decks (tests whether starting with the build is fun).
 - Let challenges shape the early row, for example a run with no Ember, without a permanent starter deck.
 - Build Lab: give the player a budget and let them assemble cards under the generator's limits. Keep it separate from normal scores.
@@ -113,7 +115,7 @@ Candidate archetypes, not approved balance targets. Test constrained generators 
 ## Screens, modes and sharing
 
 - Home screen: a plain first version is built (see the design doc). Still open: its look (the title screen concepts below), the look of the level picker, and a Challenge entry.
-- Challenge screen polish (open): the first version is built (see the design doc). Still to check by hand: the mouse-drag flick and touch feel (real momentum), the layout on a wide desktop screen, and the dots with many challenges (they shrink to fit).
+- Challenge screen polish (open): the first version is built (see the design doc). The mouse-drag flick, click to centre and touch feel are checked and fine. Still to check by hand: the layout on a wide desktop screen, and the dots with many challenges (they shrink to fit).
 - Standard screen for newcomers (open): the Standard screen with Long Run is built. Still open: a new player sees only one or two difficulties (perhaps a tutorial and 48 ♥) and the rest locked, which gives something to look forward to. It builds on Sequential Standard unlocks.
 - Generated card art for the challenge cards (parked): the icons are hand-drawn paths, and Simple, Pacifist and Custom have the weakest ones. Leave them unless they bother a player.
 - Maximum hearts as a challenge (open): show or reward the most hearts a run reached beyond the goal, for example a score tier per goal. A win ends the run at the goal turn, so the final hearts are already the score.
@@ -122,8 +124,8 @@ Candidate archetypes, not approved balance targets. Test constrained generators 
 - Simple preset with Exile (open): allow Exile in the beginner card pool as a deliberate exception to “Simple only,” then consider renaming it to “Simple start” or “Plain cards.”
 - Sequential Standard unlocks (open): keep Level 1 available, unlock each later level after the player wins the previous one, and show locked buttons such as “Win Level 1 to unlock.”
 - Level names (open): "Easy, Medium, Hard" for Levels 1 to 3 wait for evidence, since the designer struggled with Level 1 early on yet has won Level 3 twice. Revisit with feedback from new players.
-- Long Run starts a new run at once from home and replaces the run in progress without a warning. Decide whether it needs a confirm or the same note as the level picker and editor.
 - Challenge: the player chooses a generator and tries to make it work. Custom challenges choose or ban types and effects, with several slots to save, edit and duplicate. Start with the Level 1–3 goals. Leave starter decks out of the first iteration.
+- Waste-nothing challenge for Moss economy (open, from a playtest): a goal such as "win without wasting gold" or "waste under N". In that preset gold is the only currency, the designer wastes about 2 gold per turn, and undoing to take 2 less would avoid it, so it is the preset where a low-waste goal is doable, while zero may be too hard. Same spirit as the objectives below; the run summary already shows wasted gold and power, and a second record per goal would hold the lowest waste.
 - Challenge objectives (open): finish a run with no escapes, or with fewer than 10 wasted Gold and fewer than 10 wasted Power; recognize that passing on a card can be correct when it leads to no useful river action.
 - Show the mode, difficulty, goal, seed and run brief before a menu-launched game and in an overview popup. A shared link starts the game directly and opens the overview once. Compose the brief from structured selections, with only a short length-limited player note.
 - Standard setup with an editable seed field.
@@ -179,6 +181,8 @@ Candidate archetypes, not approved balance targets. Test constrained generators 
 
 ## Statistics and progression
 
+- Unplayed and discarded cards as run statistics (open, from a playtest): the "wasted" figures count unspent resources, so a player who avoids waste by not playing a gold card loses the gold without the summary seeing it. Candidates: cards left unplayed at the end of turns (retained ones counted apart), and cards discarded by Cycle. The same split tells apart a stuck hand from a held one. Core change, no gameplay effect, like the heart sources.
+- Biggest turn as a run statistic (open, from a playtest): the most hearts gained in one turn, with its turn number, for example 26 ♥ on the last turn of a Moss run after a few retains. It needs a per-turn heart counter in the run stats, and it could be a third record per goal.
 - Results as a link (open, small): a "Copy link" for the results that puts the record in the URL hash, so it can be messaged and tapped on another device. It only opens on one origin and puts results in the browser history.
 
 - Run summary as a proper screen (open): the summary dialog and log lines are the first version (moves, heart sources). Next: a nicer layout (a bar or list per heart source), and further statistics the player now counts by hand.
@@ -189,6 +193,8 @@ Candidate archetypes, not approved balance targets. Test constrained generators 
 
 ## Bots
 
+- Effect ablation (open, from the designer): take the effects out of the pool one at a time and measure the hit rate, to learn which are strong and which are weak, then act on the extremes. `npm run sim -- --preset <id> --effects <list>` replaces the effects of a preset, so each run is one command. A bot that does not value an effect (`smart` has no Cycle policy) understates it, so read the result as a lower bound, and try it with `lab-human` too. The designer does not trust ablation numbers from the present bots, since there are too few strategies; strategy bots (below) should come first, and it only costs time to try it meanwhile.
+- Strategy bots (open, from the designer): bots that each follow one strategy (a ReapG engine, an exile-thin deck, a Vault deck, a plain attacker), so that the effect ablation and the preset difficulty can be read from the bot that suits them. `smartBuy` scores every card alone (+8 for any effect, no count of copies owned), so it can buy a third ReapG but never seeks one. The Moss presets reward ReapG timing, Retain and Draw, which no bot plays on purpose. Start with a Moss ReapG bot, as the preset with the clearest strategy.
 - `smart` has no Cycle or Purge policy (open): it uses `playsFirst`, `retainAware`, `drawFirst`, `exileChoices` and `smartBuy`, which gives every effect a flat +8 value. It was never tuned for Moss economy or Pacifist, so its numbers on those presets are a coincidence and not a benchmark. A Moss or Pacifist bot would need to value Cycle, Purge, Reap and Bond itself.
 - Human bot cycle readiness (open): refine the expected-resource comparison with effect budgets as a small value prior; direct gains from the Cycle/Purge card now count, and the estimate still needs to cover the draw pile and discard reshuffle.
 - Deck-relative buying value (open): compare a recruit's expected gain with the post-purchase average of the non-exiled deck, require roughly 10% average uplift, and use a diminishing smooth score so 2, 3, 4, 5 and 6 gains are ranked fluidly rather than by fixed bands; Coin counts as 3 expected Gold.

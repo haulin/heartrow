@@ -482,6 +482,13 @@ select:focus-visible {
 .outcome.won {
     color: var(--gold);
 }
+.records {
+    margin: -8px 0 6px;
+    padding: 0;
+    list-style: none;
+    color: var(--gold);
+    font-weight: 700;
+}
 dialog h3 {
     margin: 14px 0 6px;
     font-size: 13px;
@@ -786,7 +793,11 @@ dialog::backdrop {
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    /* The focus outline reaches 5px out (3px plus 2px offset), so a smaller gap lets the next row paint over it. */
+    gap: 5px;
+    /* The list clips its overflow to scroll, so the padding leaves room for the focus outline (3px plus 2px offset); the negative margin keeps the rows where they were. */
+    padding: 6px;
+    margin: -6px;
 }
 .goalrow {
     display: flex;
@@ -795,7 +806,7 @@ dialog::backdrop {
     padding: clamp(8px, 2cqw, 14px) clamp(10px, 2.4cqw, 18px);
     border: 1px solid transparent;
     border-radius: clamp(10px, 1.6cqw, 14px);
-    background: transparent;
+    background: var(--panel);
     color: var(--ink);
     font: inherit;
     font-size: clamp(15px, 2.6cqw, 21px);
@@ -838,8 +849,20 @@ dialog::backdrop {
     color: var(--gold);
 }
 .goalrow.edit {
-    margin-top: 6px;
+    position: relative;
+    margin-top: 12px;
     border-color: var(--panel);
+}
+.goalrow.edit::before {
+    content: '';
+    position: absolute;
+    top: -9.5px;
+    left: 40%;
+    width: 20%;
+    height: 2px;
+    border-radius: 1px;
+    background: var(--dim);
+    opacity: 0.4;
 }
 .goalrow.edit .goalrow-result {
     color: var(--accent);

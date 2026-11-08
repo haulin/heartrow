@@ -6,10 +6,13 @@ import {
     challengeList,
     challengeQuery,
     importResults,
+    improvementLines,
+    loadImprovements,
     loadResults,
     recordFinished,
     resultsText,
     runLook,
+    saveImprovements,
     saveResults,
     viewFromSearch,
 } from './challenges'
@@ -60,6 +63,7 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
     const [dialog, setDialog] = useState<DialogName | null>(null)
     const [screen, setScreen] = useState<Screen>(initial)
     const [results, setResults] = useState(() => loadResults(storage))
+    const [improvements, setImprovements] = useState(() => loadImprovements(storage))
     const [challengeView, setChallengeView] = useState(() =>
         initial === 'challenges' ? viewFromSearch(window.location.search, challengeList(DEFAULT_CUSTOM)) : FRESH_VIEW,
     )
@@ -101,8 +105,15 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
     // A finished run counts for its challenge goal. A replay does not, since someone else played it.
     useEffect(() => {
         if (store.getReplayProgress()) return
+        const before = loadResults(storage)
         const next = recordFinished(storage, state, __APP_VERSION__)
-        if (next) setResults(next)
+        if (!next) return
+        setResults(next)
+        const lines = improvementLines(before, next, state.config)
+        if (lines.length === 0) return
+        const improvements = { run: shareQuery(state.config, state.seed), lines }
+        saveImprovements(storage, improvements)
+        setImprovements(improvements)
     }, [state.status, state.seed])
 
     // The summary opens when a run ends in front of the player. A run that was already over when the page opened, and a replay, do not open it.
@@ -268,6 +279,7 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
     const overlap = n > 5 ? (n - 5) / (n - 1) : 0
     const replay = store.getReplayProgress()
     const close = () => setDialog(null)
+    const recordsOfThisRun = improvements?.run === shareQuery(state.config, state.seed) && !playing ? improvements.lines : []
     const dialogs = (
         <>
             {dialog === 'about' ? <AboutDialog state={screen === 'game' ? state : undefined} onClose={close} /> : null}
@@ -289,7 +301,7 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                     onClose={close}
                 />
             ) : null}
-            {dialog === 'summary' ? <SummaryDialog state={state} moves={session.moves} onClose={close} /> : null}
+            {dialog === 'summary' ? <SummaryDialog state={state} moves={session.moves} records={recordsOfThisRun} onClose={close} /> : null}
             {dialog === 'load' ? <LoadRunDialog onLoad={loadReplay} onClose={close} /> : null}
             {dialog === 'piles' ? <PilesDialog state={state} skin={skin} onClose={close} /> : null}
             {dialog === 'loadResults' ? <LoadResultsDialog onImport={importPastedResults} onClose={close} /> : null}

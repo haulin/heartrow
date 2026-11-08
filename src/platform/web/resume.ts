@@ -1,5 +1,6 @@
 import { standardMode } from '../../core'
 import type { Move } from '../../core'
+import { forgetStaleImprovements } from './challenges'
 import { hasRun, isChallenges, isEditor, isStandard, parseStartParams, randomSeed, shareQuery } from './mode'
 import type { AppStorage } from './storage'
 import { GameStore } from './store'
@@ -77,6 +78,7 @@ export function openStore(storage: AppStorage, search: string, version: string, 
     const started = link || resumed
 
     if (started) storage.set(KEY, runOf(store, version))
+    forgetStaleImprovements(storage, started ? shareQuery(store.getState().config, store.getState().seed) : null)
     let last = store.getMoves()
     store.subscribe(() => {
         // The moves list is replaced on every accepted move, undo and new game, and not otherwise.

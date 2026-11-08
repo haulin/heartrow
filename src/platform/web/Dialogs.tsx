@@ -328,7 +328,18 @@ function runFacts(state: GameState, moves: readonly Move[]): [label: string, val
 }
 
 /** Opens by itself when a run ends: how it ended, where the hearts came from, and the figures of the run. */
-export function SummaryDialog({ state, moves, onClose }: { state: GameState; moves: readonly Move[]; onClose: () => void }) {
+export function SummaryDialog({
+    state,
+    moves,
+    records,
+    onClose,
+}: {
+    state: GameState
+    moves: readonly Move[]
+    /** What this run improved in its goal's record, if anything. */
+    records: readonly string[]
+    onClose: () => void
+}) {
     const sources = heartsBreakdown(state)
     const largest = Math.max(1, ...sources.map((source) => source.amount))
     return (
@@ -337,6 +348,15 @@ export function SummaryDialog({ state, moves, onClose }: { state: GameState; mov
             <p class={`outcome ${state.status}`}>
                 <Rich text={outcomeLine(state) ?? `So far: ${state.hearts} ♥ on turn ${state.turn}.`} />
             </p>
+            {records.length > 0 ? (
+                <ul class="records">
+                    {records.map((line) => (
+                        <li key={line}>
+                            <Rich text={line} />
+                        </li>
+                    ))}
+                </ul>
+            ) : null}
             {sources.length > 0 ? (
                 <section>
                     <h3>Hearts from</h3>

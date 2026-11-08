@@ -1,16 +1,20 @@
 import { describe, expect, it } from 'vite-plus/test'
 import { CUSTOM_PRESETS, DEFAULT_CUSTOM, LONG_MODE, customMode, standardMode } from '../../src/core'
-import type { ModeConfig } from '../../src/core'
+import type { GameState, ModeConfig } from '../../src/core'
 import {
     LONG_GOAL,
     challengeList,
+    forgetStaleImprovements,
     goalOfMode,
     importResults,
+    improvementLines,
+    loadImprovements,
     loadResults,
     nextGoal,
     recordFinished,
     resultsText,
     runName,
+    saveImprovements,
 } from '../../src/platform/web/challenges'
 import type { SignedResults } from '../../src/platform/web/challenges'
 import { GameStore } from '../../src/platform/web/store'
@@ -94,6 +98,44 @@ describe('challenge results', () => {
         expect(nextGoal({ 'standard:0': won, 'standard:1': { ...won, won: false, turn: null } }, 'standard')).toBe(1)
         const all = Object.fromEntries([0, 1, 2, 3].map((g) => [`standard:${g}`, won]))
         expect(nextGoal(all, 'standard')).toBe(3)
+    })
+
+    it('names what a finished run improved in the record of its goal', () => {
+        const mode = standardMode(0)
+        const storage = createMemoryStorage()
+        const record = (state: GameState): string[] => {
+            const before = loadResults(storage)
+            const after = recordFinished(storage, state, V1)
+            return after ? improvementLines(before, after, state.config) : []
+        }
+        expect(record(finished(mode, 'lost', 40))).toEqual(['First result recorded'])
+        expect(record(finished(mode, 'lost', 30))).toEqual([])
+        expect(record(finished(mode, 'lost', 45))).toEqual(['New best: 45 ♥ (was 40)'])
+        expect(record(finished(mode, 'won', 50, 22))).toEqual(['First win', 'New best: 50 ♥ (was 45)'])
+        expect(record(finished(mode, 'won', 48, 19))).toEqual(['Fastest win: turn 19 (was 22)'])
+        expect(record(finished(mode, 'won', 48, 25))).toEqual([])
+        expect(record(finished(LONG_MODE, 'finished', 100))).toEqual(['First result recorded'])
+    })
+
+    it('keeps the improvement lines of a run for a reload, tied to the address of that run', () => {
+        const storage = createMemoryStorage()
+        expect(loadImprovements(storage)).toBeNull()
+        saveImprovements(storage, { run: '?x', lines: ['First win'] })
+        expect(loadImprovements(storage)).toEqual({ run: '?x', lines: ['First win'] })
+        storage.set('improvements', { run: 3 })
+        expect(loadImprovements(storage)).toBeNull()
+    })
+
+    it('forgets saved improvement lines that belong to another run, or to no saved run', () => {
+        const storage = createMemoryStorage()
+        saveImprovements(storage, { run: '?x', lines: ['First win'] })
+        forgetStaleImprovements(storage, '?x')
+        expect(loadImprovements(storage)).not.toBeNull()
+        forgetStaleImprovements(storage, '?y')
+        expect(loadImprovements(storage)).toBeNull()
+        saveImprovements(storage, { run: '?x', lines: ['First win'] })
+        forgetStaleImprovements(storage, null)
+        expect(loadImprovements(storage)).toBeNull()
     })
 
     it('merges pasted results by keeping the better record of each pair', () => {

@@ -174,6 +174,43 @@ export function recordFinished(storage: AppStorage, state: GameState, version: s
     return next
 }
 
+/** What a finished run changed in the record of its goal, as lines for the run summary. Empty when it beat nothing or has no goal. */
+export function improvementLines(before: Results, after: Results, config: ModeConfig): string[] {
+    const target = goalOfMode(config)
+    const next = target ? after[keyOf(target)] : undefined
+    if (!target || !next) return []
+    const old = before[keyOf(target)]
+    if (!old) return [next.won ? 'First win' : 'First result recorded']
+    const lines: string[] = []
+    if (next.won && !old.won) lines.push('First win')
+    if (next.best > old.best) lines.push(`New best: ${next.best} ♥ (was ${old.best})`)
+    if (next.turn !== null && old.turn !== null && next.turn < old.turn) lines.push(`Fastest win: turn ${next.turn} (was ${old.turn})`)
+    return lines
+}
+
+/** The lines of the latest run that changed a record, with the address of that run, so a reload still shows them for that run only. */
+export interface RunImprovements {
+    run: string
+    lines: string[]
+}
+
+const IMPROVEMENTS_KEY = 'improvements'
+
+export function loadImprovements(storage: AppStorage): RunImprovements | null {
+    const saved = storage.get<Partial<RunImprovements> | null>(IMPROVEMENTS_KEY, null)
+    const valid = saved && typeof saved.run === 'string' && Array.isArray(saved.lines) && saved.lines.every((l) => typeof l === 'string')
+    return valid ? { run: saved.run!, lines: saved.lines! } : null
+}
+
+/** Drops saved lines that belong to a run other than `current` (null when no run is saved), so they live as long as the saved run does. */
+export function forgetStaleImprovements(storage: AppStorage, current: string | null): void {
+    if (loadImprovements(storage)?.run !== current) storage.remove(IMPROVEMENTS_KEY)
+}
+
+export function saveImprovements(storage: AppStorage, improvements: RunImprovements): void {
+    storage.set(IMPROVEMENTS_KEY, improvements)
+}
+
 /** The results with a signature over them. It is what is stored and what is copied to another device. */
 export interface SignedResults {
     results: Results

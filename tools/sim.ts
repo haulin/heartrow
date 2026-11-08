@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import {
     ALL_PROFILE_IDS,
+    CUSTOM_EFFECTS,
     CUSTOM_PRESETS,
     DEFAULT_CUSTOM,
     GOALS,
@@ -21,7 +22,7 @@ import {
     runBatch,
     standardMode,
 } from '../src/core'
-import type { Card, GameState, Move, ProfileId, ProfileOptions, SelectionMode } from '../src/core'
+import type { Card, EffectId, GameState, Move, ProfileId, ProfileOptions, SelectionMode } from '../src/core'
 // A saved run is a web record (its address is a link), so the replay reads it with the web layer's own parser.
 import { parseStartParams, shareQuery } from '../src/platform/web/mode'
 import { deckSummary } from '../src/platform/web/text'
@@ -270,6 +271,12 @@ export function main(argv: string[]): void {
     const level = Math.min(Math.max(Math.round(Number(args.goal ?? 1)) - 1, 0), GOALS.length - 1)
     const preset = args.preset ? CUSTOM_PRESETS.find((p) => p.id === args.preset) : undefined
     if (args.preset && !preset) throw new Error(`Unknown preset "${args.preset}". Known: ${CUSTOM_PRESETS.map((p) => p.id).join(', ')}`)
+    const effects = args.effects?.split(',') as EffectId[] | undefined
+    if (effects && !preset) throw new Error('--effects replaces the effects of a preset, so it needs --preset')
+    for (const effect of effects ?? []) {
+        if (!CUSTOM_EFFECTS.includes(effect)) throw new Error(`Unknown effect "${effect}". Known: ${CUSTOM_EFFECTS.join(', ')}`)
+    }
+    const generator = preset ? { ...preset.generator, ...(effects ? { effects } : {}) } : undefined
     const starterGold = args.sg === undefined ? undefined : Math.max(0, Math.round(Number(args.sg)))
     const starterPower = args.sp === undefined ? undefined : Math.max(0, Math.round(Number(args.sp)))
     const phaseValues = args.phase?.split(',').map(Number)
@@ -287,7 +294,7 @@ export function main(argv: string[]): void {
     if ((starterGold !== undefined || starterPower !== undefined) && args.mode === 'long') {
         throw new Error('Starter overrides are only supported for Standard and custom modes')
     }
-    const starterBase = preset?.generator ?? DEFAULT_CUSTOM
+    const starterBase = generator ?? DEFAULT_CUSTOM
     const starterOverride = starterGold !== undefined || starterPower !== undefined
     const config = starterOverride
         ? customMode({
@@ -296,12 +303,16 @@ export function main(argv: string[]): void {
               starterGold: starterGold ?? starterBase.starterGold,
               starterPower: starterPower ?? starterBase.starterPower,
           })
-        : preset
-          ? customMode({ ...preset.generator, goalLevel: level })
+        : generator
+          ? customMode({ ...generator, goalLevel: level })
           : args.mode === 'long'
             ? LONG_MODE
             : standardMode(level)
-    const modeBase = preset ? `${preset.id}` : args.mode === 'long' ? 'long' : `std${level + 1}`
+    const modeBase = preset
+        ? `${preset.id}${effects ? `-fx[${effects.join(',')}]` : ''}`
+        : args.mode === 'long'
+          ? 'long'
+          : `std${level + 1}`
     const phaseSuffix = phaseValues ? `-phase${phaseValues[0]}-${phaseValues[1]}` : ''
     const modeId = `${starterOverride ? `${modeBase}-sg${config.starter.basicGold}-sp${config.starter.basicPower}` : modeBase}${phaseSuffix}`
     const ids = (args.policies ?? PROFILE_IDS.join(',')).split(',') as ProfileId[]
