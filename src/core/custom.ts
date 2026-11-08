@@ -1,6 +1,6 @@
 import { EFFECTS } from './effects'
 import { unmetNeeds } from './generator/limits'
-import { GOALS, standardMode } from './modes'
+import { standardMode } from './modes'
 import type { EffectId, GeneratorCardType, GeneratorConfig, GeneratorResource, ModeConfig } from './types'
 
 /** A custom generator: a Standard goal, the Basic cards you start with, and what the generator may use. Plain data, so any platform can store or share it. */
@@ -48,9 +48,36 @@ export const CUSTOM_PRESETS: readonly CustomPreset[] = [
             ...DEFAULT_CUSTOM,
             types: ['moss'],
             resources: ['gold', 'hearts'],
-            effects: ['draw', 'flip', 'exile', 'cheap', 'basics', 'bond', 'kin', 'reapG'],
+            effects: ['draw', 'flip', 'exile', 'basics', 'bond', 'kin', 'reapG'],
             starterGold: STARTER.basicGold + STARTER.basicPower,
             starterPower: 0,
+        },
+    },
+    {
+        id: 'ember',
+        name: 'Ember combat',
+        generator: {
+            ...DEFAULT_CUSTOM,
+            types: ['ember', 'foe'],
+            effects: [
+                'draw',
+                'flip',
+                'exile',
+                'foes',
+                'pile',
+                'hoard',
+                'bulk',
+                'bond',
+                'kin',
+                'weak',
+                'army',
+                'swap',
+                'reapP',
+                'reload',
+                'push',
+            ],
+            starterGold: 7,
+            starterPower: 3,
         },
     },
     { id: 'simple', name: 'Simple only', generator: { ...DEFAULT_CUSTOM, effects: [] } },
@@ -61,7 +88,7 @@ export const CUSTOM_PRESETS: readonly CustomPreset[] = [
             ...DEFAULT_CUSTOM,
             types: ['foe'],
             resources: ['power', 'hearts'],
-            effects: ['foes', 'weak'],
+            effects: ['flip', 'foes', 'bulk', 'weak', 'push', 'shift'],
             starterGold: 0,
             starterPower: 5,
         },
@@ -73,7 +100,7 @@ export const CUSTOM_PRESETS: readonly CustomPreset[] = [
             ...DEFAULT_CUSTOM,
             types: ['moss', 'tide'],
             resources: ['gold', 'hearts'],
-            effects: ['draw', 'flip', 'exile', 'cheap', 'vault', 'bond', 'kin', 'army', 'cycle', 'purge', 'reapG'],
+            effects: ['draw', 'flip', 'exile', 'cheap', 'vault', 'bond', 'kin', 'army', 'cycle', 'redraw', 'reapG', 'echo'],
             starterGold: STARTER.basicGold + STARTER.basicPower,
             starterPower: 0,
         },
@@ -85,23 +112,17 @@ export const CUSTOM_PRESETS: readonly CustomPreset[] = [
             ...DEFAULT_CUSTOM,
             types: ['tide'],
             resources: ['gold', 'hearts'],
-            effects: ['draw', 'exile', 'cheap', 'vault', 'bond', 'kin', 'cycle', 'purge'],
+            effects: ['draw', 'exile', 'cheap', 'vault', 'bond', 'kin', 'cycle', 'redraw', 'echo'],
             starterGold: STARTER.basicGold + STARTER.basicPower,
             starterPower: 0,
         },
     },
-    {
-        id: 'ember',
-        name: 'Ember combat',
-        generator: {
-            ...DEFAULT_CUSTOM,
-            types: ['ember', 'foe'],
-            effects: ['draw', 'flip', 'exile', 'foes', 'pile', 'bond', 'kin', 'weak', 'army', 'swap', 'reapP'],
-            starterGold: 7,
-            starterPower: 3,
-        },
-    },
 ]
+
+/** The Standard game at a goal. It is the default generator like any other, so its link spells the generator out. */
+export function standardRun(goalIndex: number): ModeConfig {
+    return customMode({ ...DEFAULT_CUSTOM, goalLevel: goalIndex })
+}
 
 export function customMode(def: CustomGenerator): ModeConfig {
     const base = standardMode(def.goalLevel)
@@ -155,16 +176,14 @@ export function customSummary(def: CustomGenerator): string {
 
 /** The generator settings any mode amounts to, as a starting point for editing: a custom run's own, otherwise the defaults at its goal. */
 export function customOfMode(config: ModeConfig): CustomGenerator {
-    const goalLevel = Math.max(0, GOALS.indexOf(config.goal ?? GOALS[0]!))
-    return customFromMode(config) ?? { ...DEFAULT_CUSTOM, goalLevel }
+    return customFromMode(config) ?? { ...DEFAULT_CUSTOM, goalLevel: config.goalIndex }
 }
 
 /** Reads a custom generator back out of a running custom mode, so a platform can reuse it. */
 export function customFromMode(config: ModeConfig): CustomGenerator | null {
     if (config.id !== CUSTOM_ID || !config.generator) return null
-    const goalLevel = Math.max(0, GOALS.indexOf(config.goal ?? GOALS[0]!))
     return {
-        goalLevel,
+        goalLevel: config.goalIndex,
         types: [...config.generator.allowedTypes],
         resources: [...config.generator.allowedResources],
         effects: [...config.generator.allowedEffects],

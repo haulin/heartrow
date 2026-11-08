@@ -1,11 +1,12 @@
 import { useEffect, useLayoutEffect, useRef } from 'preact/hooks'
-import { GOALS, LONG_MODE } from '../../core'
+import { GOALS } from '../../core'
 import type { ModeConfig } from '../../core'
-import { LONG_GOAL, resultOf, selectedGoal } from './challenges'
+import { resultOf, selectedGoal } from './challenges'
 import type { Challenge, ChallengeView, Result, Results } from './challenges'
 import { Glyph } from './Glyph'
 import { Rich } from './Rich'
 import { ResultNote } from './ResultNote'
+import { goalLine } from './text'
 
 /** The row counts as stopped when it has not scrolled for this long. */
 const SCROLL_STOP_MS = 120
@@ -13,17 +14,13 @@ const SCROLL_STOP_MS = 120
 /** A mouse press that moves less than this is still a click. */
 const CLICK_SLOP_PX = 5
 
-/** One star per goal, filled when won. Long Run fills once it was played. */
+/** One star per goal, filled when won. */
 function Stars({ challenge, results }: { challenge: Challenge; results: Results }) {
     if (!challenge.tracked) return <div class="stars" />
-    const goals = challenge.hasLongRun ? [...GOALS.keys(), LONG_GOAL] : [...GOALS.keys()]
-    const won = goals.map((goal) => {
-        const result = resultOf(results, challenge.id, goal)
-        return goal === LONG_GOAL ? result.best !== null : result.won
-    })
+    const won = GOALS.map((_, goal) => resultOf(results, challenge.id, goal).won)
     const count = won.filter(Boolean).length
     return (
-        <div class="stars" role="img" aria-label={`${count} of ${goals.length} goals done`}>
+        <div class="stars" role="img" aria-label={`${count} of ${GOALS.length} goals done`}>
             {won.map((on, i) => (
                 <Glyph key={i} name={on ? 'star' : 'star-outline'} />
             ))}
@@ -168,21 +165,19 @@ function GoalRow({
     label,
     detail,
     result,
-    isLong,
     selected,
     onSelect,
 }: {
     label: string
     detail: string
     result: Result | null
-    isLong: boolean
     selected: boolean
     onSelect: () => void
 }) {
     return (
         <button
             type="button"
-            class={`goalrow${selected ? ' on' : ''}${result?.won && !isLong ? ' won' : ''}`}
+            class={`goalrow${selected ? ' on' : ''}${result?.won ? ' won' : ''}`}
             role="radio"
             aria-checked={selected}
             onClick={onSelect}
@@ -196,15 +191,11 @@ function GoalRow({
             </span>
             {result ? (
                 <span class="goalrow-result">
-                    <ResultNote result={result} isLong={isLong} />
+                    <ResultNote result={result} />
                 </span>
             ) : null}
         </button>
     )
-}
-
-function goalLabel(goal: number): string {
-    return goal === LONG_GOAL ? 'Long Run' : `Level ${goal + 1}`
 }
 
 /** The goals of one challenge, in a list that scrolls, so any number of goals fits. */
@@ -221,25 +212,18 @@ function GoalList({
     onSelect: (goal: number) => void
     onEdit: () => void
 }) {
-    const goals = challenge.hasLongRun ? [...GOALS.keys(), LONG_GOAL] : [...GOALS.keys()]
     return (
         <div class="goals" role="radiogroup" aria-label="Goal">
-            {goals.map((goal) => {
-                const isLong = goal === LONG_GOAL
-                const mode: ModeConfig = isLong ? LONG_MODE : challenge.mode(goal)
-                const detail = isLong ? `No target, ${mode.turns} turns, scored by hearts` : `${mode.goal} ♥ in ${mode.turns} turns`
-                return (
-                    <GoalRow
-                        key={goal}
-                        label={goalLabel(goal)}
-                        detail={detail}
-                        result={challenge.tracked ? resultOf(results, challenge.id, goal) : null}
-                        isLong={isLong}
-                        selected={selected === goal}
-                        onSelect={() => onSelect(goal)}
-                    />
-                )
-            })}
+            {GOALS.map((goal, index) => (
+                <GoalRow
+                    key={goal.key}
+                    label={goal.name}
+                    detail={goalLine(goal)}
+                    result={challenge.tracked ? resultOf(results, challenge.id, index) : null}
+                    selected={selected === index}
+                    onSelect={() => onSelect(index)}
+                />
+            ))}
             {challenge.tracked ? null : (
                 <button type="button" class="goalrow edit" onClick={onEdit}>
                     <span class="goalrow-text">
@@ -293,7 +277,7 @@ export function ChallengeScreen({ challenges, results, replaces, onStart, onEdit
                 onEdit={onEdit}
             />
             <button type="button" class="b start" onClick={() => onStart(current.mode(selected))}>
-                Start {current.name} · {goalLabel(selected)}
+                Start {current.name} · {GOALS[selected]!.name}
             </button>
             {replaces ? <p class="replaces">Starting replaces the run in progress.</p> : null}
         </main>

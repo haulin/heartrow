@@ -13,6 +13,7 @@ export interface EffectParams {
     currency?: GeneratorResource
     drawCount?: number
     bondCount?: number
+    shiftCount?: number
     amount?: number
     perCards?: number
     costPerCards?: number
@@ -35,10 +36,14 @@ export type EffectId =
     | 'weak'
     | 'army'
     | 'cycle'
-    | 'purge'
+    | 'redraw'
     | 'swap'
     | 'reapG'
     | 'reapP'
+    | 'reload'
+    | 'push'
+    | 'shift'
+    | 'echo'
 
 export interface Card {
     id: number
@@ -84,6 +89,10 @@ export interface GameState {
     goal: number | null
     status: GameStatus
     goalReached: boolean
+    /** The first turn that ended with the goal met. A run that plays on after the goal still counts as won. */
+    goalMetTurn: number | null
+    /** Whether the player chose to play on after meeting the goal. */
+    continued: boolean
     hearts: number
     gold: number
     power: number
@@ -93,6 +102,12 @@ export interface GameState {
     reapPower: number
     flushes: number
     typesPlayed: CardType[]
+    /** The last card played or enemy defeated this turn (a copy), for Echo. */
+    lastUsed: Card | null
+    /** Enemies defeated this turn, for Reload. */
+    defeatedThisTurn: number
+    /** River cards made this turn. Every few of them make the next one as hard as a card of a later turn. */
+    generatedThisTurn: number
     pendingExile: boolean
     deck: Card[]
     hand: Card[]
@@ -112,6 +127,8 @@ export type Move =
     | { type: 'take'; rowIndex: number }
     | { type: 'flush' }
     | { type: 'endTurn' }
+    /** After a win with turns left: play on to the last turn. The hearts then count as a score. */
+    | { type: 'continue' }
 
 export interface Gains {
     gold: number
@@ -128,6 +145,7 @@ export type RejectReason =
     | 'cannotExile'
     | 'cannotAfford'
     | 'noFlushes'
+    | 'cannotContinue'
     | 'noSuchCard'
     | 'noExilePending'
     | 'unknownMove'
@@ -138,8 +156,10 @@ export type GameEvent =
     | { type: 'drew'; cardIds: number[]; requested: number; cause: DrawCause }
     | { type: 'reshuffled' }
     | { type: 'flipped'; currency: GeneratorResource; amount: number }
-    | { type: 'swapped' }
-    | { type: 'cycled'; count: number; purge: boolean }
+    | { type: 'swapped'; gold: number; power: number }
+    | { type: 'pushed'; card: Card }
+    | { type: 'echoed'; card: Card | null }
+    | { type: 'cycled'; count: number; redraw: boolean }
     | { type: 'exiled'; card: Card }
     | { type: 'exileSkipped' }
     | { type: 'recruited'; card: Card; paid: number }
@@ -172,6 +192,8 @@ export interface ModeConfig {
     turns: number
     flushEvery: number
     goal: number | null
+    /** Which of `GOALS` this mode plays for. */
+    goalIndex: number
     difficultyCapTurn: number
     steps: DifficultyStep[]
     lateFillerFromTurn: number | null

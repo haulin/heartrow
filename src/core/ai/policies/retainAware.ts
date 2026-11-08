@@ -47,8 +47,8 @@ export function retainChanges(state: GameState, card: Card): boolean {
                 if (owned().filter((c) => c.type === card.type).length >= 4) return true
                 break
             case 'cycle':
-            case 'purge':
-                if (state.hand.some((c) => !c.played && c !== card && (fx === 'purge' || !c.retain))) return true
+            case 'redraw':
+                if (state.hand.some((c) => !c.played && c !== card && (fx === 'redraw' || !c.retain))) return true
                 break
         }
     }

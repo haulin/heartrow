@@ -1,4 +1,4 @@
-import { CUSTOM_EFFECTS, CUSTOM_RESOURCES, CUSTOM_TYPES, GOALS, STARTER } from '../../core'
+import { CUSTOM_EFFECTS, CUSTOM_RESOURCES, CUSTOM_TYPES, GOALS, STARTER, goalIndexOfKey } from '../../core'
 import type { CustomGenerator, EffectId } from '../../core'
 
 /** The link side of custom generators: reading and writing the address. The data and the presets live in core. */
@@ -15,18 +15,17 @@ function count(raw: string | null, fallback: number): number {
 }
 
 /**
- * `goal` is 1 to 3. A missing `types`, `res` or `fx` means all of them, and an empty `fx` means none. Unknown names are ignored.
+ * `goal` is the key of a goal (`1` to `4`, or `long`). A missing `types`, `res` or `fx` means all of them, and an empty `fx` means none. Unknown names are ignored.
  * `sg` and `sp` are the Basic gold and power cards you start with.
  */
 export function parseCustom(params: URLSearchParams): CustomGenerator {
-    const goal = Number(params.get('goal'))
     const types = pick(params.get('types'), CUSTOM_TYPES)
     const resources = pick(params.get('res'), CUSTOM_RESOURCES)
     const starterGold = count(params.get('sg'), STARTER.basicGold)
     const starterPower = count(params.get('sp'), STARTER.basicPower)
     const hasStarter = starterGold + starterPower > 0
     return {
-        goalLevel: Number.isInteger(goal) && goal >= 1 && goal <= GOALS.length ? goal - 1 : 0,
+        goalLevel: goalIndexOfKey(params.get('goal')) ?? 0,
         types: types && types.length > 0 ? types : [...CUSTOM_TYPES],
         resources: resources && resources.length > 0 ? resources : [...CUSTOM_RESOURCES],
         effects: pick(params.get('fx'), CUSTOM_EFFECTS) ?? [...CUSTOM_EFFECTS],
@@ -36,7 +35,7 @@ export function parseCustom(params: URLSearchParams): CustomGenerator {
 }
 
 export function customQuery(def: CustomGenerator): string {
-    return `goal=${def.goalLevel + 1}&types=${def.types.join(',')}&res=${def.resources.join(',')}&sg=${def.starterGold}&sp=${def.starterPower}&fx=${def.effects.join(',')}`
+    return `goal=${GOALS[def.goalLevel]!.key}&types=${def.types.join(',')}&res=${def.resources.join(',')}&sg=${def.starterGold}&sp=${def.starterPower}&fx=${def.effects.join(',')}`
 }
 
 /** The address of the editor screen: `screen=custom` and the settings, with no seed and no mode, so it starts no run. */

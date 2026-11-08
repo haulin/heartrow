@@ -35,8 +35,7 @@ export class ErrorBoundary extends Component<{ children: ComponentChildren }, St
         const { error } = this.state
         if (error === null) return this.props.children
         return (
-            <Modal onClose={() => window.location.reload()}>
-                <h2>Something went wrong</h2>
+            <Modal title="Something went wrong" onClose={() => window.location.reload()}>
                 <p>{error.message}</p>
                 <p class="rules">Closing this reloads the page. Your run is kept.</p>
             </Modal>

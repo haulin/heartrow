@@ -7,7 +7,7 @@ const isHeart = (card: Card) => card.hearts > 0 || card.fx.some((fx) => HEART_FX
 
 function playTier(card: Card): number {
     if (isHeart(card)) return 8
-    if (card.fx.includes('purge')) return 6
+    if (card.fx.includes('redraw')) return 6
     if (card.gold > 0) return 4
     if (card.fx.length && !card.fx.includes('cycle')) return 2
     return card.fx.length ? 1 : 0
@@ -19,7 +19,7 @@ function buyScore(state: GameState, card: Card): number {
     const heartFx = card.fx.reduce((v, fx) => v + (HEART_FX[fx] ?? 0), 0)
     const exile = card.fx.includes('exile') ? 18 : 0
     const draw = card.fx.includes('draw') ? 8 : 0
-    const cycle = card.fx.some((fx) => fx === 'cycle' || fx === 'purge') ? 14 : 0
+    const cycle = card.fx.some((fx) => fx === 'cycle' || fx === 'redraw') ? 14 : 0
     return 20 + card.hearts * 25 + card.gold * 4 + heartFx + exile + draw + cycle + card.fx.length * 4 - cardCost(state, card)
 }
 

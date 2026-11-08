@@ -5,7 +5,9 @@ import type { EffectDef } from './types'
 export const bulk: EffectDef = {
     id: 'bulk',
     price: 0,
-    text: 'Needs −1 ⚔ per {d} cards in your deck',
+    family: 'price',
+    describe: (card) => `Needs −1 ⚔ per ${card?.fxParams?.costPerCards ?? BULK_CARDS_PER_STEP} cards in your deck`,
+    passive: true,
     enemies: true,
     enemyOnly: true,
     needs: ['foe', 'power'],

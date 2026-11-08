@@ -1,10 +1,8 @@
 import { EFFECT_BY_ID } from '../../core'
-import type { Card, EffectId, GameState, HeartSource, Move } from '../../core'
+import type { Card, EffectId, GameState, GoalDef, HeartSource, Move } from '../../core'
 
 export const INTRO_TEXT =
     'Click hand cards to play them, or recruit row cards to buy them. Gold ● buys recruits; power ⚔ defeats enemies for their ♥.'
-
-export const longIntro = (turns: number): string => `Long Run: build the highest heart score over ${turns} turns.`
 
 export const spoken = (s: string): string =>
     s
@@ -89,11 +87,18 @@ function runSummary(state: GameState, moves: readonly Move[]): string {
     return [statsSummary(state), heartsSummary(state), movesSummary(moves)].filter((part) => part !== '').join(' ')
 }
 
+/** A goal in a few words, for a button or a menu entry. */
+export function goalLine({ target, turns }: Pick<GoalDef, 'target' | 'turns'>): string {
+    return `${target} ♥ in ${turns} turns`
+}
+
 /** How a finished run ended, in one sentence, or null while it is being played. */
 export function outcomeLine(state: GameState): string | null {
     switch (state.status) {
         case 'won':
-            return `You won with ${state.hearts} ♥ on turn ${state.turn}.`
+            return state.goalMetTurn === state.turn
+                ? `You won with ${state.hearts} ♥ on turn ${state.turn}.`
+                : `You won on turn ${state.goalMetTurn} and finished with ${state.hearts} ♥ after ${state.turn} turns.`
         case 'lost':
             return `Out of turns: ${state.hearts}/${state.goal} ♥.`
         case 'finished':

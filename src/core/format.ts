@@ -1,61 +1,21 @@
-import type { Card, CardType, EffectId, GameEvent, GameState, Gains, GeneratorResource } from './types'
+import { EFFECT_BY_ID } from './effects'
+import { TYPE_NAMES, symbol } from './effects/wording'
+import type { Card, GameEvent, GameState, Gains } from './types'
 
 export interface FormatContext {
     turn: number
     edgeEnemyHearts?: number | undefined
 }
 
-export const TYPE_NAMES: Record<CardType, string> = {
-    moss: 'Moss',
-    ember: 'Ember',
-    tide: 'Tide',
-    plain: 'Basic',
-    foe: 'Enemy',
-}
-
-const EFFECT_TEMPLATES: Record<EffectId, string> = {
-    draw: 'Draw {n}',
-    flip: '+2 or +4 {c}',
-    exile: 'Exile a card or river recruit',
-    cheap: 'Recruits cost −{a} ● this turn',
-    foes: '+1 ⚔ per enemy in the recruit row',
-    all3: '+2 ♥ if you played all 3 types this turn',
-    vault: '+1 ♥ per 3 cards in exile',
-    basics: '+1 {c} per 4 basic cards in your deck',
-    pile: '+1 {c} per 3 cards in your discard',
-    hoard: '+{a} {c} per {d} cards in your deck',
-    bulk: 'Needs −1 ⚔ per {d} cards in your deck',
-    bond: '+{n} {m} if you played {T} earlier this turn',
-    kin: '+1 {k} per other {T} card played this turn',
-    weak: 'Enemies need −{a} ⚔ this turn',
-    army: '+1 {k} per 4 {T} cards in your deck',
-    cycle: 'Cycle unplayed cards except Retain ones',
-    purge: 'Redraw all unplayed cards, even Retain ones',
-    swap: 'Swap ● and ⚔',
-    reapG: 'End of turn: +1 ♥ per 3 unspent ●',
-    reapP: 'End of turn: +1 ♥ per 2 unspent ⚔',
-}
-
-/** Effects that act while the enemy is in the row, so they carry no "Defeat:" prefix. */
-const PASSIVE_ENEMY_EFFECTS: readonly EffectId[] = ['bulk']
+export { TYPE_NAMES }
 
 const RETAIN_TEXT = '↺ Retain: stays in hand if unplayed'
 
-const symbol = (currency: GeneratorResource | undefined): string => (currency === 'power' ? '⚔' : currency === 'hearts' ? '♥' : '●')
-
 export function effectText(card: Card): string[] {
     const lines = card.fx.map((id) => {
-        const n = id === 'draw' ? (card.fxParams?.drawCount ?? 1) : (card.fxParams?.bondCount ?? 1)
-        const outputCurrency = card.fxParams?.currency ?? (id === 'pile' ? 'power' : id === 'kin' || id === 'army' ? card.main : 'gold')
-        const text = EFFECT_TEMPLATES[id]
-            .replaceAll('{m}', symbol(card.main))
-            .replaceAll('{k}', symbol(outputCurrency))
-            .replaceAll('{c}', symbol(outputCurrency))
-            .replaceAll('{n}', String(n))
-            .replaceAll('{a}', String(card.fxParams?.amount ?? 1))
-            .replaceAll('{d}', String(card.fxParams?.perCards ?? card.fxParams?.costPerCards ?? 1))
-            .replaceAll('{T}', TYPE_NAMES[card.type])
-        return card.kind === 'enemy' && !PASSIVE_ENEMY_EFFECTS.includes(id) ? `Defeat: ${text}` : text
+        const effect = EFFECT_BY_ID[id]
+        const text = effect.describe(card)
+        return card.kind === 'enemy' && !effect.passive ? `Defeat: ${text}` : text
     })
     if (card.retain) lines.push(RETAIN_TEXT)
     return lines
@@ -101,7 +61,12 @@ export function formatEvent(event: GameEvent, ctx: FormatContext): string | null
         case 'flipped':
             return `Flip: +${event.amount} ${symbol(event.currency)}.`
         case 'swapped':
-            return 'Swapped ● and ⚔.'
+            return `Swapped ● and ⚔: now ${event.gold} ● and ${event.power} ⚔.`
+        case 'pushed':
+            return 'Pushed the right-most enemy to the left end.'
+        case 'echoed':
+            if (!event.card) return 'Echo: nothing to repeat.'
+            return event.card.kind === 'enemy' ? 'Echo: repeated an enemy.' : `Echo: repeated a ${TYPE_NAMES[event.card.type]} card.`
         case 'cycled':
             return event.count > 0 ? `Cycled ${event.count} cards.` : 'Nothing to discard.'
         case 'exiled':

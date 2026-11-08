@@ -1,11 +1,13 @@
 import { RETAIN_SOMETIMES } from '../generator/budget'
 import { chance } from '../rng'
 import type { EffectDef } from './types'
+import { resourceSlot } from './wording'
 
 export const flip: EffectDef = {
     id: 'flip',
     price: 2.5,
-    text: '+2 or +4 ●',
+    family: 'resource',
+    describe: (card) => `+2 or +4 ${resourceSlot(card, 'gold')}`,
     enemies: true,
     needsAny: ['gold', 'power'],
     lean: ['moss'],

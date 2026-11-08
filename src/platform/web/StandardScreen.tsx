@@ -1,10 +1,11 @@
-import { GOALS, LONG_MODE, standardMode } from '../../core'
+import { GOALS, LONG_GOAL, standardRun } from '../../core'
 import type { ModeConfig } from '../../core'
-import { LONG_GOAL, resultOf } from './challenges'
+import { resultOf } from './challenges'
 import type { Results } from './challenges'
 import { Glyph } from './Glyph'
 import { ResultNote } from './ResultNote'
 import { Rich } from './Rich'
+import { goalLine } from './text'
 
 const STANDARD = 'standard'
 
@@ -21,7 +22,6 @@ export function StandardScreen({
     onPick: (config: ModeConfig) => void
     onBack: () => void
 }) {
-    const longResult = resultOf(results, STANDARD, LONG_GOAL)
     return (
         <main class="levelpick">
             <header>
@@ -37,35 +37,26 @@ export function StandardScreen({
             </p>
             {replaces ? <p class="replaces">Picking a level starts a new run and replaces the one in progress.</p> : null}
             <nav class="levels" aria-label="Levels">
-                {GOALS.map((_, level) => {
-                    const mode = standardMode(level)
+                {GOALS.map((goal, level) => {
+                    const mode = standardRun(level)
                     const result = resultOf(results, STANDARD, level)
                     return (
                         <button
-                            key={level}
+                            key={goal.key}
                             type="button"
-                            class={`b level l${level}${result.won ? ' won' : ''}`}
+                            class={`b level ${level === LONG_GOAL ? 'long' : `l${level}`}${result.won ? ' won' : ''}`}
                             onClick={() => onPick(mode)}
                         >
-                            <span class="lv">Level {level + 1}</span>
+                            <span class="lv">{goal.name}</span>
                             <span class="sub">
-                                <Rich text={`${mode.goal} ♥ in ${mode.turns} turns`} />
+                                <Rich text={goalLine(goal)} />
                             </span>
                             <span class="result">
-                                <ResultNote result={result} isLong={false} />
+                                <ResultNote result={result} />
                             </span>
                         </button>
                     )
                 })}
-                <button type="button" class="b level long" onClick={() => onPick(LONG_MODE)}>
-                    <span class="lv">Long Run</span>
-                    <span class="sub">
-                        <Rich text={`${LONG_MODE.turns} turns, no target, high score`} />
-                    </span>
-                    <span class="result">
-                        <ResultNote result={longResult} isLong />
-                    </span>
-                </button>
             </nav>
         </main>
     )

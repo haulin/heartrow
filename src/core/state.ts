@@ -26,6 +26,7 @@ export function cloneState(state: GameState): GameState {
             }),
         },
         typesPlayed: state.typesPlayed.slice(),
+        lastUsed: state.lastUsed && cloneCard(state.lastUsed),
         deck: cards(state.deck),
         hand: cards(state.hand),
         discard: cards(state.discard),
@@ -34,6 +35,15 @@ export function cloneState(state: GameState): GameState {
         stats: { ...state.stats, heartsFrom: { ...state.stats.heartsFrom } },
         streams: { gen: cloneRng(state.streams.gen), shuffle: cloneRng(state.streams.shuffle), flip: cloneRng(state.streams.flip) },
     }
+}
+
+/** The right-edge card leaves the river. An enemy that leaves costs its hearts. */
+export function dropEdge(state: GameState, events: GameEvent[]): void {
+    const out = state.row.pop()!
+    if (out.kind !== 'enemy') return
+    state.hearts -= out.hearts
+    state.stats.lostToEscapes += out.hearts
+    events.push({ type: 'escaped', card: cloneCard(out), hearts: out.hearts })
 }
 
 /** Notes hearts that were just added to the state, so a finished run can say where they came from. */

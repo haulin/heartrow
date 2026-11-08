@@ -4,7 +4,8 @@ import type { EffectDef } from './types'
 export const foes: EffectDef = {
     id: 'foes',
     price: 2,
-    text: '+1 ⚔ per enemy in the recruit row',
+    family: 'resource',
+    describe: () => '+1 ⚔ per enemy in the recruit row',
     enemies: true,
     needs: ['foe', 'power'],
     lean: ['ember'],

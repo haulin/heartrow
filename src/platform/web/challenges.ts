@@ -1,10 +1,7 @@
-import { CUSTOM_PRESETS, GOALS, LONG_MODE, customFromMode, customMode, customSummary, standardMode } from '../../core'
+import { CUSTOM_PRESETS, GOALS, customMode, customOfMode, customSummary, goalIndexOfKey } from '../../core'
 import type { CustomGenerator, GameState, ModeConfig } from '../../core'
 import { customQuery } from './custom'
 import type { AppStorage } from './storage'
-
-/** The goal list of a challenge: the Standard levels by index, then Long Run. */
-export const LONG_GOAL = GOALS.length
 
 export interface Challenge {
     id: string
@@ -13,11 +10,9 @@ export interface Challenge {
     icon: string
     /** The colour of its card, as a CSS value. */
     accent: string
-    /** Whether this challenge has a Long Run goal (only Standard has one so far). */
-    hasLongRun: boolean
     /** Custom runs differ every time, so no results are kept for them. */
     tracked: boolean
-    /** The run for a goal: a level index, or `LONG_GOAL`. */
+    /** The run for a goal, by its index in `GOALS`. */
     mode: (goal: number) => ModeConfig
 }
 
@@ -47,7 +42,6 @@ export const PRESET_LOOKS: Record<string, Look> = {
 
 const CUSTOM_CHALLENGE_ID = 'custom'
 const CUSTOM_LOOK: Look = { icon: 'sliders', accent: 'var(--pow)' }
-const LONG_LOOK: Look = { icon: 'long', accent: 'var(--tide)' }
 const UNKNOWN_LOOK: Look = { icon: 'plain', accent: 'var(--dim)' }
 
 function presetChallenge(id: string, name: string, generator: CustomGenerator): Challenge {
@@ -57,12 +51,8 @@ function presetChallenge(id: string, name: string, generator: CustomGenerator): 
         name,
         blurb: isStandard ? 'Every card type, resource and effect.' : customSummary(generator),
         ...(PRESET_LOOKS[id] ?? UNKNOWN_LOOK),
-        hasLongRun: isStandard,
         tracked: true,
-        mode: (goal) => {
-            if (isStandard) return goal === LONG_GOAL ? LONG_MODE : standardMode(goal)
-            return customMode({ ...generator, goalLevel: goal })
-        },
+        mode: (goal) => customMode({ ...generator, goalLevel: goal }),
     }
 }
 
@@ -75,7 +65,6 @@ export function challengeList(custom: CustomGenerator): Challenge[] {
             name: 'Custom',
             blurb: 'Choose the card types, resources, effects and starter yourself.',
             ...CUSTOM_LOOK,
-            hasLongRun: false,
             tracked: false,
             mode: (goal) => customMode({ ...custom, goalLevel: goal }),
         },
@@ -99,14 +88,9 @@ export interface ChallengeGoal {
 
 /** The tracked challenge goal a run belongs to, or null for a run that matches none (a hand-edited custom generator). */
 export function goalOfMode(config: ModeConfig): ChallengeGoal | null {
-    if (config.id === 'long') return { challengeId: 'standard', goal: LONG_GOAL }
-    if (config.id === 'standard') {
-        const goal = GOALS.indexOf(config.goal ?? -1)
-        return goal >= 0 ? { challengeId: 'standard', goal } : null
-    }
-    const custom = customFromMode(config)
-    const challengeId = custom ? presetIdOf(custom) : null
-    return custom && challengeId ? { challengeId, goal: custom.goalLevel } : null
+    const custom = customOfMode(config)
+    const challengeId = presetIdOf(custom)
+    return challengeId ? { challengeId, goal: custom.goalLevel } : null
 }
 
 export interface RunLook extends Look {
@@ -118,8 +102,6 @@ export interface RunLook extends Look {
  * when it was started from a link; otherwise the mode's.
  */
 export function runLook(config: ModeConfig): RunLook {
-    if (config.id === 'long') return { name: 'Long Run', ...LONG_LOOK }
-    if (config.id === 'standard') return { name: 'Standard', ...PRESET_LOOKS.standard! }
     const preset = CUSTOM_PRESETS.find((p) => p.id === goalOfMode(config)?.challengeId)
     if (!preset) return { name: 'Custom', ...CUSTOM_LOOK }
     return { name: preset.name, ...(PRESET_LOOKS[preset.id] ?? UNKNOWN_LOOK) }
@@ -167,7 +149,8 @@ export function recordFinished(storage: AppStorage, state: GameState, version: s
     const old = results[keyOf(target)]
     const won = state.status === 'won' || old?.won === true
     const best = Math.max(state.hearts, old?.best ?? state.hearts)
-    const turn = state.status === 'won' ? Math.min(state.turn, old?.turn ?? state.turn) : (old?.turn ?? null)
+    const metTurn = state.goalMetTurn
+    const turn = metTurn !== null ? Math.min(metTurn, old?.turn ?? metTurn) : (old?.turn ?? null)
     if (old && old.won === won && old.best === best && old.turn === turn) return null
     const next = { ...results, [keyOf(target)]: { won, best, turn, version } }
     saveResults(storage, next)
@@ -337,7 +320,7 @@ export function challengeQuery(challenges: Challenge[], view: ChallengeView, res
     const card = challenges[view.index]
     if (!card) return '?screen=challenges'
     const goal = selectedGoal(view, results, card.id)
-    return `?screen=challenges&challenge=${card.id}&goal=${goal === LONG_GOAL ? 'long' : goal + 1}`
+    return `?screen=challenges&challenge=${card.id}&goal=${GOALS[goal]!.key}`
 }
 
 /** The view an address names. An unknown card or goal is ignored, so a stale link still opens the screen. */
@@ -345,13 +328,11 @@ export function viewFromSearch(search: string, challenges: Challenge[]): Challen
     const params = new URLSearchParams(search)
     const index = challenges.findIndex((c) => c.id === params.get('challenge'))
     if (index < 0) return FRESH_VIEW
-    const raw = params.get('goal')
-    const goal = raw === 'long' ? LONG_GOAL : Number(raw) - 1
-    const valid = Number.isInteger(goal) && goal >= 0 && (goal < GOALS.length || (goal === LONG_GOAL && challenges[index]!.hasLongRun))
-    return { index, picked: valid ? { [challenges[index]!.id]: goal } : {} }
+    const goal = goalIndexOfKey(params.get('goal'))
+    return { index, picked: goal === null ? {} : { [challenges[index]!.id]: goal } }
 }
 
-/** The goal to preselect: the lowest level not won yet, or the last level when all are won. */
+/** The goal to preselect: the first one not won yet, or the last when all are won. */
 export function nextGoal(results: Results, challengeId: string): number {
     const open = GOALS.findIndex((_, level) => !resultOf(results, challengeId, level).won)
     return open === -1 ? GOALS.length - 1 : open

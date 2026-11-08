@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { LONG_MODE, applyMove, cloneState, legalMoves, makeCard, standardMode } from '../../src/core'
+import { LONG_MODE, applyMove, cloneState, legalMoves, makeCard, makeRiverCard, standardMode } from '../../src/core'
+import { CARDS_PER_EXTRA_TURN } from '../../src/core/generator/budget'
 import { basicCard, blank, enemy, eventTypes, mk } from './helpers'
 
 describe('endTurn ordering', () => {
@@ -38,7 +39,7 @@ describe('endTurn ordering', () => {
         expect(eventTypes(applyMove(first.state, { type: 'play', handIndex: 1 }).events)).not.toContain('goalReached')
     })
 
-    it('ends on the last turn as lost, won or finished', () => {
+    it('ends on the last turn as lost or won', () => {
         const s = blank()
         s.turn = s.maxTurns
         s.hearts = s.goal! - 1
@@ -47,10 +48,42 @@ describe('endTurn ordering', () => {
         long.turn = long.maxTurns
         long.hearts = -5
         const done = applyMove(long, { type: 'endTurn' })
-        expect(done.state.status).toBe('finished')
+        expect(done.state.status).toBe('lost')
         expect(done.state.turn).toBe(42)
         expect(legalMoves(done.state)).toEqual([])
         expect(applyMove(done.state, { type: 'endTurn' }).events).toEqual([{ type: 'rejected', reason: 'gameOver' }])
+    })
+
+    it('stops at the goal, and a continued run plays on and still counts the win after hearts are lost', () => {
+        const s = blank(LONG_MODE)
+        s.hearts = s.goal!
+        const won = applyMove(s, { type: 'endTurn' }).state
+        expect(won).toMatchObject({ status: 'won', goalMetTurn: 1, continued: false, turn: 1 })
+        expect(legalMoves(won)).toEqual([])
+        const { state: after, events } = applyMove(won, { type: 'continue' })
+        expect(after).toMatchObject({ status: 'playing', continued: true, turn: 2 })
+        expect(eventTypes(events)).toContain('turnStarted')
+        // The goal was met at the end of the turn, so a run that plays on does not announce it as reached later.
+        after.hand = [mk({ gold: 1 })]
+        expect(eventTypes(applyMove(after, { type: 'play', handIndex: 0 }).events)).not.toContain('goalReached')
+        after.hearts = 0
+        after.turn = after.maxTurns
+        const done = applyMove(after, { type: 'endTurn' }).state
+        expect(done).toMatchObject({ status: 'won', goalMetTurn: 1 })
+        expect(applyMove(done, { type: 'continue' }).events).toEqual([{ type: 'rejected', reason: 'cannotContinue' }])
+    })
+
+    it('cannot continue a run that is playing, lost, already continued or won on the last turn', () => {
+        const playing = blank()
+        expect(applyMove(playing, { type: 'continue' }).events).toEqual([{ type: 'rejected', reason: 'cannotContinue' }])
+        const last = blank()
+        last.turn = last.maxTurns
+        last.hearts = last.goal!
+        const wonLast = applyMove(last, { type: 'endTurn' }).state
+        expect(wonLast.status).toBe('won')
+        expect(applyMove(wonLast, { type: 'continue' }).state).toBe(wonLast)
+        last.hearts = 0
+        expect(applyMove(applyMove(last, { type: 'endTurn' }).state, { type: 'continue' }).state.status).toBe('lost')
     })
 
     it('refills the row with the next turn difficulty and discards, retains and draws five', () => {
@@ -151,5 +184,32 @@ describe('flush and rejections', () => {
         expect(eventTypes(result.events)).toEqual(['exiled', 'rowRefilled'])
         expect(applyMove(s, { type: 'exile', rowIndex: 2 }).events).toEqual([{ type: 'rejected', reason: 'cannotExile' }])
         expect(applyMove(s, { type: 'exile', rowIndex: 4 }).events).toEqual([{ type: 'rejected', reason: 'cannotExile' }])
+    })
+})
+
+describe('river cards of a long turn', () => {
+    const meanCost = (generated: number) => {
+        const s = blank(standardMode(0))
+        let total = 0
+        for (let i = 0; i < 300; i++) {
+            s.generatedThisTurn = generated
+            total += makeRiverCard(s, 1).cost
+        }
+        return total / 300
+    }
+
+    it('are as hard as the next turn for every seven made this turn', () => {
+        expect(meanCost(CARDS_PER_EXTRA_TURN - 1)).toBe(meanCost(0))
+        expect(meanCost(CARDS_PER_EXTRA_TURN * 20)).toBeGreaterThan(meanCost(0) + 2)
+    })
+
+    it('count the cards of a flush and a purchase, and start again with the turn', () => {
+        const s = blank()
+        s.power = 1
+        s.row = [enemy({ cost: 1 }), ...s.row.slice(1)]
+        const bought = applyMove(s, { type: 'take', rowIndex: 0 }).state
+        expect(bought.generatedThisTurn).toBe(1)
+        expect(applyMove(bought, { type: 'flush' }).state.generatedThisTurn).toBe(5)
+        expect(applyMove(bought, { type: 'endTurn' }).state.generatedThisTurn).toBe(1)
     })
 })

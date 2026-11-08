@@ -46,9 +46,25 @@ export const DISCOUNT_UNIT_PRICE = 3
 export const DISCOUNT_BASE_OFFSET = 1.5
 /** Retain terms by how often waiting helps the effect: the more useful it is, the more often a card with that effect gets Retain. */
 export const RETAIN_PRICE = 0.5
+export const RETAIN_USUALLY = { price: RETAIN_PRICE, chance: 0.7 }
 export const RETAIN_OFTEN = { price: RETAIN_PRICE, chance: 0.5 }
 export const RETAIN_SOMETIMES = { price: RETAIN_PRICE, chance: 0.3 }
 export const RETAIN_RARELY = { price: RETAIN_PRICE, chance: 0.1 }
+
+/** Reload draws a card per enemy defeated this turn, up to this many. It is priced for that many, a cap that a chain turn would pass. */
+export const RELOAD_MAX = 3
+export const RELOAD_PRICE = 2
+/** Shift makes 1 to this many river cards and lets as many cards fall off the right edge. */
+export const SHIFT_MAX = 3
+export const SHIFT_PRICE_PER_CARD = 0.75
+export const PUSH_PRICE = 1.25
+export const ECHO_PRICE = 3
+
+/**
+ * River cards made in one turn (the ones that replace what you buy, a flush and the end of the turn) before the next one is as hard
+ * as a card of the following turn. The count starts again every turn, so a long chain of purchases gets harder and a normal turn does not.
+ */
+export const CARDS_PER_EXTRA_TURN = 7
 
 /** Share of the effect pool given to lean effects. */
 export const LEAN_SHARE = 0.7

@@ -11,11 +11,11 @@ describe('screen routes', () => {
     })
 
     it('starts the run a game address names', () => {
-        const route = routeFor('?seed=7&mode=long', null)
+        const route = routeFor('?seed=7&mode=standard&goal=long', null)
         expect(route.screen).toBe('game')
         expect(route.screen === 'game' && route.start?.seed).toBe(7)
-        expect(route.screen === 'game' && route.start?.config.id).toBe('long')
-        expect(hasRun('?mode=long')).toBe(true)
+        expect(route.screen === 'game' && route.start?.config.goal).toBe(200)
+        expect(hasRun('?mode=standard')).toBe(true)
         expect(hasRun('?seed=5')).toBe(true)
     })
 

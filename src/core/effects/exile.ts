@@ -4,7 +4,8 @@ import type { EffectDef } from './types'
 export const exile: EffectDef = {
     id: 'exile',
     price: 1,
-    text: 'Exile a card or river recruit',
+    family: 'cards',
+    describe: () => 'Exile a card or river recruit',
     enemies: true,
     lean: ['tide'],
     retain: RETAIN_OFTEN,

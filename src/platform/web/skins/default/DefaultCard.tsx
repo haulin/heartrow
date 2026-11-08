@@ -1,5 +1,6 @@
 import { Rich } from '../../Rich'
 import type { CardSkinProps } from '../types'
+import { pushArt } from './artPush'
 
 const CURRENCY_CLASS = { gold: 'g', power: 'p', hearts: 'h' } as const
 
@@ -33,7 +34,11 @@ export function DefaultCard({ view, onActivate }: CardSkinProps) {
             <svg class="art" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
                 {view.art.map((shape, i) => {
                     const Tag = shape.tag
-                    return <Tag key={i} {...shape.attrs} />
+                    return (
+                        <g key={i} style={shape.motion}>
+                            <Tag {...shape.attrs} />
+                        </g>
+                    )
                 })}
             </svg>
             <div class="bd">
@@ -58,7 +63,7 @@ export function DefaultCard({ view, onActivate }: CardSkinProps) {
 
     if (!onActivate) {
         return (
-            <div class={cls} role="img" aria-label={view.label} data-card-id={view.id}>
+            <div class={cls} role="img" aria-label={view.label} data-card-id={view.id} onMouseEnter={pushArt}>
                 {inner}
             </div>
         )
@@ -74,7 +79,12 @@ export function DefaultCard({ view, onActivate }: CardSkinProps) {
             }
             aria-describedby={view.pendingExile || view.exileBlocked ? 'msg' : undefined}
             title={view.title || undefined}
-            onClick={onActivate}
+            onClick={(event) => {
+                pushArt(event)
+                onActivate()
+            }}
+            onMouseEnter={pushArt}
+            onFocus={pushArt}
         >
             {inner}
         </button>

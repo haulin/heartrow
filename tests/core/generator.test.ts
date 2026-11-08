@@ -28,6 +28,7 @@ function spentBudget(card: Card): number {
         if (id === 'hoard') spent += hoardPrice(card) - effect.price
         if (id === 'weak' || id === 'cheap') spent += discountPrice(card.fxParams?.amount ?? 1) - effect.price
         if (id === 'bond') spent += BOND_EXTRA_PRICE[(card.fxParams?.bondCount ?? 1) - 1]!
+        if (id === 'shift') spent += effect.price * ((card.fxParams?.shiftCount ?? 1) - 1)
     }
     return spent + (card.retain ? EFFECT_BY_ID[card.fx[0]!].retain!.price : 0)
 }
@@ -61,7 +62,8 @@ function check(mode: ModeConfig, turns: number): number {
             }
             if (enemy) {
                 expect(card.hearts).toBeGreaterThanOrEqual(1)
-                expect(card.gold + card.power).toBeLessThanOrEqual(Math.max(1, Math.floor(cost * 0.4)))
+                // The gain is a share of the cost rolled before the budget was fitted, and fitting can lower the cost by up to two.
+                expect(card.gold + card.power).toBeLessThanOrEqual(Math.max(1, Math.floor((cost + 2) * 0.4)))
                 expect(card.retain).toBeUndefined()
                 expect(card.type).toBe('foe')
             } else {

@@ -5,6 +5,7 @@ import type { Card, CardType, Colour, Currency, EffectId, GameState } from '../t
 import { generatorLimits } from './limits'
 import type { Limits } from './limits'
 import {
+    CARDS_PER_EXTRA_TURN,
     CHEAP_COST_MIN,
     CHEAP_COST_SPREAD,
     COST_BUMP,
@@ -47,6 +48,13 @@ function effectPool(limits: Limits, type: CardType, enemy: boolean, budget: numb
     for (let i = 1; i < copies; i++) pool.push(...lean)
     if (!enemy) for (const e of EFFECTS) if (e.extraFor?.includes(type as Colour) && pool.includes(e.id)) pool.push(e.id)
     return pool
+}
+
+/** A card that enters the river during play: of the difficulty of `turn`, plus a turn for every `CARDS_PER_EXTRA_TURN` cards made this turn. */
+export function makeRiverCard(state: GameState, turn: number): Card {
+    const extraTurns = Math.floor(state.generatedThisTurn / CARDS_PER_EXTRA_TURN)
+    state.generatedThisTurn++
+    return makeCard(state, turn + extraTurns)
 }
 
 export function makeCard(state: GameState, turn: number, attempt = 0): Card {

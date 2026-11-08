@@ -1,18 +1,10 @@
 {
-    "version": "0.1.0",
-    "query": "?seed=123000369&mode=standard&goal=1",
+    "version": "0.2.0",
+    "query": "?seed=6000018&mode=custom&goal=1&types=moss,ember,tide,foe&res=gold,power,hearts&sg=6&sp=4&fx=draw,flip,exile,cheap,foes,all3,vault,basics,pile,hoard,bulk,bond,kin,weak,army,cycle,redraw,swap,reapG,reapP,reload,push,shift,echo",
     "moves": [
         {
             "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "play",
-            "handIndex": 2
+            "handIndex": 0
         },
         {
             "type": "play",
@@ -20,7 +12,15 @@
         },
         {
             "type": "play",
-            "handIndex": 0
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 4
         },
         {
             "type": "take",
@@ -29,123 +29,6 @@
         {
             "type": "take",
             "rowIndex": 4
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "take",
-            "rowIndex": 1
-        },
-        {
-            "type": "take",
-            "rowIndex": 1
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "exile",
-            "handIndex": 0
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "take",
-            "rowIndex": 1
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "exile",
-            "handIndex": 3
-        },
-        {
-            "type": "take",
-            "rowIndex": 1
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "exile",
-            "handIndex": 1
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "take",
-            "rowIndex": 1
         },
         {
             "type": "flush"
@@ -159,7 +42,15 @@
         },
         {
             "type": "play",
-            "handIndex": 4
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 2
         },
         {
             "type": "play",
@@ -167,7 +58,18 @@
         },
         {
             "type": "play",
-            "handIndex": 2
+            "handIndex": 4
+        },
+        {
+            "type": "take",
+            "rowIndex": 4
+        },
+        {
+            "type": "take",
+            "rowIndex": 1
+        },
+        {
+            "type": "endTurn"
         },
         {
             "type": "play",
@@ -176,6 +78,18 @@
         {
             "type": "play",
             "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 4
         },
         {
             "type": "take",
@@ -190,6 +104,10 @@
         },
         {
             "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
             "handIndex": 1
         },
         {
@@ -201,7 +119,33 @@
             "handIndex": 3
         },
         {
-            "type": "exile",
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "take",
+            "rowIndex": 3
+        },
+        {
+            "type": "take",
+            "rowIndex": 4
+        },
+        {
+            "type": "flush"
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
             "handIndex": 2
         },
         {
@@ -210,7 +154,15 @@
         },
         {
             "type": "play",
-            "handIndex": 0
+            "handIndex": 4
+        },
+        {
+            "type": "take",
+            "rowIndex": 4
+        },
+        {
+            "type": "take",
+            "rowIndex": 3
         },
         {
             "type": "take",
@@ -225,11 +177,11 @@
         },
         {
             "type": "play",
-            "handIndex": 4
+            "handIndex": 1
         },
         {
             "type": "play",
-            "handIndex": 1
+            "handIndex": 2
         },
         {
             "type": "play",
@@ -237,57 +189,249 @@
         },
         {
             "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "take",
+            "rowIndex": 2
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
             "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "take",
+            "rowIndex": 4
+        },
+        {
+            "type": "take",
+            "rowIndex": 0
+        },
+        {
+            "type": "flush"
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "take",
+            "rowIndex": 0
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "take",
+            "rowIndex": 2
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "exile",
+            "handIndex": 2
+        },
+        {
+            "type": "take",
+            "rowIndex": 2
+        },
+        {
+            "type": "take",
+            "rowIndex": 4
+        },
+        {
+            "type": "flush"
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "take",
+            "rowIndex": 0
+        },
+        {
+            "type": "take",
+            "rowIndex": 1
+        },
+        {
+            "type": "take",
+            "rowIndex": 0
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "take",
+            "rowIndex": 0
         },
         {
             "type": "exile",
             "handIndex": 0
+        },
+        {
+            "type": "take",
+            "rowIndex": 1
+        },
+        {
+            "type": "take",
+            "rowIndex": 2
+        },
+        {
+            "type": "take",
+            "rowIndex": 0
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "take",
+            "rowIndex": 1
         },
         {
             "type": "flush"
         },
         {
             "type": "take",
-            "rowIndex": 3
-        },
-        {
-            "type": "take",
-            "rowIndex": 2
-        },
-        {
-            "type": "take",
             "rowIndex": 0
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "take",
-            "rowIndex": 4
-        },
-        {
-            "type": "take",
-            "rowIndex": 1
         },
         {
             "type": "take",
@@ -298,73 +442,7 @@
         },
         {
             "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
             "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "take",
-            "rowIndex": 4
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "take",
-            "rowIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "exile",
-            "handIndex": 3
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 2
         },
         {
             "type": "play",
@@ -372,66 +450,11 @@
         },
         {
             "type": "exile",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "take",
-            "rowIndex": 3
-        },
-        {
-            "type": "take",
-            "rowIndex": 1
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
             "handIndex": 4
         },
         {
             "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "take",
-            "rowIndex": 2
-        },
-        {
-            "type": "play",
             "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 0
         },
         {
             "type": "take",
@@ -442,34 +465,7 @@
         },
         {
             "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "play",
             "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 4
         },
         {
             "type": "play",
@@ -480,16 +476,12 @@
             "handIndex": 3
         },
         {
-            "type": "exile",
+            "type": "play",
             "handIndex": 4
         },
         {
             "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
+            "handIndex": 5
         },
         {
             "type": "take",
@@ -497,14 +489,10 @@
         },
         {
             "type": "take",
-            "rowIndex": 0
+            "rowIndex": 4
         },
         {
             "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 0
         },
         {
             "type": "play",
@@ -519,204 +507,30 @@
             "handIndex": 3
         },
         {
-            "type": "take",
-            "rowIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "flush"
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "take",
-            "rowIndex": 1
-        },
-        {
-            "type": "take",
-            "rowIndex": 2
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
             "type": "play",
             "handIndex": 4
         },
         {
             "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "take",
-            "rowIndex": 3
-        },
-        {
-            "type": "take",
-            "rowIndex": 1
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "exile",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "take",
-            "rowIndex": 1
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "exile",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "exile",
-            "handIndex": 1
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "play",
-            "handIndex": 0
+            "handIndex": 5
         },
         {
             "type": "flush"
         },
         {
             "type": "take",
-            "rowIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 3
+            "rowIndex": 1
         },
         {
             "type": "take",
-            "rowIndex": 1
+            "rowIndex": 3
         },
         {
             "type": "endTurn"
         },
         {
             "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 4
+            "handIndex": 1
         },
         {
             "type": "play",
@@ -724,11 +538,50 @@
         },
         {
             "type": "play",
-            "handIndex": 1
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "play",
+            "handIndex": 5
         },
         {
             "type": "take",
-            "rowIndex": 3
+            "rowIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 5
+        },
+        {
+            "type": "exile",
+            "handIndex": 1
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 4
         },
         {
             "type": "take",
@@ -739,11 +592,33 @@
         },
         {
             "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
             "handIndex": 3
         },
         {
             "type": "play",
             "handIndex": 4
+        },
+        {
+            "type": "take",
+            "rowIndex": 1
+        },
+        {
+            "type": "flush"
+        },
+        {
+            "type": "endTurn"
         },
         {
             "type": "play",
@@ -757,19 +632,16 @@
             "type": "skipExile"
         },
         {
-            "type": "take",
-            "rowIndex": 1
-        },
-        {
             "type": "play",
             "handIndex": 2
         },
         {
-            "type": "flush"
+            "type": "play",
+            "handIndex": 3
         },
         {
-            "type": "take",
-            "rowIndex": 0
+            "type": "play",
+            "handIndex": 4
         },
         {
             "type": "take",
@@ -777,32 +649,136 @@
         },
         {
             "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "take",
+            "rowIndex": 4
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "take",
+            "rowIndex": 4
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "exile",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "take",
+            "rowIndex": 4
+        },
+        {
+            "type": "endTurn"
         }
     ],
     "bot": {
-        "profile": "lab-human",
+        "profile": "smart",
         "selection": "profile-default",
-        "baseSeed": 123,
+        "baseSeed": 6,
         "gameIndex": 0,
-        "gameSeed": 123000369,
-        "botSeed": 3747056830,
+        "gameSeed": 6000018,
+        "botSeed": 3630056479,
         "phase": null
     },
     "summary": {
-        "hearts": 48,
-        "goalHit": true,
-        "kills": 33,
-        "lostToEscapes": 12,
-        "bought": 20,
-        "exiled": 11,
-        "cards": 19,
-        "plays": 109,
-        "turns": 22,
-        "wastedGold": 18,
-        "wastedPower": 21,
-        "flushesLeft": 3,
-        "heartsT24": null,
-        "moves": 201,
+        "hearts": 40,
+        "goalHit": false,
+        "kills": 17,
+        "lostToEscapes": 4,
+        "bought": 24,
+        "exiled": 5,
+        "cards": 29,
+        "plays": 118,
+        "turns": 24,
+        "wastedGold": 23,
+        "wastedPower": 37,
+        "flushesLeft": 1,
+        "heartsT24": 40,
+        "moves": 196,
         "capped": false
     }
 }

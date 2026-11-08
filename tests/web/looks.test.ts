@@ -17,6 +17,6 @@ describe('mode looks', () => {
     it('has an icon file for every card, including Custom', () => {
         const icons = glyphNames()
         for (const challenge of challengeList(DEFAULT_CUSTOM)) expect(icons).toContain(challenge.icon)
-        for (const needed of ['long', 'back', 'info', 'chevron', 'star', 'star-outline']) expect(icons).toContain(needed)
+        for (const needed of ['back', 'close', 'check', 'info', 'chevron', 'star', 'star-outline']) expect(icons).toContain(needed)
     })
 })

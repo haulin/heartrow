@@ -5,7 +5,7 @@ import {
     CUSTOM_PRESETS,
     DEFAULT_CUSTOM,
     GOALS,
-    LONG_MODE,
+    LONG_GOAL,
     PROFILE_IDS,
     aggregate,
     applyMove,
@@ -22,7 +22,7 @@ import {
     runBatch,
     standardMode,
 } from '../src/core'
-import type { Card, EffectId, GameState, Move, ProfileId, ProfileOptions, SelectionMode } from '../src/core'
+import type { Card, EffectId, GameState, ModeConfig, Move, PlayOptions, ProfileId, ProfileOptions, SelectionMode } from '../src/core'
 // A saved run is a web record (its address is a link), so the replay reads it with the web layer's own parser.
 import { parseStartParams, shareQuery } from '../src/platform/web/mode'
 import { deckSummary } from '../src/platform/web/text'
@@ -64,7 +64,7 @@ function turnLine(state: GameState): string {
 const moveKey = (move: Move): string => JSON.stringify(move)
 
 function moveLabel(state: GameState, move: Move): string {
-    if (move.type === 'flush' || move.type === 'endTurn' || move.type === 'skipExile') return move.type
+    if (move.type === 'flush' || move.type === 'endTurn' || move.type === 'skipExile' || move.type === 'continue') return move.type
     let index: number
     let card: GameState['hand'][number] | undefined
     if (move.type === 'take' || (move.type === 'exile' && 'rowIndex' in move)) {
@@ -176,7 +176,7 @@ function writeWorstRun(
             for (let gameIndex = 0; gameIndex < games; gameIndex++) {
                 const gameSeed = batchSeed(baseSeed, gameIndex)
                 const botSeed = batchSeed(baseSeed + 7919, gameIndex)
-                const result = playGame(config, gameSeed, makeProfile(id, selection, profileOptions), botSeed)
+                const result = playGame(config, gameSeed, makeProfile(id, selection, profileOptions), botSeed, playOptionsOf(config))
                 if (!worst || result.summary.hearts < worst.result.summary.hearts) {
                     worst = { id, baseSeed, gameIndex, gameSeed, botSeed, result }
                 }
@@ -205,12 +205,22 @@ function writeWorstRun(
     )
 }
 
+/** Bots never choose to play on after the goal, so the simulator does it for Long Run, where the score is the hearts at the last turn. */
+function playOptionsOf(config: ModeConfig): PlayOptions {
+    return { playOn: config.goalIndex === LONG_GOAL }
+}
+
+/** The goal a run plays for: `--goal 1` to `4` or `long` (`--goal 5` is the same), or `--mode long` as the old spelling. */
+function goalIndexOf(args: Record<string, string>): number {
+    if (args.mode === 'long' || args.goal === 'long') return LONG_GOAL
+    return Math.min(Math.max(Math.round(Number(args.goal ?? 1)) - 1, 0), GOALS.length - 1)
+}
+
 /** Compares the cards previewed by flush+undo with the cards generated after ending the turn. */
 function undoPreview(args: Record<string, string>): void {
     const games = Math.max(1, Math.round(Number(args.games ?? 1000)))
     const baseSeed = Number(args.seed ?? 1)
-    const level = Math.min(Math.max(Math.round(Number(args.goal ?? 1)) - 1, 0), GOALS.length - 1)
-    const config = args.mode === 'long' ? LONG_MODE : standardMode(level)
+    const config = standardMode(goalIndexOf(args))
     const byTurn = new Map<number, UndoPeekStats>()
     const overall: UndoPeekStats = { samples: 0, first: 0, shifted: 0, all: 0 }
 
@@ -267,8 +277,8 @@ export function main(argv: string[]): void {
     const games = Number(args.games ?? 400)
     const seed = Number(args.seed ?? 1)
     const seeds = Math.max(1, Math.round(Number(args.seeds ?? 1)))
-    // `--mode standard|long`, `--goal 1|2|3|4` for Standard, `--preset <id>` for a custom generator from the web presets, `--phase earlyEnd,lateStart` for lab-human, `--worst <file>` for a pasteable failure record, and `--sg/--sp` to override starter Basic counts. `--seeds` repeats the batch with consecutive base seeds.
-    const level = Math.min(Math.max(Math.round(Number(args.goal ?? 1)) - 1, 0), GOALS.length - 1)
+    // `--goal 1|2|3|4|long` (`--mode long` is the same as `--goal long`), `--preset <id>` for a custom generator from the web presets, `--phase earlyEnd,lateStart` for lab-human, `--worst <file>` for a pasteable failure record, and `--sg/--sp` to override starter Basic counts. `--seeds` repeats the batch with consecutive base seeds.
+    const level = goalIndexOf(args)
     const preset = args.preset ? CUSTOM_PRESETS.find((p) => p.id === args.preset) : undefined
     if (args.preset && !preset) throw new Error(`Unknown preset "${args.preset}". Known: ${CUSTOM_PRESETS.map((p) => p.id).join(', ')}`)
     const effects = args.effects?.split(',') as EffectId[] | undefined
@@ -291,9 +301,6 @@ export function main(argv: string[]): void {
     const profileOptions: ProfileOptions | undefined = phaseValues
         ? { phase: { earlyEnd: phaseValues[0]!, lateStart: phaseValues[1]! } }
         : undefined
-    if ((starterGold !== undefined || starterPower !== undefined) && args.mode === 'long') {
-        throw new Error('Starter overrides are only supported for Standard and custom modes')
-    }
     const starterBase = generator ?? DEFAULT_CUSTOM
     const starterOverride = starterGold !== undefined || starterPower !== undefined
     const config = starterOverride
@@ -305,14 +312,8 @@ export function main(argv: string[]): void {
           })
         : generator
           ? customMode({ ...generator, goalLevel: level })
-          : args.mode === 'long'
-            ? LONG_MODE
-            : standardMode(level)
-    const modeBase = preset
-        ? `${preset.id}${effects ? `-fx[${effects.join(',')}]` : ''}`
-        : args.mode === 'long'
-          ? 'long'
-          : `std${level + 1}`
+          : standardMode(level)
+    const modeBase = preset ? `${preset.id}${effects ? `-fx[${effects.join(',')}]` : ''}` : `std${GOALS[level]!.key}`
     const phaseSuffix = phaseValues ? `-phase${phaseValues[0]}-${phaseValues[1]}` : ''
     const modeId = `${starterOverride ? `${modeBase}-sg${config.starter.basicGold}-sp${config.starter.basicPower}` : modeBase}${phaseSuffix}`
     const ids = (args.policies ?? PROFILE_IDS.join(',')).split(',') as ProfileId[]
@@ -337,8 +338,11 @@ export function main(argv: string[]): void {
                 .get(id)!
                 .push(
                     ...(gameSeed === undefined
-                        ? runBatch(config, make, games, seed + offset)
-                        : Array.from({ length: games }, (_, i) => playGame(config, gameSeed, make(), batchSeed(seed + offset, i)).summary)),
+                        ? runBatch(config, make, games, seed + offset, playOptionsOf(config))
+                        : Array.from(
+                              { length: games },
+                              (_, i) => playGame(config, gameSeed, make(), batchSeed(seed + offset, i), playOptionsOf(config)).summary,
+                          )),
                 )
         }
     }

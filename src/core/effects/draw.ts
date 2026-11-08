@@ -2,12 +2,14 @@ import { nextInt } from '../rng'
 import { drawCards } from '../state'
 import { DRAW_MAX, DRAW_PRICE_PER_CARD, RETAIN_RARELY } from '../generator/budget'
 import type { EffectDef } from './types'
+import { slot } from './wording'
 
 export const draw: EffectDef = {
     id: 'draw',
     price: DRAW_PRICE_PER_CARD,
     perDrawCard: true,
-    text: 'Draw {n}',
+    family: 'cards',
+    describe: (card) => `Draw ${slot(card, (c) => c.fxParams?.drawCount ?? 1, `1-${DRAW_MAX}`)}`,
     enemies: true,
     lean: ['tide'],
     retain: RETAIN_RARELY,

@@ -2,11 +2,13 @@ import { RETAIN_SOMETIMES } from '../generator/budget'
 import { ownedCards } from '../state'
 import { gainPerCards, rollMainCurrency, rolledCurrency } from './countGain'
 import type { EffectDef } from './types'
+import { resourceSlot } from './wording'
 
 export const basics: EffectDef = {
     id: 'basics',
     price: 1.5,
-    text: '+1 ● per 4 basic cards in your deck',
+    family: 'count',
+    describe: (card) => `+1 ${resourceSlot(card, 'gold')} per 4 basic cards in your deck`,
     enemies: true,
     needsAny: ['gold', 'power'],
     lean: ['moss'],

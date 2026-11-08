@@ -79,8 +79,8 @@ describe('custom generator links', () => {
         expect(basics.every((card) => card.power === 0)).toBe(true)
     })
 
-    it('leaves non-custom links alone and names effects readably', () => {
-        expect(shareQuery(standardMode(1), 5)).toBe('?seed=5&mode=standard&goal=2')
+    it('spells out Standard like any generator, and names effects readably', () => {
+        expect(shareQuery(standardMode(1), 5)).toBe(`?seed=5&mode=custom&${customQuery({ ...DEFAULT_CUSTOM, goalLevel: 1 })}`)
         expect(customQuery({ ...DEFAULT_CUSTOM, types: ['moss'], effects: [] })).toBe(
             'goal=1&types=moss&res=gold,power,hearts&sg=6&sp=4&fx=',
         )
@@ -95,7 +95,7 @@ describe('custom generator links', () => {
             'all types; all resources; all effects; start with 0 ● and 5 ⚔ Basics',
         )
         const noTide = { ...DEFAULT_CUSTOM, types: ['moss' as const, 'ember' as const, 'foe' as const] }
-        expect(customSummary(noTide)).toBe('moss, ember, foe; all resources; 19 of 20 effects')
+        expect(customSummary(noTide)).toBe('moss, ember, foe; all resources; 23 of 24 effects')
         expect(effectiveEffects(noTide)).not.toContain('all3')
         const noHearts = { ...DEFAULT_CUSTOM, resources: ['gold' as const, 'power' as const] }
         expect(effectiveTypes(noHearts)).toEqual(['moss', 'ember', 'tide'])

@@ -2,10 +2,11 @@ import { RETAIN_SOMETIMES } from '../generator/budget'
 import { discardUnplayed } from './cycle'
 import type { EffectDef } from './types'
 
-export const purge: EffectDef = {
-    id: 'purge',
+export const redraw: EffectDef = {
+    id: 'redraw',
     price: 1.25,
-    text: 'Redraw all unplayed cards, even Retain ones',
+    family: 'cards',
+    describe: () => 'Redraw all unplayed cards, even Retain ones',
     enemies: true,
     lean: ['tide'],
     retain: RETAIN_SOMETIMES,

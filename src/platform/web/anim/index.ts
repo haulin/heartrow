@@ -36,6 +36,9 @@ export interface Running {
 
 export const DURATION_MS: Record<AnimSpeed, number> = { off: 0, fast: 90, normal: 200, slow: 600 }
 
+/** How much longer than at the normal setting a looping animation takes, so the setting scales the card art drift as well. */
+export const loopTimeFactor = (speed: AnimSpeed): number => DURATION_MS[speed] / DURATION_MS.normal
+
 /** A resource flight is long because it has three parts: it lifts away, drifts slowly so it can be read, and then flies to its stat box. */
 const DURATION_FACTOR: Record<EffectKind, number> = {
     flash: 1.2,
@@ -149,11 +152,13 @@ export function planBefore(frame: Frame, root: ParentNode): Effect[] {
     const { type } = frame.move
     // Whatever left the hand (exiled, cycled away, discarded at the end of the turn) flies to the piles, one card after another.
     if (type === 'play' || type === 'exile' || type === 'endTurn') out.push(...planDeparting(frame, root))
-    if (type === 'endTurn') {
-        // The last river card leaves to the right.
-        const last = frame.before.state.row[frame.before.state.row.length - 1]
-        const leaving = last ? cardEls(root, 'row', last.id)?.parentElement : null
-        if (leaving) out.push({ kind: 'leave', el: leaving })
+    if (type === 'endTurn' || type === 'play') {
+        // River cards that are gone after the move fell off the right edge (the end of the turn, or a Shift card).
+        const remaining = new Set(frame.after.state.row.map((c) => c.id))
+        for (const card of frame.before.state.row) {
+            const leaving = remaining.has(card.id) ? null : cardEls(root, 'row', card.id)?.parentElement
+            if (leaving) out.push({ kind: 'leave', el: leaving })
+        }
     }
     return out
 }

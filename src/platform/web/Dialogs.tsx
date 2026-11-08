@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'preact/hooks'
 import { GOALS } from '../../core'
 import type { Card, GameState, Move } from '../../core'
 import { runName } from './challenges'
+import { Glyph } from './Glyph'
 import { Rich } from './Rich'
 import { ANIM_SPEEDS, THEMES } from './settings'
 import type { Settings } from './settings'
@@ -12,7 +13,8 @@ import type { CardSkin } from './skins'
 import { deckSummary, heartsBreakdown, moveFacts, outcomeLine, sortPile } from './text'
 import { buildCardView } from './view/cardView'
 
-export function Modal({ onClose, children }: { onClose: () => void; children: ComponentChildren }) {
+/** A dialog with a title bar that holds the close button, so a long body scrolls under it. */
+export function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: ComponentChildren }) {
     const ref = useRef<HTMLDialogElement>(null)
     useEffect(() => {
         const d = ref.current
@@ -27,12 +29,13 @@ export function Modal({ onClose, children }: { onClose: () => void; children: Co
     return (
         <dialog ref={ref} onClose={onClose} onClick={(e) => e.target === e.currentTarget && onClose()}>
             <div class="dlg">
-                {children}
-                <div class="dlg-actions">
-                    <button type="button" class="b" onClick={onClose}>
-                        Close
+                <header class="dlg-head">
+                    <h2>{title}</h2>
+                    <button type="button" class="b alt dlg-close" onClick={onClose}>
+                        Close <Glyph name="close" />
                     </button>
-                </div>
+                </header>
+                <div class="dlg-body">{children}</div>
             </div>
         </dialog>
     )
@@ -67,30 +70,59 @@ export async function copy(text: string): Promise<boolean> {
     }
 }
 
-/** A button that copies `text` and says so for a moment: "Copied", or "Not copied" when the browser refuses. */
+/**
+ * A button that copies `text` and says so for a moment: "Copied", or "Not copied" when the browser refuses.
+ * After a refusal the text stays in a selected box under the button, so a phone can copy it by hand.
+ */
 export function CopyButton({ label, text, title }: { label: string; text: () => string; title?: string }) {
     const [result, setResult] = useState<'copied' | 'failed' | null>(null)
+    const [byHand, setByHand] = useState<string | null>(null)
     const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
     useEffect(() => () => clearTimeout(timer.current), [])
     const click = async () => {
-        setResult((await copy(text())) ? 'copied' : 'failed')
+        const value = text()
+        const copied = await copy(value)
+        setResult(copied ? 'copied' : 'failed')
+        setByHand(copied ? null : value)
         clearTimeout(timer.current)
         timer.current = setTimeout(() => setResult(null), 1500)
     }
     // All three texts share one grid cell and the inactive ones are hidden, so the button keeps the width of the widest and nothing moves
-    // when the text changes. The check mark is drawn, not typed: the bundled font has no such glyph, so a typed one would come from a system font.
+    // when the text changes.
     const shown = result ?? 'idle'
     return (
-        <button type="button" class="b alt small swap" title={title} onClick={click}>
-            <span class={shown === 'idle' ? '' : 'gone'}>{label}</span>
-            <span class={shown === 'copied' ? '' : 'gone'}>
-                Copied{' '}
-                <svg class="tick" viewBox="0 0 12 12" aria-hidden="true">
-                    <path d="M2 6.5l3 3 5-6" />
-                </svg>
-            </span>
-            <span class={shown === 'failed' ? '' : 'gone'}>Not copied</span>
-        </button>
+        <>
+            <button type="button" class="b alt small swap" title={title} onClick={click}>
+                <span class={shown === 'idle' ? '' : 'gone'}>{label}</span>
+                <span class={shown === 'copied' ? '' : 'gone'}>
+                    Copied <Glyph name="check" />
+                </span>
+                <span class={shown === 'failed' ? '' : 'gone'}>Not copied</span>
+            </button>
+            {byHand === null ? null : <CopyByHand text={byHand} />}
+        </>
+    )
+}
+
+/** The text in a read-only box, selected, for a browser that does not let the page write to the clipboard. */
+function CopyByHand({ text }: { text: string }) {
+    const box = useRef<HTMLTextAreaElement>(null)
+    useEffect(() => {
+        box.current?.focus()
+        box.current?.select()
+        box.current?.setSelectionRange(0, text.length)
+    }, [text])
+    return (
+        <textarea
+            ref={box}
+            class="copybox"
+            name="copyByHand"
+            aria-label="Text to copy by hand"
+            rows={4}
+            readOnly
+            value={text}
+            onFocus={(e) => e.currentTarget.select()}
+        />
     )
 }
 
@@ -129,21 +161,12 @@ export function RunDialog({
     onEdit: () => void
     onClose: () => void
 }) {
-    const level = state.goal === null ? -1 : GOALS.indexOf(state.goal)
+    const goalName = GOALS[state.config.goalIndex]!.name
+    const name = runName(state.config)
     return (
-        <Modal onClose={onClose}>
-            <h2>
-                {runName(state.config)}
-                {state.config.id !== 'long' && level >= 0 ? ` · Level ${level + 1}` : ''}
-            </h2>
+        <Modal title={name === goalName ? name : `${name} · ${goalName}`} onClose={onClose}>
             <p>
-                <Rich
-                    text={
-                        state.goal === null
-                            ? `${state.maxTurns} turns, the highest hearts wins.`
-                            : `Goal: ${state.goal} ♥ in ${state.maxTurns} turns.`
-                    }
-                />
+                <Rich text={`Goal: ${state.goal} ♥ in ${state.maxTurns} turns.`} />
             </p>
             {state.config.description ? <p class="rules">Generator: {state.config.description}.</p> : null}
             <p>
@@ -186,8 +209,7 @@ function PasteDialog({ title, hint, ariaLabel, placeholder, button, onSubmit, on
     const [text, setText] = useState('')
     const [feedback, setFeedback] = useState<PasteFeedback | null>(null)
     return (
-        <Modal onClose={onClose}>
-            <h2>{title}</h2>
+        <Modal title={title} onClose={onClose}>
             <p class="rules">{hint}</p>
             <textarea
                 name="paste"
@@ -241,8 +263,7 @@ export function LoadResultsDialog({ onImport, onClose }: { onImport: (text: stri
 
 export function AboutDialog({ state, onClose }: { state?: GameState | undefined; onClose: () => void }) {
     return (
-        <Modal onClose={onClose}>
-            <h2>About Heartrow</h2>
+        <Modal title="About Heartrow" onClose={onClose}>
             <p class="rules">Version {__APP_VERSION__}</p>
             <p>
                 <Rich text="Heartrow is a small, single-player roguelike deckbuilder. Click a hand card to play it, or a recruit row card to buy it. Recruits cost gold ●, go to your discard and work whenever you draw them. Enemies cost power ⚔: defeating one gives its hearts ♥ and effects once, and if one falls off the right edge you lose that many." />
@@ -278,8 +299,7 @@ export function LogDialog({
     onClose: () => void
 }) {
     return (
-        <Modal onClose={onClose}>
-            <h2>Log (newest first)</h2>
+        <Modal title="Log (newest first)" onClose={onClose}>
             <SeedLine state={state} run={run} />
             <p>
                 <button
@@ -332,22 +352,31 @@ export function SummaryDialog({
     state,
     moves,
     records,
+    onPlayOn,
     onClose,
 }: {
     state: GameState
     moves: readonly Move[]
     /** What this run improved in its goal's record, if anything. */
     records: readonly string[]
+    /** Offered after a win with turns left; null when the run cannot go on. */
+    onPlayOn: (() => void) | null
     onClose: () => void
 }) {
     const sources = heartsBreakdown(state)
     const largest = Math.max(1, ...sources.map((source) => source.amount))
     return (
-        <Modal onClose={onClose}>
-            <h2>Run summary</h2>
+        <Modal title="Run summary" onClose={onClose}>
             <p class={`outcome ${state.status}`}>
                 <Rich text={outcomeLine(state) ?? `So far: ${state.hearts} ♥ on turn ${state.turn}.`} />
             </p>
+            {onPlayOn ? (
+                <p>
+                    <button type="button" class="b" onClick={onPlayOn}>
+                        Keep playing to turn {state.maxTurns}
+                    </button>
+                </p>
+            ) : null}
             {records.length > 0 ? (
                 <ul class="records">
                     {records.map((line) => (
@@ -410,7 +439,7 @@ function Count({ cls, n, sym }: { cls: 'g' | 'p' | 'h'; n: number; sym: string }
 export function PilesDialog({ state, skin, onClose }: { state: GameState; skin: CardSkin; onClose: () => void }) {
     const d = deckSummary(state)
     return (
-        <Modal onClose={onClose}>
+        <Modal title="Card piles" onClose={onClose}>
             <div class="summary">
                 <div>
                     <b>Your deck:</b> {d.total} cards
@@ -476,8 +505,7 @@ export function SettingsDialog({
     onClose: () => void
 }) {
     return (
-        <Modal onClose={onClose}>
-            <h2>Settings</h2>
+        <Modal title="Settings" onClose={onClose}>
             <div class="col">
                 <label>
                     Theme{' '}

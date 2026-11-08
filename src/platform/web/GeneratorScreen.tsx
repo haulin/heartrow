@@ -6,18 +6,19 @@ import {
     CUSTOM_TYPES,
     DEFAULT_CUSTOM,
     EFFECTS,
+    EFFECT_FAMILIES,
     GOALS,
     customSummary,
     effectiveEffects,
     effectiveTypes,
     generatorOf,
-    standardMode,
     unmetNeeds,
 } from '../../core'
 import type { CustomGenerator, EffectId, GeneratorCardType, GeneratorResource } from '../../core'
 import { presetIdOf } from './challenges'
 import { Glyph } from './Glyph'
 import { MAX_STARTER, effectName } from './custom'
+import { goalLine } from './text'
 
 const TYPE_NAMES: Record<GeneratorCardType, string> = { moss: 'Moss', ember: 'Ember', tide: 'Tide', foe: 'Enemies' }
 const RESOURCE_NAMES: Record<GeneratorResource, string> = { gold: 'Gold ●', power: 'Power ⚔', hearts: 'Hearts ♥' }
@@ -117,8 +118,8 @@ export function GeneratorScreen({
                     Goal{' '}
                     <select name="goalLevel" value={def.goalLevel} onChange={(e) => change({ goalLevel: Number(e.currentTarget.value) })}>
                         {GOALS.map((goal, level) => (
-                            <option key={goal} value={level}>
-                                Level {level + 1}: {goal} ♥ in {standardMode(level).turns} turns
+                            <option key={goal.key} value={level}>
+                                {goal.name}: {goalLine(goal)}
                             </option>
                         ))}
                     </select>
@@ -185,24 +186,32 @@ export function GeneratorScreen({
                         None
                     </button>
                 </legend>
-                {EFFECTS.map((effect) => {
-                    const unmet = unmetNeeds(generator, effect.id)
-                    const off = unmet.length > 0
-                    const title = off ? `${effect.text}\nNeeds ${unmet.map((need) => NEED_NAMES[need]).join(', ')}.` : effect.text
-                    return (
-                        <label key={effect.id} class={`pick${off ? ' off' : ''}`} title={title}>
-                            <input
-                                type="checkbox"
-                                name="effect"
-                                value={effect.id}
-                                checked={def.effects.includes(effect.id)}
-                                disabled={off}
-                                onChange={() => change({ effects: toggle<EffectId>(def.effects, CUSTOM_EFFECTS, effect.id) })}
-                            />
-                            {effectName(effect.id)}
-                        </label>
-                    )
-                })}
+                <div class="families">
+                    {EFFECT_FAMILIES.map((family) => (
+                        <div key={family.id} class="family">
+                            <span class="family-name">{family.name}</span>
+                            {EFFECTS.filter((effect) => effect.family === family.id).map((effect) => {
+                                const unmet = unmetNeeds(generator, effect.id)
+                                const off = unmet.length > 0
+                                const text = effect.describe()
+                                const title = off ? `${text}\nNeeds ${unmet.map((need) => NEED_NAMES[need]).join(', ')}.` : text
+                                return (
+                                    <label key={effect.id} class={`pick${off ? ' off' : ''}`} title={title}>
+                                        <input
+                                            type="checkbox"
+                                            name="effect"
+                                            value={effect.id}
+                                            checked={def.effects.includes(effect.id)}
+                                            disabled={off}
+                                            onChange={() => change({ effects: toggle<EffectId>(def.effects, CUSTOM_EFFECTS, effect.id) })}
+                                        />
+                                        {effectName(effect.id)}
+                                    </label>
+                                )
+                            })}
+                        </div>
+                    ))}
+                </div>
             </fieldset>
 
             <p class="rules">

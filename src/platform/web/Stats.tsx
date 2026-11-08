@@ -61,7 +61,7 @@ export function Stats({ state: s, onFlush, onPiles }: StatsProps) {
                 title={
                     long
                         ? 'High-score hearts. The run ends after the final turn.'
-                        : 'Reach the goal to win. Enemies that fall off the right edge take hearts away, and hearts can go negative.'
+                        : 'Reach the goal to win. After a win you can play on to the last turn, and the hearts beyond the goal are your score. Enemies that fall off the right edge take hearts away, and hearts can go negative.'
                 }
             >
                 {s.hearts}

@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks'
-import { DEFAULT_CUSTOM, customMode, customOfMode } from '../../core'
+import { DEFAULT_CUSTOM, canContinue, customMode, customOfMode } from '../../core'
 import type { CustomGenerator, ModeConfig, Move } from '../../core'
 import {
     FRESH_VIEW,
@@ -27,6 +27,7 @@ import { Home } from './Home'
 import { StandardScreen } from './StandardScreen'
 import { Rich } from './Rich'
 import { Stats } from './Stats'
+import { loopTimeFactor } from './anim'
 import { browserReducedMotion, createPresenter } from './anim/presenter'
 import { parseStartParams, randomSeed, routeFor, shareQuery } from './mode'
 import { parseRunText, runOf } from './resume'
@@ -279,6 +280,13 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
     const overlap = n > 5 ? (n - 5) / (n - 1) : 0
     const replay = store.getReplayProgress()
     const close = () => setDialog(null)
+    const playOn =
+        canContinue(state) && !replay
+            ? () => {
+                  close()
+                  dispatch({ type: 'continue' })
+              }
+            : null
     const recordsOfThisRun = improvements?.run === shareQuery(state.config, state.seed) && !playing ? improvements.lines : []
     const dialogs = (
         <>
@@ -301,7 +309,9 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                     onClose={close}
                 />
             ) : null}
-            {dialog === 'summary' ? <SummaryDialog state={state} moves={session.moves} records={recordsOfThisRun} onClose={close} /> : null}
+            {dialog === 'summary' ? (
+                <SummaryDialog state={state} moves={session.moves} records={recordsOfThisRun} onPlayOn={playOn} onClose={close} />
+            ) : null}
             {dialog === 'load' ? <LoadRunDialog onLoad={loadReplay} onClose={close} /> : null}
             {dialog === 'piles' ? <PilesDialog state={state} skin={skin} onClose={close} /> : null}
             {dialog === 'loadResults' ? <LoadResultsDialog onImport={importPastedResults} onClose={close} /> : null}
@@ -376,7 +386,7 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
     }
 
     return (
-        <div ref={rootRef} class="app">
+        <div ref={rootRef} class="app" data-anim={settings.anim} style={{ '--loop-time': loopTimeFactor(settings.anim) }}>
             <main>
                 <header>
                     <button type="button" class="b alt" onClick={goHome} title="Back to the menu. The run stays in memory.">
@@ -402,7 +412,7 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                     onPiles={() => setDialog('piles')}
                 />
 
-                <h2>Recruit row</h2>
+                <h2>River</h2>
                 <div class="cards row" data-zone="row">
                     {state.row.map((card, i) => (
                         <div class="slot" key={card.id}>
@@ -451,6 +461,11 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                         ) : (
                             <span class="rules">Replay complete · {replay.total} moves</span>
                         )
+                    ) : null}
+                    {playOn ? (
+                        <button type="button" class="b" onClick={playOn}>
+                            Keep playing to turn {state.maxTurns}
+                        </button>
                     ) : null}
                     <button type="button" class="b" disabled={!playing || state.pendingExile} onClick={() => dispatch({ type: 'endTurn' })}>
                         End turn

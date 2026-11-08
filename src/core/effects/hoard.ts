@@ -3,6 +3,7 @@ import { nextInt } from '../rng'
 import { ownedCards } from '../state'
 import { gainPerCards, rollMainCurrency, rolledCurrency } from './countGain'
 import type { EffectDef } from './types'
+import { rangeOf, resourceSlot, slot } from './wording'
 
 const roundToTenth = (value: number): number => Math.round(value * 10) / 10
 
@@ -17,7 +18,9 @@ const VARIANTS = HOARD_CARDS_PER_STEP.flatMap((perCards) =>
 export const hoard: EffectDef = {
     id: 'hoard',
     price: VARIANTS[0]!.price,
-    text: '+{a} ● per {d} cards in your deck',
+    family: 'count',
+    describe: (card) =>
+        `+${slot(card, (c) => c.fxParams?.amount ?? 1, rangeOf(HOARD_AMOUNTS))} ${resourceSlot(card, 'gold')} per ${slot(card, (c) => c.fxParams?.perCards ?? 1, rangeOf(HOARD_CARDS_PER_STEP))} cards in your deck`,
     enemies: true,
     needsAny: ['gold', 'power'],
     lean: [],

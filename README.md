@@ -17,9 +17,9 @@ Other scripts:
 
 - `npm run build` creates a static build in `dist/`.
 - `npm run verify` runs format, lint, type checks, tests and a build. Run it before a commit.
-- `npm run sim` plays bot games and prints balance numbers, for example `npm run sim -- --games 400 --mode long`.
+- `npm run sim` plays bot games and prints balance numbers, for example `npm run sim -- --games 400 --goal long`.
 
-A run can be shared and replayed with a seed: `?seed=123&mode=long` in the URL.
+A run can be shared and replayed with a seed: `?seed=123&mode=standard&goal=long` in the URL.
 
 ## How the project is organised
 

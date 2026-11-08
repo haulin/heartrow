@@ -3,11 +3,14 @@ import type { Currency } from '../types'
 import { rollKinCurrency } from './kin'
 import { RETAIN_RARELY } from '../generator/budget'
 import type { EffectDef } from './types'
+import { resourceSlot, typeSlot } from './wording'
 
 export const army: EffectDef = {
     id: 'army',
     price: 1.5,
-    text: '+1 {k} per 4 {T} cards in your deck',
+    family: 'count',
+    describe: (card) => `+1 ${resourceSlot(card, card?.main ?? 'gold')} per 4 ${typeSlot(card)} cards in your deck`,
+    needsAny: ['moss', 'ember', 'tide'],
     enemies: false,
     lean: ['moss', 'ember', 'tide'],
     pays: 'rolled',
@@ -16,8 +19,8 @@ export const army: EffectDef = {
         rollKinCurrency(rng, card, context, false)
         return army.price
     },
-    apply({ state, card }) {
+    apply({ state, card, gain }) {
         const currency: Currency = card.fxParams?.currency === 'hearts' ? card.main : (card.fxParams?.currency ?? card.main)
-        state[currency] += Math.floor(ownedCards(state).filter((other) => other.type === card.type).length / 4)
+        gain(currency, Math.floor(ownedCards(state).filter((other) => other.type === card.type).length / 4))
     },
 }

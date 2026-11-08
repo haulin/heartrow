@@ -2,7 +2,7 @@ import type { Card, GameState } from '../../types'
 import type { Policy } from '../types'
 import { handCard } from './util'
 
-const CYCLE_EFFECTS = ['cycle', 'purge']
+const CYCLE_EFFECTS = ['cycle', 'redraw']
 const USEFUL_EFFECTS = ['flip', 'draw']
 const CONDITIONAL_EFFECTS = ['all3', 'army', 'basics', 'bond', 'kin', 'pile', 'reapG', 'reapP', 'vault']
 
@@ -22,7 +22,7 @@ export function humanPlayOrder(): Policy {
 }
 
 function cycleIsWorthwhile(state: GameState, card: Card): boolean {
-    const discard = state.hand.filter((other) => !other.played && other !== card && (card.fx.includes('purge') || !other.retain))
+    const discard = state.hand.filter((other) => !other.played && other !== card && (card.fx.includes('redraw') || !other.retain))
     if (discard.length === 0) return false
     return directGain(card) + expectedDrawGain(state, discard.length) > totalDirectGain(discard)
 }

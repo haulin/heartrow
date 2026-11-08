@@ -40,8 +40,8 @@ describe('formatEvent', () => {
             [{ type: 'drew', cardIds: [1], requested: 2, cause: 'effect' }, 'Drew 2 cards.'],
             [{ type: 'drew', cardIds: [1], requested: 1, cause: 'effect' }, 'Drew 1 card.'],
             [{ type: 'flipped', currency: 'gold', amount: 4 }, 'Flip: +4 ●.'],
-            [{ type: 'swapped' }, 'Swapped ● and ⚔.'],
-            [{ type: 'cycled', count: 3, purge: false }, 'Cycled 3 cards.'],
+            [{ type: 'swapped', gold: 7, power: 1 }, 'Swapped ● and ⚔: now 7 ● and 1 ⚔.'],
+            [{ type: 'cycled', count: 3, redraw: false }, 'Cycled 3 cards.'],
             [{ type: 'exiled', card: card('moss') }, 'Exiled a Moss card.'],
             [{ type: 'exileSkipped' }, 'Skipped the exile.'],
             [{ type: 'rowFlushed', cards: [], kept: card('foe') }, 'Flushed the four left cards. The right-edge card cannot be flushed.'],
@@ -103,7 +103,7 @@ describe('formatEvents', () => {
         const events: GameEvent[] = [
             { type: 'played', card: card('tide'), gains: gains() },
             { type: 'drew', cardIds: [1, 2], requested: 2, cause: 'cycle' },
-            { type: 'cycled', count: 2, purge: false },
+            { type: 'cycled', count: 2, redraw: false },
         ]
         expect(formatEvents(events, ctx)).toEqual(['Played a Tide card.', 'Cycled 2 cards.'])
     })
@@ -111,7 +111,7 @@ describe('formatEvents', () => {
     it('appends the nothing-to-discard note to the played line', () => {
         const events: GameEvent[] = [
             { type: 'played', card: card('tide'), gains: gains() },
-            { type: 'cycled', count: 0, purge: false },
+            { type: 'cycled', count: 0, redraw: false },
         ]
         expect(formatEvents(events, ctx)).toEqual(['Played a Tide card. Nothing to discard.'])
     })

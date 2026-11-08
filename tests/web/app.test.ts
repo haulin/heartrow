@@ -90,7 +90,7 @@ describe('App Standard screen', () => {
         press(host, 'Home')
         press(host, 'Standard')
         press(host, 'Long Run')
-        expect(store.getState().config.id).toBe('long')
+        expect(store.getState().goal).toBe(200)
     })
 })
 
@@ -165,7 +165,7 @@ describe('App challenge screen', () => {
         clickAt(150)
         expect(host.querySelector('.dot.on')?.getAttribute('aria-label')).toBe('Moss economy')
         clickAt(450)
-        expect(host.querySelector('.dot.on')?.getAttribute('aria-label')).toBe('Pacifist')
+        expect(host.querySelector('.dot.on')?.getAttribute('aria-label')).toBe('Attack only')
     })
 
     it('has its own address, one icon dot per challenge, the goals of the current one, and Back from a pasted address goes home', () => {
@@ -194,13 +194,16 @@ describe('App challenge screen', () => {
         press(host, 'Challenges')
         void act(() => host.querySelectorAll<HTMLElement>('.goalrow')[4]!.click())
         press(host, 'Start Standard · Long Run')
-        expect(store.getState().config.id).toBe('long')
+        expect(store.getState().goal).toBe(200)
         press(host, 'Home')
         press(host, 'Challenges')
         void act(() => host.querySelectorAll<HTMLElement>('.dot')[1]!.click())
-        expect(Array.from(host.querySelectorAll('.goalrow-label')).map((l) => l.textContent)).not.toContain('Long Run')
+        expect(Array.from(host.querySelectorAll('.goalrow-label')).map((l) => l.textContent)).toContain('Long Run')
+        void act(() => host.querySelectorAll<HTMLElement>('.goalrow')[4]!.click())
         press(host, 'Start Moss economy')
         expect(store.getState().config.id).toBe('custom')
+        expect(store.getState().config.name).toBe('Custom generator')
+        expect(store.getState().maxTurns).toBe(42)
         expect(store.getState().config.starter).toEqual({ basicGold: 10, basicPower: 0 })
     })
 
@@ -248,6 +251,22 @@ describe('App results import', () => {
         paste(resultsText(moss))
         expect(host.querySelector('dialog')!.textContent).toContain('Imported: 1 goal improved.')
         expect(loadResults(storage)).toEqual(moss)
+    })
+})
+
+describe('App copy fallback', () => {
+    it('shows the text in a box to copy by hand when the browser refuses the clipboard', async () => {
+        const { host } = mount(4, 'off', 'home')
+        press(host, 'Settings')
+        expect(host.querySelector('.copybox')).toBeNull()
+        await act(async () => {
+            Array.from(host.querySelectorAll('button'))
+                .find((b) => b.textContent?.startsWith('Copy results'))!
+                .click()
+        })
+        const box = host.querySelector<HTMLTextAreaElement>('.copybox')
+        expect(box?.readOnly).toBe(true)
+        expect(box?.value).toContain('"results"')
     })
 })
 

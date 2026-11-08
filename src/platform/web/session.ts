@@ -1,6 +1,6 @@
 import { applyMove, edgeEnemyHearts, formatEvents, historyLine, newGame } from '../../core'
 import type { GameEvent, GameState, ModeConfig, Move } from '../../core'
-import { INTRO_TEXT, longIntro, statusMessage } from './text'
+import { INTRO_TEXT, statusMessage } from './text'
 
 export interface Snapshot {
     state: GameState
@@ -27,7 +27,7 @@ export interface StepOutcome {
 
 export function startSession(config: ModeConfig, seed: number): Session {
     const { state } = newGame(config, seed)
-    return { state, history: [], message: state.goal === null ? longIntro(state.maxTurns) : INTRO_TEXT, moves: [], undo: [] }
+    return { state, history: [], message: INTRO_TEXT, moves: [], undo: [] }
 }
 
 /**

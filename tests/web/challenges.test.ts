@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vite-plus/test'
-import { CUSTOM_PRESETS, DEFAULT_CUSTOM, LONG_MODE, customMode, standardMode } from '../../src/core'
+import { CUSTOM_PRESETS, DEFAULT_CUSTOM, LONG_GOAL, LONG_MODE, customMode, standardMode } from '../../src/core'
 import type { GameState, ModeConfig } from '../../src/core'
 import {
-    LONG_GOAL,
     challengeList,
     forgetStaleImprovements,
     goalOfMode,
@@ -23,8 +22,9 @@ import { createMemoryStorage } from '../../src/platform/web/storage'
 const V1 = '0.1.0'
 const V2 = '0.2.0'
 
-function finished(config: ModeConfig, status: 'won' | 'lost' | 'finished', hearts: number, turn = 1) {
-    return { ...new GameStore(config, 1).getState(), status, hearts, turn }
+/** A run that ended with `hearts`; a win met its goal on `turn`, which is also the turn it ended on unless a test changes `goalMetTurn`. */
+function finished(config: ModeConfig, status: 'won' | 'lost', hearts: number, turn = 1) {
+    return { ...new GameStore(config, 1).getState(), status, hearts, turn, goalMetTurn: status === 'won' ? turn : null }
 }
 
 describe('challenge goals of a run', () => {
@@ -51,7 +51,7 @@ describe('run names', () => {
     it('names a preset run by its preset, and any other custom run Custom', () => {
         const moss = CUSTOM_PRESETS.find((p) => p.id === 'moss')!
         expect(runName(standardMode(0))).toBe('Standard')
-        expect(runName(LONG_MODE)).toBe('Long Run')
+        expect(runName(LONG_MODE)).toBe('Standard')
         expect(runName(customMode(moss.generator))).toBe('Moss economy')
         expect(runName(customMode({ ...moss.generator, effects: [] }))).toBe('Custom')
     })
@@ -86,18 +86,31 @@ describe('challenge results', () => {
         expect(recordFinished(storage, finished(mode, 'won', 55, 20), V2)).toBeNull()
     })
 
-    it('scores Long Run by hearts without a win', () => {
+    it('records a Long Run won on the turn it met the goal, not the turn it ended', () => {
         const storage = createMemoryStorage()
-        recordFinished(storage, finished(LONG_MODE, 'finished', 120), V1)
+        recordFinished(storage, finished(LONG_MODE, 'lost', 120), V1)
         expect(loadResults(storage)).toEqual({ [`standard:${LONG_GOAL}`]: { won: false, best: 120, turn: null, version: V1 } })
+        const playedOn = { ...finished(LONG_MODE, 'won', 230, 42), goalMetTurn: 31 }
+        recordFinished(storage, playedOn, V1)
+        expect(loadResults(storage)).toEqual({ [`standard:${LONG_GOAL}`]: { won: true, best: 230, turn: 31, version: V1 } })
     })
 
-    it('preselects the lowest level not won yet, or the last one', () => {
+    it('changes only the record of the goal that was played, however many hearts it ends with', () => {
+        const storage = createMemoryStorage()
+        const playedOn = { ...finished(standardMode(0), 'won', 95, 24), goalMetTurn: 20 }
+        expect(recordFinished(storage, playedOn, V1)).toEqual({ 'standard:0': { won: true, best: 95, turn: 20, version: V1 } })
+        expect(improvementLines({}, loadResults(storage), playedOn.config)).toEqual(['First win'])
+        const lostHard = recordFinished(createMemoryStorage(), finished(standardMode(3), 'lost', 66, 24), V1)!
+        expect(Object.keys(lostHard)).toEqual(['standard:3'])
+    })
+
+    it('preselects the first goal not won yet, or the last one', () => {
         expect(nextGoal({}, 'standard')).toBe(0)
         const won = { won: true, best: 50, turn: 20, version: V1 }
         expect(nextGoal({ 'standard:0': won, 'standard:1': { ...won, won: false, turn: null } }, 'standard')).toBe(1)
-        const all = Object.fromEntries([0, 1, 2, 3].map((g) => [`standard:${g}`, won]))
-        expect(nextGoal(all, 'standard')).toBe(3)
+        const levels = Object.fromEntries([0, 1, 2, 3].map((g) => [`standard:${g}`, won]))
+        expect(nextGoal(levels, 'standard')).toBe(LONG_GOAL)
+        expect(nextGoal({ ...levels, [`standard:${LONG_GOAL}`]: won }, 'standard')).toBe(LONG_GOAL)
     })
 
     it('names what a finished run improved in the record of its goal', () => {
@@ -114,7 +127,7 @@ describe('challenge results', () => {
         expect(record(finished(mode, 'won', 50, 22))).toEqual(['First win', 'New best: 50 ♥ (was 45)'])
         expect(record(finished(mode, 'won', 48, 19))).toEqual(['Fastest win: turn 19 (was 22)'])
         expect(record(finished(mode, 'won', 48, 25))).toEqual([])
-        expect(record(finished(LONG_MODE, 'finished', 100))).toEqual(['First result recorded'])
+        expect(record(finished(LONG_MODE, 'lost', 100))).toEqual(['First result recorded'])
     })
 
     it('keeps the improvement lines of a run for a reload, tied to the address of that run', () => {

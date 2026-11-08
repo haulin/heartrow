@@ -6,7 +6,7 @@ import type { Move } from '../../core'
 import { App } from './App'
 import { ErrorBoundary } from './ErrorBoundary'
 import { createLocalStorage } from './localStorageStore'
-import { modeFromId, shareQuery } from './mode'
+import { shareQuery } from './mode'
 import { openStore, runOf } from './resume'
 import { applyTheme, loadSettings } from './settings'
 import { SKIN_IDS } from './skins'
@@ -23,7 +23,7 @@ if (import.meta.env.DEV) {
         heartrow: {
             getState: store.getState,
             dispatch: (move: Move) => store.dispatch(move).events,
-            newGame: (modeId: string, newSeed: number) => store.newGame(modeFromId(modeId), newSeed),
+            newGame: (goalKey: string, newSeed: number) => store.newGame(core.standardRun(core.goalIndexOfKey(goalKey) ?? 0), newSeed),
             legalMoves: () => core.legalMoves(store.getState()),
             /** The saved-run record: the address and the accepted moves. Replaying it rebuilds this run. */
             run: () => runOf(store, __APP_VERSION__),

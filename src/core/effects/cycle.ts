@@ -2,18 +2,19 @@ import { RETAIN_OFTEN } from '../generator/budget'
 import { drawCards } from '../state'
 import type { EffectContext, EffectDef } from './types'
 
-export function discardUnplayed({ state, card, events }: EffectContext, purge: boolean): void {
-    const out = state.hand.filter((other) => !other.played && other !== card && (purge || !other.retain))
+export function discardUnplayed({ state, card, events }: EffectContext, redraw: boolean): void {
+    const out = state.hand.filter((other) => !other.played && other !== card && (redraw || !other.retain))
     state.hand = state.hand.filter((other) => !out.includes(other))
     drawCards(state, out.length, events, 'cycle')
     state.discard.push(...out)
-    events.push({ type: 'cycled', count: out.length, purge })
+    events.push({ type: 'cycled', count: out.length, redraw })
 }
 
 export const cycle: EffectDef = {
     id: 'cycle',
     price: 1.5,
-    text: 'Cycle unplayed cards except Retain ones',
+    family: 'cards',
+    describe: () => 'Cycle unplayed cards except Retain ones',
     enemies: true,
     lean: ['tide'],
     retain: RETAIN_OFTEN,

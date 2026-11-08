@@ -6,7 +6,7 @@ import { deckSummary } from '../../src/platform/web/text'
 import reference from '../fixtures/reference-run.json'
 
 /**
- * A real played run (a "Copy run" record from a playtest) replayed through the engine. It must replay without a single rejected move
+ * A saved run (a "Copy run" record; this one is a `smart` bot game written by `npm run sim -- --worst`) replayed through the engine. It must replay without a single rejected move
  * and end in exactly this state. If this fails, engine behaviour changed: when that was intended, bump the version in `package.json`
  * (saved runs are tied to it) and update the expected values below; when it was not, the change is a bug.
  */
@@ -32,17 +32,17 @@ describe('reference run', () => {
             piles: [state.deck.length, state.hand.length, state.discard.length, state.exile.length],
         }).toMatchInlineSnapshot(`
           {
-            "flushes": 3,
+            "flushes": 1,
             "gold": 0,
-            "hearts": 48,
+            "hearts": 40,
             "piles": [
-              13,
+              15,
               0,
-              6,
-              11,
+              14,
+              5,
             ],
             "power": 0,
-            "turn": 22,
+            "turn": 24,
           }
         `)
     })
@@ -50,43 +50,53 @@ describe('reference run', () => {
     it('ends with the same deck', () => {
         expect(deckSummary(state)).toMatchInlineSnapshot(`
           {
-            "ember": 4,
-            "fxGold": 0,
-            "fxHearts": 3,
-            "fxOther": 3,
-            "fxPower": 1,
-            "gold": 18,
-            "hearts": 11,
-            "moss": 4,
-            "plain": 2,
-            "power": 13,
-            "tide": 9,
-            "total": 19,
+            "ember": 7,
+            "fxGold": 3,
+            "fxHearts": 0,
+            "fxOther": 10,
+            "fxPower": 4,
+            "gold": 17,
+            "hearts": 6,
+            "moss": 12,
+            "plain": 5,
+            "power": 17,
+            "tide": 5,
+            "total": 29,
           }
         `)
         const line = (c: (typeof cards)[number]) =>
             `${c.type} ${c.kind} cost ${c.cost}: ${c.gold}g ${c.power}p ${c.hearts}h [${c.fx.join(',')}]`
         expect(cards.map(line).sort()).toMatchInlineSnapshot(`
           [
-            "ember recruit cost 2: 0g 0p 1h []",
-            "ember recruit cost 3: 0g 1p 0h [reapG]",
-            "ember recruit cost 3: 0g 1p 1h []",
-            "ember recruit cost 5: 1g 2p 0h [reapP]",
+            "ember recruit cost 2: 0g 0p 0h [foes]",
+            "ember recruit cost 2: 0g 2p 0h []",
+            "ember recruit cost 3: 0g 0p 0h [reload]",
+            "ember recruit cost 4: 0g 0p 1h [swap]",
+            "ember recruit cost 4: 0g 0p 2h []",
+            "ember recruit cost 5: 0g 0p 0h [cheap]",
+            "ember recruit cost 5: 0g 3p 0h [exile]",
+            "moss recruit cost 2: 0g 0p 0h [bond]",
             "moss recruit cost 2: 2g 0p 0h []",
-            "moss recruit cost 4: 2g 0p 0h [reapG]",
-            "moss recruit cost 4: 2g 0p 1h []",
-            "moss recruit cost 5: 0g 0p 3h []",
+            "moss recruit cost 3: 0g 0p 0h [flip]",
+            "moss recruit cost 3: 0g 1p 0h [kin]",
+            "moss recruit cost 3: 1g 0p 0h [pile]",
+            "moss recruit cost 3: 1g 0p 0h [swap]",
+            "moss recruit cost 3: 1g 0p 1h []",
+            "moss recruit cost 4: 1g 1p 0h [swap]",
+            "moss recruit cost 4: 2g 1p 0h []",
+            "moss recruit cost 5: 1g 0p 1h [army]",
+            "moss recruit cost 5: 2g 0p 0h [swap]",
+            "moss recruit cost 5: 3g 0p 1h []",
+            "plain basic cost 0: 0g 1p 0h []",
+            "plain basic cost 0: 0g 1p 0h []",
+            "plain basic cost 0: 0g 1p 0h []",
             "plain basic cost 0: 0g 1p 0h []",
             "plain basic cost 0: 1g 0p 0h []",
             "tide recruit cost 2: 0g 0p 0h [cheap]",
             "tide recruit cost 2: 0g 2p 0h []",
-            "tide recruit cost 2: 1g 0p 0h [exile]",
-            "tide recruit cost 3: 1g 0p 0h [kin]",
-            "tide recruit cost 4: 0g 3p 0h []",
-            "tide recruit cost 5: 1g 0p 2h []",
-            "tide recruit cost 5: 1g 3p 0h []",
-            "tide recruit cost 5: 3g 0p 1h []",
-            "tide recruit cost 8: 3g 0p 2h [exile]",
+            "tide recruit cost 4: 0g 2p 0h [army]",
+            "tide recruit cost 4: 1g 0p 0h [cheap]",
+            "tide recruit cost 4: 1g 1p 0h [redraw]",
           ]
         `)
     })

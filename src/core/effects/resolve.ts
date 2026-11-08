@@ -3,9 +3,12 @@ import { creditHearts } from '../state'
 import { EFFECT_BY_ID } from './index'
 import type { EffectContext } from './types'
 
-/** Applies a card's gains and effects. Returns defeat gains excluding the card's printed hearts, which the caller adds. */
+/**
+ * Applies a card's gains and effects. Returns what the card produced, not the net change of the totals (Swap moves resources without gaining any).
+ * For a defeat the result excludes the card's printed hearts, which the caller adds.
+ */
 export function resolveCard(state: GameState, card: Card, source: 'play' | 'defeat', events: GameEvent[], rowEnemies = 0): Gains {
-    const tracked: Gains = { gold: source === 'defeat' ? card.gold : 0, power: source === 'defeat' ? card.power : 0, hearts: 0 }
+    const tracked: Gains = { gold: card.gold, power: card.power, hearts: source === 'defeat' ? 0 : card.hearts }
     state.gold += card.gold
     state.power += card.power
     state.hearts += card.hearts
@@ -24,7 +27,7 @@ export function resolveCard(state: GameState, card: Card, source: 'play' | 'defe
         rowEnemies,
         gain(resource, amount) {
             state[resource] += amount
-            if (source === 'defeat') tracked[resource] += amount
+            tracked[resource] += amount
         },
     }
     for (const id of card.fx) {

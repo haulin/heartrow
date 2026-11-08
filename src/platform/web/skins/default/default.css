@@ -75,6 +75,30 @@ div.card {
     background: color-mix(in srgb, var(--c) 10%, var(--card));
     pointer-events: none;
 }
+/*
+ * Each shape sits in a group. The group drifts and the shape itself gets the hover push (`artPush.ts`), so the two never fight over one property.
+ * The `translate` property adds to the `transform` attribute that rotates some shapes. Lengths are in the art's own 100 unit box.
+ */
+.card svg.art > g {
+    animation: art-drift calc(var(--drift) * var(--loop-time, 1)) ease-in-out calc(var(--drift-delay) * var(--loop-time, 1)) infinite
+        alternate;
+}
+@keyframes art-drift {
+    from {
+        translate: 0 0;
+    }
+    to {
+        translate: var(--dx) var(--dy);
+    }
+}
+.app[data-anim='off'] .card svg.art > g {
+    animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+    .card svg.art > g {
+        animation: none;
+    }
+}
 .card .bd {
     position: relative;
     z-index: 1;

@@ -23,7 +23,7 @@ const EFFECT_VALUE: Partial<Record<EffectId, number>> = {
     foes: 4,
     kin: 0,
     pile: 0,
-    purge: 5,
+    redraw: 5,
     reapG: 1,
     reapP: 1,
     swap: 3,
@@ -33,8 +33,8 @@ const EFFECT_VALUE: Partial<Record<EffectId, number>> = {
 
 const HEART_EFFECT_VALUE: Partial<Record<EffectId, number>> = { reapG: 4, reapP: 4 }
 
-/** Effects that do the same job share one count, so a Purge halves the value of a Cycle. */
-const EFFECT_FAMILY: Partial<Record<EffectId, EffectId>> = { purge: 'cycle' }
+/** Effects that do the same job share one count, so a Redraw halves the value of a Cycle. */
+const EFFECT_FAMILY: Partial<Record<EffectId, EffectId>> = { redraw: 'cycle' }
 
 function family(fx: EffectId): EffectId {
     return EFFECT_FAMILY[fx] ?? fx

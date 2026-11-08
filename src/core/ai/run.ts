@@ -1,4 +1,4 @@
-import { applyMove, legalMoves, newGame } from '../moves'
+import { applyMove, canContinue, legalMoves, newGame } from '../moves'
 import { createRng } from '../rng'
 import { ownedCards } from '../state'
 import type { GameState, ModeConfig, Move } from '../types'
@@ -11,6 +11,8 @@ export interface PlayOptions {
     /** After this many moves in one turn the driver ends the turn itself. */
     maxMovesPerTurn?: number
     pick?: PickOptions
+    /** Keep playing to the last turn after the goal is met, so the hearts beyond it count. The bot never chooses this by itself. */
+    playOn?: boolean
 }
 
 export interface GameSummary {
@@ -38,6 +40,8 @@ export interface GameResult {
     summary: GameSummary
 }
 
+const CONTINUE: Move = { type: 'continue' }
+
 export const DEFAULT_MAX_MOVES = 4000
 export const DEFAULT_MAX_MOVES_PER_TURN = 80
 
@@ -60,7 +64,13 @@ export function playGame(
     let turn = state.turn
     let heartsT24: number | null = null
     const chosenMoves: Move[] = []
-    while (state.status === 'playing' && moves < maxMoves) {
+    while (moves < maxMoves) {
+        if (state.status === 'won' && options.playOn && canContinue(state)) {
+            state = applyMove(state, CONTINUE).state
+            chosenMoves.push(CONTINUE)
+            continue
+        }
+        if (state.status !== 'playing') break
         if (state.turn !== turn) {
             turn = state.turn
             turnMoves = 0
@@ -76,13 +86,12 @@ export function playGame(
         moves++
         turnMoves++
     }
-    const goal = state.goal
     return {
         state,
         moves: chosenMoves,
         summary: {
             hearts: state.hearts,
-            goalHit: goal !== null && state.hearts >= goal,
+            goalHit: state.status === 'won',
             kills: state.stats.kills,
             lostToEscapes: state.stats.lostToEscapes,
             bought: state.stats.recruited,

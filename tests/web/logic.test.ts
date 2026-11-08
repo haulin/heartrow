@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vite-plus/test'
-import { LONG_MODE, legalMoves, standardMode } from '../../src/core'
+import { DEFAULT_CUSTOM, LONG_MODE, legalMoves, standardMode, standardRun } from '../../src/core'
 import type { Card, GameState, Move } from '../../src/core'
 import { departingIds } from '../../src/platform/web/anim'
-import { modeFromId, parseStartParams, shareQuery } from '../../src/platform/web/mode'
+import { customQuery } from '../../src/platform/web/custom'
+import { parseStartParams, shareQuery } from '../../src/platform/web/mode'
 import { startSession, stepSession, undoSession } from '../../src/platform/web/session'
 import type { Session } from '../../src/platform/web/session'
 import { DEFAULT_SETTINGS, loadSettings, saveSettings } from '../../src/platform/web/settings'
@@ -224,9 +225,10 @@ describe('store and session', () => {
             const pick: Move = moves.find((m) => m.type === 'skipExile') ?? moves.find((m) => m.type === 'play') ?? { type: 'endTurn' }
             store.dispatch(pick)
         }
-        expect(store.getState().status).toBe('finished')
-        expect(statusMessage(store.getState())).toContain('Long Run complete')
-        expect(store.getSession().history.at(-1)).toContain('Long Run complete')
+        expect(store.getState().turn).toBe(42)
+        expect(store.getState().status).toBe('lost')
+        expect(statusMessage(store.getState())).toContain('Out of turns')
+        expect(store.getSession().history.at(-1)).toContain('Out of turns')
         expect(store.getSession().history.at(-1)).toContain(`${store.getMoves().length} moves,`)
     })
 
@@ -259,30 +261,22 @@ describe('store and session', () => {
 })
 
 describe('mode and url params', () => {
-    it('maps ids', () => {
-        expect(modeFromId('long')).toBe(LONG_MODE)
-        expect(modeFromId('standard', '3').goal).toBe(80)
-        expect(modeFromId('standard').goal).toBe(48)
-        expect(modeFromId('nonsense').id).toBe('standard')
-        expect(modeFromId('nonsense').goal).toBe(48)
+    it('reads the goal of a link, and falls back to the first goal', () => {
+        expect(parseStartParams('?seed=1&goal=long').config.goal).toBe(200)
+        expect(parseStartParams('?seed=1&goal=3').config.goal).toBe(80)
+        expect(parseStartParams('?seed=1').config.goal).toBe(48)
+        expect(parseStartParams('?seed=1&goal=nonsense').config.goal).toBe(48)
+        expect(parseStartParams('?seed=1&goal=9').config.goal).toBe(48)
     })
-    it('still reads older level ids, and lets goal win over them', () => {
-        expect(modeFromId('standard3').goal).toBe(80)
-        expect(modeFromId('standard4').goal).toBe(96)
-        expect(modeFromId('level2').goal).toBe(64)
-        expect(modeFromId('2').goal).toBe(64)
-        expect(modeFromId('standard3', '1').goal).toBe(48)
-        expect(modeFromId('standard', '9').goal).toBe(48)
-        expect(modeFromId('long', '3')).toBe(LONG_MODE)
-    })
-    it('parses seed, mode and goal', () => {
-        const p = parseStartParams('?seed=123&mode=long', () => 1)
-        expect(p).toEqual({ config: LONG_MODE, seed: 123 })
+    it('parses seed and generator, and spells the generator out in the link of every run', () => {
         expect(parseStartParams('?seed=abc', () => 42).seed).toBe(42)
         expect(parseStartParams('?seed=5&mode=standard&goal=2').config.goal).toBe(64)
-        expect(shareQuery(LONG_MODE, 123)).toBe('?seed=123&mode=long')
-        expect(shareQuery(standardMode(2), 7)).toBe('?seed=7&mode=standard&goal=3')
-        expect(parseStartParams(shareQuery(standardMode(1), 7)).config.goal).toBe(64)
+        const standard = `${customQuery({ ...DEFAULT_CUSTOM, goalLevel: 2 })}`
+        expect(shareQuery(standardRun(2), 7)).toBe(`?seed=7&mode=custom&${standard}`)
+        expect(shareQuery(standardMode(2), 7)).toBe(shareQuery(standardRun(2), 7))
+        expect(shareQuery(LONG_MODE, 123)).toContain('mode=custom&goal=long&types=moss,ember,tide,foe&res=gold,power,hearts')
+        expect(parseStartParams(shareQuery(standardRun(1), 7))).toEqual({ config: standardRun(1), seed: 7 })
+        expect(parseStartParams(shareQuery(LONG_MODE, 123), () => 1)).toEqual({ config: standardRun(4), seed: 123 })
     })
 })
 

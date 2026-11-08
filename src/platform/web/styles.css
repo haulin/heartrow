@@ -413,16 +413,6 @@ button.b.swap {
 button.b.swap > span {
     grid-area: 1 / 1;
 }
-.tick {
-    width: 0.9em;
-    height: 0.9em;
-    vertical-align: -0.08em;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-}
 button.b.swap > .gone {
     visibility: hidden;
 }
@@ -483,7 +473,7 @@ select:focus-visible {
     color: var(--gold);
 }
 .records {
-    margin: -8px 0 6px;
+    margin: 0 0 6px;
     padding: 0;
     list-style: none;
     color: var(--gold);
@@ -566,8 +556,34 @@ dialog {
 dialog::backdrop {
     background: #0008;
 }
-.dlg {
-    padding: 14px;
+/* The title bar stays at the top while a long body scrolls under it. */
+.dlg-head {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    flex-wrap: nowrap;
+    padding: 10px 12px 10px 16px;
+    background: var(--panel);
+    border-bottom: 1px solid color-mix(in srgb, var(--dim) 35%, transparent);
+    border-radius: 14px 14px 0 0;
+}
+/* Negative margins grow the tap target without growing the bar. */
+.dlg-close {
+    margin: -6px 0;
+    padding: 9px 14px;
+    font-size: 14px;
+}
+.dlg-head h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--ink);
+}
+.dlg-body {
+    padding: 14px 16px 16px;
+}
+.dlg-body > :first-child {
+    margin-top: 0;
 }
 /* The home screen is as wide as the play area, and its type and buttons grow with that width (the main element is the container). */
 .home {
@@ -622,7 +638,6 @@ dialog::backdrop {
 }
 .level.long {
     --tint: 0%;
-    border-style: dashed;
 }
 .level.won {
     border-color: var(--gold);
@@ -787,6 +802,15 @@ dialog::backdrop {
     background: color-mix(in srgb, var(--accent) 18%, var(--panel));
     color: var(--accent);
 }
+.copybox {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    margin-top: 8px;
+    font:
+        12px/1.3 ui-monospace,
+        monospace;
+}
 .goals {
     flex: 1;
     min-height: 0;
@@ -889,9 +913,6 @@ dialog::backdrop {
     border-radius: clamp(10px, 1.8cqw, 14px);
     text-align: left;
 }
-.dlg-actions {
-    margin-top: 12px;
-}
 .col {
     display: flex;
     flex-direction: column;
@@ -931,6 +952,27 @@ dialog::backdrop {
 }
 .pick.wide {
     width: auto;
+}
+/* Effects of one shape sit together, under a small heading. */
+/* Multi-column flow is the masonry: a group never splits across columns, and the next group fills the shortest space below or beside it. */
+.families {
+    flex-basis: 100%;
+    columns: 6em;
+    column-gap: 10px;
+}
+.family {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 10px;
+    break-inside: avoid;
+}
+.family .pick {
+    width: auto;
+}
+.family-name {
+    font-size: 12px;
+    color: var(--dim);
 }
 .picks input[type='number'] {
     width: 3.5em;

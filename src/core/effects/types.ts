@@ -20,12 +20,22 @@ export interface EffectRollContext {
     hearts: boolean
 }
 
+/** Effects of one shape with different parameters, kept together in the generator list. An effect has one family. */
+export type EffectFamily = 'cards' | 'count' | 'streak' | 'resource' | 'price' | 'reap' | 'river' | 'repeat'
+
 export interface EffectDef {
     id: EffectId
+    family: EffectFamily
     /** Budget price. Scaled by the draw count when `perDrawCard` is set. */
     price: number
     perDrawCard?: true
-    text: string
+    /**
+     * The one place the effect's sentence is written. With a card it is that card's text (its rolled values); without one it is the
+     * sentence for the generator list, with every value the effect can roll in brackets (see `slot` in `wording.ts`).
+     */
+    describe(card?: Card): string
+    /** Acts while an enemy sits in the river, so its text has no "Defeat:" prefix. */
+    passive?: true
     /** What a generator must allow for the effect to make sense. The generator skips the effect when any need is off. */
     needs?: readonly EffectNeed[]
     /** Alternative needs: at least one item in the group must be allowed. */
