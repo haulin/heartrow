@@ -5,16 +5,19 @@ import * as core from '../../core'
 import type { Move } from '../../core'
 import { App } from './App'
 import { ErrorBoundary } from './ErrorBoundary'
-import { createLocalStorage } from './localStorageStore'
+import { installFatalErrorDialog } from './fatalErrors'
+import { createLocalStorage, createTabStorage } from './localStorageStore'
 import { shareQuery } from './mode'
 import { openStore, runOf } from './resume'
 import { applyTheme, loadSettings } from './settings'
 import { SKIN_IDS } from './skins'
 
+installFatalErrorDialog()
+
 const storage = createLocalStorage()
 applyTheme(document.documentElement, loadSettings(storage, SKIN_IDS).theme)
 
-const { store, screen, started } = openStore(storage, window.location.search, __APP_VERSION__)
+const { store, screen, started } = openStore(storage, window.location.search, __APP_VERSION__, undefined, createTabStorage())
 // A game address always names its seed, so a reload (or a tab the browser dropped) finds the same run.
 if (screen === 'game') window.history.replaceState(null, '', shareQuery(store.getState().config, store.getState().seed))
 

@@ -28,6 +28,7 @@ import { StandardScreen } from './StandardScreen'
 import { Rich } from './Rich'
 import { Stats } from './Stats'
 import { loopTimeFactor } from './anim'
+import { previewHand } from './handPreview'
 import { browserReducedMotion, createPresenter } from './anim/presenter'
 import { parseStartParams, randomSeed, routeFor, shareQuery } from './mode'
 import { parseRunText, runOf } from './resume'
@@ -36,6 +37,7 @@ import { SKIN_IDS, getSkin } from './skins'
 import type { GameStore } from './store'
 import type { AppStorage } from './storage'
 import { spoken, statusMessage } from './text'
+import { useHoldRepeat } from './useHoldRepeat'
 import { buildCardView, edgeMark } from './view/cardView'
 
 type DialogName = 'about' | 'load' | 'log' | 'loadResults' | 'piles' | 'run' | 'settings' | 'summary'
@@ -51,6 +53,12 @@ export interface AppProps {
 }
 
 /** The session the view draws. It can trail the latest one while an animation plays. */
+const PREVIEW_RESOURCES = [
+    { key: 'gold', symbol: '●' },
+    { key: 'power', symbol: '⚔' },
+    { key: 'hearts', symbol: '♥' },
+] as const
+
 function useShownSession(store: GameStore) {
     const [, setTick] = useState(0)
     useEffect(() => store.subscribe(() => setTick((n) => n + 1)), [store])
@@ -127,6 +135,12 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
     }, [state.status, state.seed])
 
     const dispatch = (move: Move) => store.dispatch(move)
+    const holdNext = useHoldRepeat(() => store.replayNext() !== null)
+    const holdUndo = useHoldRepeat(() => {
+        if (!store.canUndo()) return false
+        store.undo()
+        return true
+    })
     const playing = state.status === 'playing'
     const canAuto = playing && !state.pendingExile && state.hand.some((c) => c.fx.length === 0 && !c.played)
 
@@ -279,6 +293,7 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
     const n = state.hand.length
     const overlap = n > 5 ? (n - 5) / (n - 1) : 0
     const replay = store.getReplayProgress()
+    const preview = useMemo(() => previewHand(state), [state])
     const close = () => setDialog(null)
     const playOn =
         canContinue(state) && !replay
@@ -448,7 +463,21 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                     {spoken(text)}
                 </div>
 
-                <h2>Your hand</h2>
+                <div class="hand-head">
+                    <h2>Your hand</h2>
+                    {preview ? (
+                        <span
+                            class="hand-preview"
+                            title="What the cards in your hand add when played, in hand order. A + means at least: a Flip counts low and drawn cards are not counted."
+                        >
+                            {PREVIEW_RESOURCES.map(({ key, symbol }) => (
+                                <span key={key}>
+                                    <Rich text={`${preview[key]}${preview.atLeast[key] ? '+' : ''} ${symbol}`} />
+                                </span>
+                            ))}
+                        </span>
+                    ) : null}
+                </div>
                 <div class={`cards hand${n >= 10 ? ' large' : ''}`} data-zone="hand" style={{ '--k': overlap }}>
                     {state.hand.map((card, i) => (
                         <div class="slot" key={card.id}>
@@ -460,7 +489,13 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                 <div class="bar">
                     {replay ? (
                         replay.done < replay.total ? (
-                            <button type="button" class="b alt" onClick={() => store.replayNext()}>
+                            <button
+                                type="button"
+                                class="b alt hold"
+                                title="Hold to keep going."
+                                {...holdNext.pointerProps}
+                                onClick={holdNext.onClickOnce(() => store.replayNext())}
+                            >
                                 Next move {replay.done + 1}/{replay.total}
                             </button>
                         ) : (
@@ -495,12 +530,15 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                     </button>
                     <button
                         type="button"
-                        class="b alt"
+                        class="b alt hold"
                         disabled={!store.canUndo()}
                         title={
-                            replay ? 'Undo the last replay move.' : 'Undo your last move this turn. Random outcomes replay the same way.'
+                            replay
+                                ? 'Undo the last replay move. Hold to keep going.'
+                                : 'Undo your last move this turn. Random outcomes replay the same way. Hold to keep going.'
                         }
-                        onClick={store.undo}
+                        {...holdUndo.pointerProps}
+                        onClick={holdUndo.onClickOnce(store.undo)}
                     >
                         Undo
                     </button>

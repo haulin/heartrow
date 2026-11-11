@@ -1,8 +1,13 @@
 import type { AnimSpeed } from '../settings'
 import type { Session } from '../session'
 import type { Frame } from '../store'
-import { departingIds, flip, planAfter, planBefore, planDeal, resolveSpeed, runEffect, snapshotSlots } from '.'
+import { departingIds, flip, planAfter, planBefore, planDeal, pulseOf, resolveSpeed, runEffect, snapshotSlots, swapFollowsFlight } from '.'
 import type { Effect, GainStat } from '.'
+
+const SWAP_STATS: readonly GainStat[] = ['gold', 'power']
+
+/** How many frames may wait behind the one being shown before the oldest are shown without animation. */
+const BACKLOG_LIMIT = 3
 
 /** What the presenter needs from the store. */
 export interface FrameSource {
@@ -15,6 +20,7 @@ export interface FrameSource {
     /** Keeps the shown number of a resource while a flight carries it to its stat box. */
     hold(stat: GainStat, value: number): void
     bump(stat: GainStat, delta: number): void
+    swapHolds(): void
     release(stat: GainStat): void
     subscribe(listener: () => void): () => void
 }
@@ -79,7 +85,8 @@ export function createPresenter(source: FrameSource, env: PresenterEnv): Present
     let afterQueue: Committed[] = []
     /** Resource flights on their way, per stat box. */
     let flying: Partial<Record<GainStat, number>> = {}
-
+    /** Swaps whose gains are still flying: the gold and power boxes keep their numbers until each of them shows. */
+    let swapsPending = 0
     const cancelAll = (list: Animation[]): void => {
         for (const a of list) a.cancel()
     }
@@ -89,21 +96,58 @@ export function createPresenter(source: FrameSource, env: PresenterEnv): Present
         running = []
         held = []
         flying = {}
+        swapsPending = 0
+    }
+
+    /** A Swap and the flights of its own gold and power gains. It shows once those have landed, so each Swap acts in move order. */
+    interface PendingSwap {
+        landing: number
+    }
+
+    const startSwap = (): PendingSwap => {
+        for (const stat of SWAP_STATS) source.hold(stat, source.getShown().state[stat])
+        swapsPending++
+        return { landing: 0 }
+    }
+
+    /** Shows the swap in the moment its last own gain lands, while the boxes pulse for that gain. */
+    const settleSwap = (swap: PendingSwap, speed: AnimSpeed): void => {
+        if (swap.landing === 0) showSwap(speed)
+    }
+
+    /** The held numbers trade places, so flights that land later count on the swapped totals. */
+    const showSwap = (speed: AnimSpeed): void => {
+        source.swapHolds()
+        swapsPending--
+        for (const stat of SWAP_STATS) releaseWhenIdle(stat)
+        const root = env.root()
+        if (!root) return
+        for (const stat of SWAP_STATS) for (const effect of pulseOf(root, stat)) runEffect(effect, speed, false)
+    }
+
+    const releaseWhenIdle = (stat: GainStat): void => {
+        if (!flying[stat] && swapsPending === 0) source.release(stat)
     }
 
     /** Holds the stat box's number until the flight lands, then shows the new number and pulses the box. */
-    const track = (effect: Effect, flight: Animation, speed: AnimSpeed): void => {
+    const track = (effect: Effect, flight: Animation, speed: AnimSpeed, swap?: PendingSwap): void => {
         const stat = effect.gain?.stat
         if (!stat) return
         const started = epoch
         source.hold(stat, source.getShown().state[stat])
         flying[stat] = (flying[stat] ?? 0) + 1
+        const ownsSwap = swap !== undefined && SWAP_STATS.includes(stat)
+        if (ownsSwap) swap.landing++
         const done = (arrived: boolean): void => {
             if (epoch !== started) return
             flying[stat] = (flying[stat] ?? 1) - 1
             if (arrived && effect.gain) source.bump(stat, effect.gain.amount)
-            if (flying[stat] === 0) source.release(stat)
+            releaseWhenIdle(stat)
             if (arrived && effect.to) runEffect({ kind: 'pulse', el: effect.to }, speed, false)
+            if (ownsSwap) {
+                swap.landing--
+                settleSwap(swap, speed)
+            }
         }
         flight.finished.then(
             () => done(true),
@@ -137,16 +181,25 @@ export function createPresenter(source: FrameSource, env: PresenterEnv): Present
             if (!frame) return
             const speed = resolveSpeed(env.speed(), env.reducedMotion())
             const root = env.root()
+            if (source.pendingFrames() > BACKLOG_LIMIT) {
+                // Moves arrive faster than they can be shown (a held key, a long replay): the oldest ones show without animation.
+                // The next frame still waits for the view to draw this one, as for an animated frame.
+                drawing = root !== null
+                source.commit()
+                continue
+            }
             const rush = source.pendingFrames() > 1
             const wait: Animation[] = []
             if (root && speed !== 'off') {
                 const effects = planBefore(frame, root)
                 warnIfHandOutOfStep(frame, root, effects)
+                const swap = swapFollowsFlight(frame) ? startSwap() : undefined
                 for (const effect of effects) {
                     const run = runEffect(effect, speed, rush)
                     wait.push(...run.wait)
-                    run.visual.forEach((flight) => track(effect, flight, speed))
+                    run.visual.forEach((flight) => track(effect, flight, speed, swap))
                 }
+                if (swap) settleSwap(swap, speed)
             }
             if (wait.length === 0) {
                 commitNow(frame, root)

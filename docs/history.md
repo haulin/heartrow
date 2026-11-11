@@ -80,6 +80,7 @@ Finished work and evidence, kept for lookup. Do not read it before a change. Cur
 - New game links say `screen=play` instead of `mode=custom` (`hasRun` still reads any `mode`, so old links work). The `mode` value was never read before, only its presence; it now carries the preset name (`mode=simple`), so a link from an older version keeps its preset name with an asterisk when the preset changes later.
 - Disabled cards used opacity 0.55, which showed the ring and the art behind them; they now share the played-card filter (`brightness(0.72) saturate(0.5)`), so a disabled river card and a played hand card look alike.
 - An 11-card hand on a phone needed careful aiming, so from 10 cards the hand staggers into two rows (`.hand.large`, every other card half a card lower); it stays playable to about 17 cards. The fixed-edge marker is the ring on the river's fifth slot with a lock, which replaced the lock on the card.
+- Copy run on a phone over an insecure LAN address first showed "Not copied", since the Clipboard API needs a secure origin. Every Copy button now falls back to a selected read-only text box under it, so the text can be copied by hand.
 - The row heading said "Recruit row" while cards, logs and the Home text said "river", and the row holds enemies as well; the heading became "River" when Shift (the first effect named after the river) shipped.
 
 ## Results and statistics

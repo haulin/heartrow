@@ -64,19 +64,30 @@ export class GameStore {
         return true
     }
 
-    /** Loads a validated bot replay at its starting state so the UI can step through it. */
-    loadReplay = (config: ModeConfig, seed: number, moves: Move[]): boolean => {
+    /** All moves of the loaded replay, or null during an ordinary run. */
+    getReplayMoves = (): Move[] | null => this.replayMoves
+
+    /**
+     * Loads a validated bot replay so the UI can step through it, standing at its first `at` moves (the start by default) without animation.
+     * Changes nothing and returns false if the rules reject one of the moves.
+     */
+    loadReplay = (config: ModeConfig, seed: number, moves: Move[], at = 0): boolean => {
+        const position = Math.min(Math.max(at, 0), moves.length)
         let session = startSession(config, seed)
-        for (const move of moves) {
+        let shown = session
+        const undo: Session[] = []
+        for (const [index, move] of moves.entries()) {
+            if (index < position) undo.push(session)
             const outcome = stepSession(session, move)
             if (outcome.rejected) return false
             session = outcome.session
+            if (index === position - 1) shown = session
         }
         this.replayMoves = [...moves]
-        this.replayIndex = 0
-        this.replayUndo = []
-        this.moves = []
-        this.jumpTo(startSession(config, seed))
+        this.replayIndex = position
+        this.replayUndo = undo
+        this.moves = moves.slice(0, position)
+        this.jumpTo(shown)
         return true
     }
 
@@ -127,6 +138,14 @@ export class GameStore {
         const value = this.holds[stat]
         if (value === undefined) return
         this.holds = { ...this.holds, [stat]: value + delta }
+        this.emit()
+    }
+
+    /** A Swap showed: the held gold and power numbers trade places, so later flights count on the swapped totals. */
+    swapHolds = (): void => {
+        const { gold, power } = this.holds
+        if (gold === undefined || power === undefined) return
+        this.holds = { ...this.holds, gold: power, power: gold }
         this.emit()
     }
 

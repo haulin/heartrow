@@ -323,6 +323,29 @@ button.stat {
 .river-head h2 {
     margin: 0;
 }
+.hand-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 14px 0 6px;
+}
+.hand-head h2 {
+    margin: 0;
+}
+.hand-preview {
+    display: flex;
+    gap: 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--dim);
+    font-variant-numeric: tabular-nums;
+}
+/* Room for two digits and a plus, so a number growing does not move its neighbours. */
+.hand-preview > span {
+    min-width: 4.4em;
+    text-align: right;
+}
 .river-head .chevrons {
     flex: 1;
     height: 14px;
@@ -444,6 +467,23 @@ button.stat {
     gap: 8px;
     flex-wrap: wrap;
     margin: 14px 0;
+}
+.err-details {
+    max-height: 7.5em;
+    overflow: auto;
+    margin: 10px 0;
+    padding: 8px 10px;
+    font-size: 12px;
+    white-space: pre-wrap;
+    word-break: break-word;
+    user-select: text;
+    border-radius: 6px;
+    background: rgba(0, 0, 0, 0.08);
+}
+button.b.hold {
+    touch-action: manipulation;
+    -webkit-touch-callout: none;
+    user-select: none;
 }
 button.b {
     font-weight: 600;

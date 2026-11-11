@@ -97,9 +97,20 @@ function gainFlights(root: ParentNode, card: HTMLElement | null, gains: Gains): 
     return out
 }
 
-const pulseOf = (root: ParentNode, name: string): Effect[] => {
+export const pulseOf = (root: ParentNode, name: string): Effect[] => {
     const el = statEl(root, name)
     return el ? [{ kind: 'pulse', el }] : []
+}
+
+/**
+ * True when a Swap comes with a gold or power flight in the same move. The boxes then show the swap after the flight has landed and
+ * its pulse has played, so the player sees the gain arrive before the totals change.
+ */
+export function swapFollowsFlight(frame: Frame): boolean {
+    const gainsResource = (gains: Gains): boolean => gains.gold > 0 || gains.power > 0
+    const swaps = frame.events.some((event) => event.type === 'swapped')
+    const flies = frame.events.some((event) => (event.type === 'played' || event.type === 'defeated') && gainsResource(event.gains))
+    return swaps && flies
 }
 
 /** Effects that play before the view moves on to the frame's new state. */
@@ -229,8 +240,11 @@ export function planAfter(frame: Frame, root: ParentNode): Effect[] {
                 if (event.count > 0) changed.add('piles')
                 break
             case 'swapped':
-                changed.add('gold')
-                changed.add('power')
+                // After a flight, the presenter pulses both boxes when the swap shows.
+                if (!swapFollowsFlight(frame)) {
+                    changed.add('gold')
+                    changed.add('power')
+                }
                 break
             case 'escaped':
             case 'reaped':

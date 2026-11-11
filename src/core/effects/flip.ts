@@ -3,11 +3,14 @@ import { chance } from '../rng'
 import type { EffectDef } from './types'
 import { resourceSlot } from './wording'
 
+export const FLIP_LOW = 2
+export const FLIP_HIGH = 4
+
 export const flip: EffectDef = {
     id: 'flip',
     price: 2.5,
     family: 'resource',
-    describe: (card) => `+2 or +4 ${resourceSlot(card, 'gold')}`,
+    describe: (card) => `+${FLIP_LOW} or +${FLIP_HIGH} ${resourceSlot(card, 'gold')}`,
     enemies: true,
     needsAny: ['gold', 'power'],
     lean: ['moss'],
@@ -18,7 +21,7 @@ export const flip: EffectDef = {
         return flip.price
     },
     apply({ state, card, events, gain }) {
-        const amount = chance(state.streams.flip, 0.5) ? 2 : 4
+        const amount = chance(state.streams.flip, 0.5) ? FLIP_LOW : FLIP_HIGH
         const currency = card.fxParams?.currency === 'power' ? 'power' : 'gold'
         gain(currency, amount)
         events.push({ type: 'flipped', currency, amount })

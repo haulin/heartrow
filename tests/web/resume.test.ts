@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vite-plus/test'
 import { standardMode } from '../../src/core'
 import type { Move } from '../../src/core'
-import { shareQuery } from '../../src/platform/web/mode'
+import { parseStartParams, shareQuery } from '../../src/platform/web/mode'
 import { loadRun, openStore, parseRunText, runOf } from '../../src/platform/web/resume'
 import { createMemoryStorage } from '../../src/platform/web/storage'
 import { GameStore } from '../../src/platform/web/store'
@@ -162,5 +162,55 @@ describe('opening the app', () => {
         })
         expect(openStore(broken, '', V).started).toBe(false)
         expect(broken.get('run', null)).toBeNull()
+    })
+
+    describe('a replay in progress', () => {
+        // The app loads a replay with the settings its address parses to, so the tests do too.
+        const linked = parseStartParams(query(11))
+        const replayMoves = (): Move[] => {
+            const source = new GameStore(standardMode(0), 11)
+            play(source, 2)
+            return source.getMoves()
+        }
+
+        it('comes back after a reload at the move it had reached, and can step back and forward', () => {
+            const storage = createMemoryStorage()
+            const tab = createMemoryStorage()
+            const moves = replayMoves()
+            const first = openStore(storage, query(11), V, undefined, tab)
+            first.store.loadReplay(linked.config, 11, moves)
+            first.store.replayNext()
+            first.store.replayNext()
+            first.store.replayNext()
+
+            const reloaded = openStore(storage, query(11), V, undefined, tab)
+            expect(reloaded.store.getReplayProgress()).toEqual({ done: 3, total: moves.length })
+            expect(reloaded.store.getState()).toEqual(first.store.getState())
+            reloaded.store.undo()
+            reloaded.store.replayNext()
+            reloaded.store.replayNext()
+            first.store.replayNext()
+            expect(reloaded.store.getState()).toEqual(first.store.getState())
+        })
+
+        it('is forgotten once the player makes a move of their own', () => {
+            const storage = createMemoryStorage()
+            const tab = createMemoryStorage()
+            const first = openStore(storage, query(11), V, undefined, tab)
+            first.store.loadReplay(linked.config, 11, replayMoves())
+            first.store.replayNext()
+            first.store.dispatch({ type: 'endTurn' })
+            expect(openStore(storage, query(11), V, undefined, tab).store.getReplayProgress()).toBeNull()
+        })
+
+        it('is ignored when the saved run no longer stands where the replay stopped', () => {
+            const storage = createMemoryStorage()
+            const tab = createMemoryStorage()
+            const first = openStore(storage, query(11), V, undefined, tab)
+            first.store.loadReplay(linked.config, 11, replayMoves())
+            first.store.replayNext()
+            storage.set('run', { ...runOf(first.store, V), moves: [] })
+            expect(openStore(storage, query(11), V, undefined, tab).store.getReplayProgress()).toBeNull()
+        })
     })
 })

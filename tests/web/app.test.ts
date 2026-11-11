@@ -515,6 +515,45 @@ describe('animation module', () => {
         }
     })
 
+    const makeSwapCard = (store: GameStore, gold: number): void => {
+        const state = store.getState()
+        Object.assign(state.hand[0]!, { gold, power: 0, hearts: 0, fx: ['swap'], main: 'gold', retain: false })
+        state.gold = 2
+        state.power = 1
+    }
+
+    it('pulses the gold and power boxes at once for a Swap alone, and leaves it to the presenter after a flight', () => {
+        const pulsed = (gold: number): (string | undefined)[] => {
+            const { host, store } = mount()
+            makeSwapCard(store, gold)
+            const frame = store.dispatch({ type: 'play', handIndex: 0 })
+            return planAfter(frame, host)
+                .filter((e) => e.kind === 'pulse')
+                .map((e) => e.el.dataset.stat)
+        }
+        expect(pulsed(0)).toEqual(expect.arrayContaining(['gold', 'power']))
+        expect(pulsed(3)).not.toContain('gold')
+        expect(pulsed(3)).not.toContain('power')
+    })
+
+    it('shows the swapped totals only after the flight has landed and a short pause', async () => {
+        const proto = HTMLElement.prototype as unknown as { animate?: unknown }
+        const saved = proto.animate
+        proto.animate = () => ({ finished: Promise.resolve(), cancel() {}, addEventListener() {} })
+        try {
+            const { host, store } = mount(4, 'fast')
+            makeSwapCard(store, 4)
+            void act(() => host.querySelector<HTMLButtonElement>('[data-zone="hand"] button.card')!.click())
+            expect(store.getHolds()).toEqual({ gold: 2, power: 1 })
+            await act(() => new Promise((r) => setTimeout(r, 20)))
+            // The flight landed and the swap showed in the same moment, so the boxes hold the real state again.
+            expect(store.getHolds()).toEqual({})
+            expect([store.getState().gold, store.getState().power]).toEqual([1, 6])
+        } finally {
+            proto.animate = saved
+        }
+    })
+
     it('drops pending animations on undo', () => {
         const proto = HTMLElement.prototype as unknown as { animate?: unknown }
         const saved = proto.animate
