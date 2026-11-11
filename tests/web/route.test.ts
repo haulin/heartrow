@@ -16,7 +16,18 @@ describe('screen routes', () => {
         expect(route.screen === 'game' && route.start?.seed).toBe(7)
         expect(route.screen === 'game' && route.start?.config.goal).toBe(200)
         expect(hasRun('?mode=standard')).toBe(true)
-        expect(hasRun('?seed=5')).toBe(true)
+        expect(hasRun('?seed=5&screen=play')).toBe(true)
+    })
+
+    it('does not start a run from a seed alone', () => {
+        expect(hasRun('?seed=5')).toBe(false)
+        expect(routeFor('?seed=5', null)).toEqual({ screen: 'home' })
+    })
+
+    it('reads screen=play and the deprecated mode=custom as a run', () => {
+        expect(hasRun('?screen=play&goal=2')).toBe(true)
+        expect(hasRun('?mode=custom&goal=2')).toBe(true)
+        expect(routeFor('?screen=play&seed=3', null).screen).toBe('game')
     })
 
     it('shows the generator editor for screen=custom, with its settings from the address', () => {

@@ -44,7 +44,7 @@ describe('formatEvent', () => {
             [{ type: 'cycled', count: 3, redraw: false }, 'Cycled 3 cards.'],
             [{ type: 'exiled', card: card('moss') }, 'Exiled a Moss card.'],
             [{ type: 'exileSkipped' }, 'Skipped the exile.'],
-            [{ type: 'rowFlushed', cards: [], kept: card('foe') }, 'Flushed the four left cards. The right-edge card cannot be flushed.'],
+            [{ type: 'rowFlushed', cards: [], kept: card('foe') }, 'Flushed the four left cards. The Gate card cannot be flushed.'],
             [{ type: 'escaped', card: card('foe'), hearts: 3 }, 'An enemy escaped: −3 ♥.'],
             [{ type: 'reaped', hearts: 2 }, 'Leftovers reaped: +2 ♥.'],
             [{ type: 'goalReached' }, 'Goal reached! End your turn to win, or keep going for a bigger margin.'],
@@ -94,7 +94,7 @@ describe('formatEvents', () => {
             { type: 'drew', cardIds: [1, 2, 3, 4, 5], requested: 5, cause: 'turnStart' },
         ]
         expect(formatEvents(events, { turn: 4, edgeEnemyHearts: 4 })).toEqual([
-            'Turn 4. An enemy escaped: −3 ♥. Leftovers reaped: +2 ♥. You gained a flush. Kept 1 with Retain. The enemy on the right edge costs 4 ♥ if it escapes.',
+            'Turn 4. An enemy escaped: −3 ♥. Leftovers reaped: +2 ♥. You gained a flush. Kept 1 with Retain. The enemy at the Gate costs 4 ♥ if it escapes.',
         ])
         expect(formatEvents([{ type: 'turnStarted', turn: 2, flushGained: false }], ctx)).toEqual(['Turn 2.'])
     })
@@ -148,7 +148,7 @@ describe('effectText', () => {
     })
 
     it('prefixes enemy effects with Defeat', () => {
-        expect(effectText(card('foe', { fx: ['foes'] }))).toEqual(['Defeat: +1 ⚔ per enemy in the recruit row'])
+        expect(effectText(card('foe', { fx: ['foes'] }))).toEqual(['Defeat: +1 ⚔ per enemy in the river'])
     })
 })
 

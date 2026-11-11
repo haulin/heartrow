@@ -80,7 +80,9 @@ describe('custom generator links', () => {
     })
 
     it('spells out Standard like any generator, and names effects readably', () => {
-        expect(shareQuery(standardMode(1), 5)).toBe(`?seed=5&mode=custom&${customQuery({ ...DEFAULT_CUSTOM, goalLevel: 1 })}`)
+        expect(shareQuery(standardMode(1), 5)).toBe(
+            `?screen=play&seed=5&mode=standard&${customQuery({ ...DEFAULT_CUSTOM, goalLevel: 1 })}&v=${__APP_VERSION__}`,
+        )
         expect(customQuery({ ...DEFAULT_CUSTOM, types: ['moss'], effects: [] })).toBe(
             'goal=1&types=moss&res=gold,power,hearts&sg=6&sp=4&fx=',
         )

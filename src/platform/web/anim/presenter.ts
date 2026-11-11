@@ -1,7 +1,7 @@
 import type { AnimSpeed } from '../settings'
 import type { Session } from '../session'
 import type { Frame } from '../store'
-import { departingIds, flip, planAfter, planBefore, resolveSpeed, runEffect, snapshotSlots } from '.'
+import { departingIds, flip, planAfter, planBefore, planDeal, resolveSpeed, runEffect, snapshotSlots } from '.'
 import type { Effect, GainStat } from '.'
 
 /** What the presenter needs from the store. */
@@ -10,6 +10,7 @@ export interface FrameSource {
     pendingFrames(): number
     commit(): void
     getEpoch(): number
+    getDeals(): number
     getShown(): Session
     /** Keeps the shown number of a resource while a flight carries it to its stat box. */
     hold(stat: GainStat, value: number): void
@@ -70,6 +71,7 @@ interface Committed {
 export function createPresenter(source: FrameSource, env: PresenterEnv): Presenter {
     let busy = false
     let epoch = source.getEpoch()
+    let deals = source.getDeals()
     /** Animations of the frame being presented. */
     let running: Animation[] = []
     /** Animations of committed frames that keep their last look (a card stays inflated) until the view has drawn the new state. */
@@ -172,6 +174,10 @@ export function createPresenter(source: FrameSource, env: PresenterEnv): Present
             cancelAll(held)
             held = []
             const root = env.root()
+            if (root && source.getDeals() !== deals) {
+                deals = source.getDeals()
+                for (const effect of planDeal(root)) runEffect(effect, resolveSpeed(env.speed(), env.reducedMotion()), false)
+            }
             const frames = afterQueue
             afterQueue = []
             const wasDrawing = drawing

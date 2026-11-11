@@ -189,6 +189,10 @@ export interface ModeConfig {
     id: string
     name: string
     description?: string
+    /** The preset id a link says this run was started as. The settings may no longer match that preset. */
+    preset?: string
+    /** The game version a link says this run was made in. */
+    version?: string
     turns: number
     flushEvery: number
     goal: number | null

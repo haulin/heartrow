@@ -61,7 +61,7 @@ export function Stats({ state: s, onFlush, onPiles }: StatsProps) {
                 title={
                     long
                         ? 'High-score hearts. The run ends after the final turn.'
-                        : 'Reach the goal to win. After a win you can play on to the last turn, and the hearts beyond the goal are your score. Enemies that fall off the right edge take hearts away, and hearts can go negative.'
+                        : 'Reach the goal to win. After a win you can play on to the last turn, and the hearts beyond the goal are your score. Enemies that get past the Gate take hearts away, and hearts can go negative.'
                 }
             >
                 {s.hearts}
@@ -108,7 +108,7 @@ export function Stats({ state: s, onFlush, onPiles }: StatsProps) {
                 class="stat"
                 data-stat="flushes"
                 onClick={onFlush}
-                title={`Replace the four left cards of the recruit row. You gain one every ${s.config.flushEvery} turns and they stack.`}
+                title={`Replace the four left cards of the river. You gain one every ${s.config.flushEvery} turns and they stack.`}
                 aria-disabled={s.flushes < 1 ? 'true' : undefined}
             >
                 {s.flushes}

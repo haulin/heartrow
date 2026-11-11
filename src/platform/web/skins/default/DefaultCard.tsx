@@ -10,7 +10,6 @@ export function DefaultCard({ view, onActivate }: CardSkinProps) {
         view.type,
         view.kind === 'enemy' ? 'enemy' : '',
         view.zone === 'row' && !view.affordable ? 'no' : '',
-        view.edge === 'enemy' ? 'edge' : view.edge === 'rim' ? 'rim' : '',
         view.played ? 'played' : '',
     ]
         .filter(Boolean)
@@ -28,9 +27,6 @@ export function DefaultCard({ view, onActivate }: CardSkinProps) {
                 )}
                 <em>{view.typeName}</em>
             </div>
-            {view.edge ? (
-                <span class="lock" role="img" title="This card stays when you flush" aria-label="This card stays when you flush"></span>
-            ) : null}
             <svg class="art" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
                 {view.art.map((shape, i) => {
                     const Tag = shape.tag

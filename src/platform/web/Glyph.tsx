@@ -7,5 +7,5 @@ export const glyphNames = (): string[] => Object.keys(GLYPH_URLS).map((path) => 
 export function Glyph({ name }: { name: string }) {
     const url = GLYPH_URLS[`./glyphs/${name}.svg`]
     const mask = url ? `url("${url}")` : undefined
-    return <span class={`glyph ${name}`} style={{ maskImage: mask, WebkitMaskImage: mask }} aria-hidden="true" />
+    return <span class={`glyph ${name}`} style={{ maskImage: mask }} aria-hidden="true" />
 }

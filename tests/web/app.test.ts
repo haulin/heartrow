@@ -326,7 +326,7 @@ describe('App', () => {
         const dialog = host.querySelector('dialog')!
         expect(dialog.textContent).toContain('Level 1')
         expect(dialog.textContent).toContain('Goal: 48 ♥ in 24 turns')
-        expect(dialog.textContent).toContain('seed 4')
+        expect(dialog.textContent).toContain('Seed 4')
     })
 
     it('renders 5 row cards and 5 hand cards', () => {

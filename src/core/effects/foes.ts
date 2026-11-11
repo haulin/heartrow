@@ -5,7 +5,7 @@ export const foes: EffectDef = {
     id: 'foes',
     price: 2,
     family: 'resource',
-    describe: () => '+1 ⚔ per enemy in the recruit row',
+    describe: () => '+1 ⚔ per enemy in the river',
     enemies: true,
     needs: ['foe', 'power'],
     lean: ['ember'],

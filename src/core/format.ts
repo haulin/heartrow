@@ -40,7 +40,7 @@ const escapedText = (hearts: number): string => `An enemy escaped: −${hearts} 
 const reapedText = (hearts: number): string => `Leftovers reaped: +${hearts} ♥.`
 const retainedText = (count: number): string => `Kept ${count} with Retain.`
 const FLUSH_GAINED_TEXT = 'You gained a flush.'
-const edgeText = (hearts: number): string => `The enemy on the right edge costs ${hearts} ♥ if it escapes.`
+const edgeText = (hearts: number): string => `The enemy at the Gate costs ${hearts} ♥ if it escapes.`
 
 export function formatEvent(event: GameEvent, ctx: FormatContext): string | null {
     switch (event.type) {
@@ -78,7 +78,7 @@ export function formatEvent(event: GameEvent, ctx: FormatContext): string | null
         case 'defeated':
             return defeatedLine(event.card, event.gains)
         case 'rowFlushed':
-            return 'Flushed the four left cards. The right-edge card cannot be flushed.'
+            return 'Flushed the four left cards. The Gate card cannot be flushed.'
         case 'escaped':
             return escapedText(event.hearts)
         case 'reaped':

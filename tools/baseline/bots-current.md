@@ -124,6 +124,23 @@ Custom generator `attack` (flip, foes, bulk, weak, push, shift). The river has o
 
 \* The same result for `mixed` and `build`.
 
+## Simple only preset
+
+Custom generator `simple` (no effects), measured with the usual start of 10 Basics (6 ● and 4 ⚔) and with a start of 5 Basics (`--sg 3 --sp 2`, 3 ● and 2 ⚔). The hit columns are goals 48, 64, 80 and 96 (Levels 1 to 4). Each cell comes from 40,000 games.
+
+| Bot         | Start | L1  | L2  | L3  | L4  | Mean ♥ | Median | P10 | P90 |
+| ----------- | ----- | --- | --- | --- | --- | ------ | ------ | --- | --- |
+| `lab-human` | 10    | 55% | 9%  | 0%  | 0%  | 47.9   | 48     | 33  | 63  |
+| `mixed`     | 10    | 66% | 15% | 0%  | 0%  | 51.4   | 52     | 37  | 66  |
+| `build`     | 10    | 64% | 13% | 0%  | 0%  | 50.6   | 51     | 36  | 65  |
+| `smart`     | 10    | 45% | 4%  | 0%  | 0%  | 45.2   | 45     | 31  | 59  |
+| `lab-human` | 5     | 92% | 59% | 17% | 1%  | 66.2   | 66     | 48  | 84  |
+| `mixed`     | 5     | 97% | 74% | 29% | 4%  | 71.7   | 72     | 54  | 89  |
+| `build`     | 5     | 96% | 71% | 25% | 3%  | 70.2   | 70     | 53  | 87  |
+| `smart`     | 5     | 91% | 52% | 11% | 1%  | 63.7   | 64     | 47  | 80  |
+
+Mean ♥, median, P10 and P90 come from the Level 4 run. Going from 10 to 5 Basics adds about 18 to 20 ♥ to the mean. The designer's hand runs with 5 Basics won Level 3 three times and Level 4 once, which is better than every bot; with 10 Basics, no bot wins Level 3. At Level 1 Simple is easier for the bots than Standard (45 to 66% against 12 to 41%), since they use effects poorly.
+
 ## Not measured
 
 `none`, `rush`, `lookahead`, and `pacifist` outside its own preset. Older figures are in [`docs/history.md`](../../docs/history.md) and are from before the generator and flush changes.

@@ -1,5 +1,6 @@
-import { CUSTOM_ID, customMode, customOfMode } from '../../core'
+import { CUSTOM_ID, CUSTOM_PRESETS, customMode, customOfMode } from '../../core'
 import type { CustomGenerator, ModeConfig } from '../../core'
+import { presetIdOf } from './challenges'
 import { customQuery, parseCustom } from './custom'
 
 export function randomSeed(): number {
@@ -16,13 +17,21 @@ export function parseStartParams(search: string, fallbackSeed: () => number = ra
     const raw = params.get('seed')
     const parsed = raw !== null && /^-?\d+$/.test(raw) ? Number(raw) >>> 0 : null
     // Every run is a generator, so every link spells one out. What a link leaves out is everything (Standard), at the first goal.
-    return { config: customMode(parseCustom(params)), seed: parsed ?? fallbackSeed() }
+    const config = customMode(parseCustom(params))
+    const version = params.get('v')
+    return {
+        config: { ...config, ...presetClaim(params.get('mode')), ...(version ? { version } : {}) },
+        seed: parsed ?? fallbackSeed(),
+    }
 }
 
-/** A link starts a run when it names a mode or a seed. An address with neither is the home screen. */
+/**
+ * A link starts a run when it says `screen=play`; a seed alone does not. Any other address is the home screen.
+ * `mode=…` is the deprecated spelling of `screen=play`; it is still read so old links keep working.
+ */
 export function hasRun(search: string): boolean {
     const params = new URLSearchParams(search)
-    return params.has('mode') || params.has('seed')
+    return params.get('screen') === 'play' || params.has('mode')
 }
 
 /** `screen=custom` is the generator editor. It wins over a mode or seed, since the editor starts no run by itself. */
@@ -60,6 +69,20 @@ export function routeFor(search: string, runQuery: string | null, fallbackSeed: 
     return { screen: 'game', start: parseStartParams(search, fallbackSeed) }
 }
 
+/** `mode` names the preset a run was started as (`simple`, `ember`, …); anything else, like the old `custom`, names none. */
+function presetClaim(mode: string | null): { preset?: string } {
+    return CUSTOM_PRESETS.some((p) => p.id === mode) ? { preset: mode! } : {}
+}
+
+/**
+ * The link spells out the settings and names the preset, so a later change to that preset marks the run as outdated instead of renaming it.
+ * The version goes last, as the least interesting part; a link keeps the version it was made in.
+ */
 export function shareQuery(config: ModeConfig, seed: number): string {
-    return `?seed=${seed}&mode=${CUSTOM_ID}&${customQuery(customOfMode(config))}`
+    const mode = presetOfLink(config)
+    return `?screen=play&seed=${seed}&mode=${mode}&${customQuery(customOfMode(config))}&v=${config.version ?? __APP_VERSION__}`
+}
+
+function presetOfLink(config: ModeConfig): string {
+    return config.preset ?? presetIdOf(customOfMode(config)) ?? CUSTOM_ID
 }

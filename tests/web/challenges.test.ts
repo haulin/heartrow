@@ -7,6 +7,7 @@ import {
     goalOfMode,
     importResults,
     improvementLines,
+    isOutdated,
     loadImprovements,
     loadResults,
     nextGoal,
@@ -16,6 +17,8 @@ import {
     saveImprovements,
 } from '../../src/platform/web/challenges'
 import type { SignedResults } from '../../src/platform/web/challenges'
+import { customQuery } from '../../src/platform/web/custom'
+import { parseStartParams, shareQuery } from '../../src/platform/web/mode'
 import { GameStore } from '../../src/platform/web/store'
 import { createMemoryStorage } from '../../src/platform/web/storage'
 
@@ -54,6 +57,31 @@ describe('run names', () => {
         expect(runName(LONG_MODE)).toBe('Standard')
         expect(runName(customMode(moss.generator))).toBe('Moss economy')
         expect(runName(customMode({ ...moss.generator, effects: [] }))).toBe('Custom')
+    })
+
+    it('keeps the name of the preset a link names when its settings have changed, with an asterisk and no goal', () => {
+        const moss = CUSTOM_PRESETS.find((p) => p.id === 'moss')!
+        const older = parseStartParams(`?screen=play&mode=moss&${customQuery({ ...moss.generator, effects: [] })}`).config
+        expect(runName(older)).toBe('Moss economy*')
+        expect(isOutdated(older)).toBe(true)
+        expect(goalOfMode(older)).toBeNull()
+        expect(shareQuery(older, 1)).toContain('mode=moss&')
+    })
+
+    it('marks a run from another version with an asterisk but still counts it when the settings are equal', () => {
+        const same = customQuery(CUSTOM_PRESETS.find((p) => p.id === 'moss')!.generator)
+        const older = parseStartParams(`?screen=play&mode=moss&${same}&v=0.0.1`).config
+        expect(runName(older)).toBe('Moss economy*')
+        expect(goalOfMode(older)).toEqual({ challengeId: 'moss', goal: 0 })
+        expect(shareQuery(older, 1)).toMatch(/&v=0\.0\.1$/)
+    })
+
+    it('does not mark a run whose link names a preset it still equals, and reads mode=custom as no claim', () => {
+        const moss = CUSTOM_PRESETS.find((p) => p.id === 'moss')!
+        const same = parseStartParams(`?screen=play&mode=moss&${customQuery(moss.generator)}`).config
+        expect(runName(same)).toBe('Moss economy')
+        expect(goalOfMode(same)).toEqual({ challengeId: 'moss', goal: 0 })
+        expect(runName(parseStartParams(`?mode=custom&${customQuery({ ...moss.generator, effects: [] })}`).config)).toBe('Custom')
     })
 })
 

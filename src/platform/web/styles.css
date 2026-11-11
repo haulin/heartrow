@@ -74,13 +74,11 @@ main {
     padding: 12px;
     container-type: inline-size;
     user-select: none;
-    -webkit-user-select: none;
     -webkit-touch-callout: none;
     -webkit-tap-highlight-color: transparent;
 }
 dialog {
     user-select: text;
-    -webkit-user-select: text;
 }
 header {
     display: flex;
@@ -99,7 +97,6 @@ header {
     height: 1em;
     vertical-align: -0.15em;
     background-color: currentColor;
-    -webkit-mask: center / contain no-repeat;
     mask: center / contain no-repeat;
 }
 /* The game header's mode button, in the style of the mode's card. An inset ring, so it is as tall as the button next to it. */
@@ -281,6 +278,65 @@ button.stat {
     width: var(--cw);
     aspect-ratio: 118 / 175;
 }
+/*
+ * The ring of the right-edge slot belongs to the river, not to the card in it, so it stays when that card leaves and the next one slides in.
+ * It sits under the cards (it comes first in the row), because a hovered card lifts and the ring would otherwise cover its header.
+ * It has no fill and no pointer events.
+ */
+.row {
+    position: relative;
+}
+.row[data-edge]::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: calc(4 * (var(--cw) + 6px));
+    width: var(--cw);
+    aspect-ratio: 118 / 175;
+    border-radius: calc(var(--cw) / 118 * 10);
+    outline: max(1px, calc(var(--cw) / 118 * 2)) solid var(--dim);
+    outline-offset: 1px;
+    pointer-events: none;
+}
+.row[data-edge='enemy']::before {
+    outline: max(1px, calc(var(--cw) / 118 * 3)) solid var(--foe);
+}
+/* The lock belongs to the ring: it stays on the fifth slot, over the card that is there. Hovering it keeps the card lifted (see `.slot:hover .card`). */
+.row .gate-lock {
+    position: absolute;
+    z-index: 6;
+    cursor: help;
+    top: calc(var(--cw) / 118 * 29.4);
+    left: calc(5 * var(--cw) + 24px - var(--cw) / 118 * 23);
+    width: calc(var(--cw) / 118 * 18);
+    height: calc(var(--cw) / 118 * 18);
+    background: url('./icons/lock.svg') center / contain no-repeat;
+}
+/* The heading bar: the row's name, chevrons that run to the name of the last slot, which sits at the right end over the Gate. */
+.river-head {
+    --cw: calc((100cqw - 24px) / 5);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 14px 0 6px;
+}
+.river-head h2 {
+    margin: 0;
+}
+.river-head .chevrons {
+    flex: 1;
+    height: 14px;
+    background: var(--dim);
+    opacity: 0.55;
+    mask: url('./glyphs/chevron.svg') center / 14px 14px space;
+}
+.river-head .gate-name {
+    flex: none;
+    text-align: right;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--dim);
+}
 .hand {
     padding-top: 6px;
     min-height: calc(var(--cw) * 175 / 118 + 6px);
@@ -302,7 +358,8 @@ button.stat {
     z-index: 5;
 }
 .slot:hover .card,
-.slot:has(:focus-visible) .card {
+.slot:has(:focus-visible) .card,
+.row:has(.gate-lock:hover) > .slot:last-child .card {
     translate: 0 -6px;
 }
 /*
@@ -712,9 +769,6 @@ dialog::backdrop {
     padding: 4px calc(50% - var(--slide) / 2);
     scrollbar-width: none;
     cursor: grab;
-}
-.cards-scroll::-webkit-scrollbar {
-    display: none;
 }
 .slide {
     flex: 0 0 var(--slide);

@@ -269,6 +269,16 @@ export function planAfter(frame: Frame, root: ParentNode): Effect[] {
     return out
 }
 
+/** A new game deals the river from the right, like a flush, and then the hand, like a draw. */
+export function planDeal(root: ParentNode): Effect[] {
+    const out: Effect[] = []
+    const river = Array.from(root.querySelectorAll<HTMLElement>('[data-zone="row"] .slot'))
+    river.forEach((slot, i) => out.push({ kind: 'enter', el: slot, order: river.length - 1 - i }))
+    const hand = Array.from(root.querySelectorAll<HTMLElement>('[data-zone="hand"] .slot'))
+    hand.forEach((slot, i) => out.push({ kind: 'deal', el: slot, order: river.length + i }))
+    return out
+}
+
 const KEYFRAMES: Record<'flash' | 'inflate' | 'leave' | 'shrink' | 'enter' | 'deal' | 'shake' | 'pulse', Keyframe[]> = {
     shrink: [
         { opacity: 1, transform: 'scale(1)' },

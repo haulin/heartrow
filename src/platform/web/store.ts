@@ -25,6 +25,7 @@ export class GameStore {
     private shown: Session
     private frames: Frame[] = []
     private epoch = 0
+    private deals = 0
     private holds: Holds = {}
     private moves: Move[] = []
     private replayMoves: Move[] | null = null
@@ -106,6 +107,9 @@ export class GameStore {
 
     /** Counts undo and new-game jumps. A presenter drops its work when this changes. */
     getEpoch = (): number => this.epoch
+
+    /** Counts new games, so a presenter can tell a fresh deal from an undo, which also changes the epoch. */
+    getDeals = (): number => this.deals
 
     canUndo = (): boolean => (this.replayMoves ? this.replayUndo.length > 0 : this.session.undo.length > 0)
 
@@ -191,6 +195,7 @@ export class GameStore {
         this.replayIndex = 0
         this.replayUndo = []
         this.moves = []
+        this.deals++
         this.jumpTo(startSession(config, seed))
     }
 

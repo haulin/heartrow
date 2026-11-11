@@ -2,7 +2,7 @@ import { EFFECT_BY_ID } from '../../core'
 import type { Card, EffectId, GameState, GoalDef, HeartSource, Move } from '../../core'
 
 export const INTRO_TEXT =
-    'Click hand cards to play them, or recruit row cards to buy them. Gold ● buys recruits; power ⚔ defeats enemies for their ♥.'
+    'Click hand cards to play them, or river cards to buy them. Gold ● buys recruits; power ⚔ defeats enemies for their ♥.'
 
 export const spoken = (s: string): string =>
     s

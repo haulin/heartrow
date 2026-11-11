@@ -36,7 +36,7 @@ import { SKIN_IDS, getSkin } from './skins'
 import type { GameStore } from './store'
 import type { AppStorage } from './storage'
 import { spoken, statusMessage } from './text'
-import { buildCardView } from './view/cardView'
+import { buildCardView, edgeMark } from './view/cardView'
 
 type DialogName = 'about' | 'load' | 'log' | 'loadResults' | 'piles' | 'run' | 'settings' | 'summary'
 type Screen = 'home' | 'game' | 'custom' | 'standard' | 'challenges'
@@ -412,8 +412,13 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                     onPiles={() => setDialog('piles')}
                 />
 
-                <h2>River</h2>
-                <div class="cards row" data-zone="row">
+                <div class="river-head">
+                    <h2>River</h2>
+                    <span class="chevrons" aria-hidden="true" />
+                    <span class="gate-name">Gate</span>
+                </div>
+                <div class="cards row" data-zone="row" data-edge={edgeMark(state.row[state.row.length - 1])}>
+                    <span class="gate-lock" role="img" title="This card stays when you flush" aria-label="This card stays when you flush" />
                     {state.row.map((card, i) => (
                         <div class="slot" key={card.id}>
                             <skin.Card view={buildCardView(card, 'row', i, state)} onActivate={() => takeCard(card.id)} />
@@ -483,7 +488,7 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                         type="button"
                         class="b alt"
                         disabled={!playing || state.pendingExile || state.flushes < 1}
-                        title="Replaces the four left cards of the recruit row; the right-edge card stays."
+                        title="Replaces the four left cards of the river; the card at the Gate stays."
                         onClick={() => dispatch({ type: 'flush' })}
                     >
                         Flush

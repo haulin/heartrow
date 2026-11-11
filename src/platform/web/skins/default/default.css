@@ -26,7 +26,8 @@
 }
 /* A soft glow in the card's own colour on the card under the pointer or keyboard focus. Not on cards that cannot be used. */
 .slot:hover button.card:not([aria-disabled='true']),
-.slot:has(:focus-visible) button.card:not([aria-disabled='true']) {
+.slot:has(:focus-visible) button.card:not([aria-disabled='true']),
+.row:has(.gate-lock:hover) > .slot:last-child button.card:not([aria-disabled='true']) {
     box-shadow: 0 0 calc(14 * var(--u)) calc(2 * var(--u)) color-mix(in srgb, var(--c) 55%, transparent);
 }
 div.card {
@@ -125,29 +126,9 @@ div.card {
     color: var(--foe);
     font-weight: 600;
 }
+/* A card that is used up (played) or cannot be bought looks the same: the card dimmed, never see-through. */
+.card.played,
 .card.no {
-    opacity: 0.55;
-}
-.card.rim {
-    outline: max(1px, calc(2 * var(--u))) solid var(--dim);
-    outline-offset: 1px;
-}
-.card.edge {
-    outline: max(1px, calc(3 * var(--u))) solid var(--foe);
-    outline-offset: 1px;
-}
-.card .lock {
-    position: absolute;
-    z-index: 2;
-    top: 2.45em;
-    right: calc(5 * var(--u));
-    width: calc(18 * var(--u));
-    height: calc(18 * var(--u));
-    background: url('../../icons/lock.svg') center / contain no-repeat;
-    cursor: help;
-    pointer-events: auto;
-}
-.card.played {
     filter: brightness(0.72) saturate(0.5);
 }
 .card:focus-visible {

@@ -2,7 +2,7 @@ import type { ComponentChildren } from 'preact'
 import { useEffect, useRef, useState } from 'preact/hooks'
 import { GOALS } from '../../core'
 import type { Card, GameState, Move } from '../../core'
-import { runName } from './challenges'
+import { goalOfMode, hasChangedSettings, isFromOtherVersion, runName } from './challenges'
 import { Glyph } from './Glyph'
 import { Rich } from './Rich'
 import { ANIM_SPEEDS, THEMES } from './settings'
@@ -131,7 +131,7 @@ export function SeedLine({ state, run }: { state: GameState; run?: () => string 
     const link = `${globalThis.location?.origin ?? ''}${globalThis.location?.pathname ?? ''}${shareQuery(state.config, state.seed)}`
     return (
         <p class="rules">
-            Mode <code>{state.mode}</code>, seed <code>{state.seed}</code> <CopyButton label="Copy seed" text={() => String(state.seed)} />{' '}
+            Seed <code>{state.seed}</code> <CopyButton label="Copy seed" text={() => String(state.seed)} />{' '}
             <CopyButton label="Copy link" text={() => link} />
             {run ? (
                 <>
@@ -169,6 +169,20 @@ export function RunDialog({
                 <Rich text={`Goal: ${state.goal} ♥ in ${state.maxTurns} turns.`} />
             </p>
             {state.config.description ? <p class="rules">Generator: {state.config.description}.</p> : null}
+            {hasChangedSettings(state.config) ? (
+                <p class="rules">
+                    * This run was started as {name.replace('*', '')}
+                    {state.config.version ? ` in version ${state.config.version}` : ''}, and that mode has other settings now. You can play
+                    on, but it does not count towards any goal and may not play as it did.
+                </p>
+            ) : isFromOtherVersion(state.config) ? (
+                <p class="rules">
+                    * This run was started in version {state.config.version}. It has the same settings as {name.replace('*', '')} has now,
+                    so it counts towards goals, but it may not play as it did.
+                </p>
+            ) : goalOfMode(state.config) ? null : (
+                <p class="rules">These settings match no preset, so this run does not count towards any goal.</p>
+            )}
             <p>
                 <button
                     type="button"
@@ -266,7 +280,7 @@ export function AboutDialog({ state, onClose }: { state?: GameState | undefined;
         <Modal title="About Heartrow" onClose={onClose}>
             <p class="rules">Version {__APP_VERSION__}</p>
             <p>
-                <Rich text="Heartrow is a small, single-player roguelike deckbuilder. Click a hand card to play it, or a recruit row card to buy it. Recruits cost gold ●, go to your discard and work whenever you draw them. Enemies cost power ⚔: defeating one gives its hearts ♥ and effects once, and if one falls off the right edge you lose that many." />
+                <Rich text="Heartrow is a small, single-player roguelike deckbuilder. Click a hand card to play it, or a river card to buy it. Recruits cost gold ●, go to your discard and work whenever you draw them. Enemies cost power ⚔: defeating one gives its hearts ♥ and effects once, and if one gets past the Gate at the end of the river you lose that many." />
             </p>
             <p>
                 Standard levels last 24 turns. Long Run lasts 42 turns and records a high score instead of ending when you reach a heart

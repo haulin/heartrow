@@ -272,11 +272,19 @@ describe('mode and url params', () => {
         expect(parseStartParams('?seed=abc', () => 42).seed).toBe(42)
         expect(parseStartParams('?seed=5&mode=standard&goal=2').config.goal).toBe(64)
         const standard = `${customQuery({ ...DEFAULT_CUSTOM, goalLevel: 2 })}`
-        expect(shareQuery(standardRun(2), 7)).toBe(`?seed=7&mode=custom&${standard}`)
+        expect(shareQuery(standardRun(2), 7)).toBe(`?screen=play&seed=7&mode=standard&${standard}&v=${__APP_VERSION__}`)
         expect(shareQuery(standardMode(2), 7)).toBe(shareQuery(standardRun(2), 7))
-        expect(shareQuery(LONG_MODE, 123)).toContain('mode=custom&goal=long&types=moss,ember,tide,foe&res=gold,power,hearts')
-        expect(parseStartParams(shareQuery(standardRun(1), 7))).toEqual({ config: standardRun(1), seed: 7 })
-        expect(parseStartParams(shareQuery(LONG_MODE, 123), () => 1)).toEqual({ config: standardRun(4), seed: 123 })
+        expect(shareQuery(LONG_MODE, 123)).toContain(
+            'screen=play&seed=123&mode=standard&goal=long&types=moss,ember,tide,foe&res=gold,power,hearts',
+        )
+        expect(parseStartParams(shareQuery(standardRun(1), 7))).toEqual({
+            config: { ...standardRun(1), preset: 'standard', version: __APP_VERSION__ },
+            seed: 7,
+        })
+        expect(parseStartParams(shareQuery(LONG_MODE, 123), () => 1)).toEqual({
+            config: { ...standardRun(4), preset: 'standard', version: __APP_VERSION__ },
+            seed: 123,
+        })
     })
 })
 

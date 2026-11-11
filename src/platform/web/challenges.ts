@@ -1,5 +1,5 @@
 import { CUSTOM_PRESETS, GOALS, customMode, customOfMode, customSummary, goalIndexOfKey } from '../../core'
-import type { CustomGenerator, GameState, ModeConfig } from '../../core'
+import type { CustomGenerator, CustomPreset, GameState, ModeConfig } from '../../core'
 import { customQuery } from './custom'
 import type { AppStorage } from './storage'
 
@@ -86,11 +86,33 @@ export interface ChallengeGoal {
     goal: number
 }
 
-/** The tracked challenge goal a run belongs to, or null for a run that matches none (a hand-edited custom generator). */
+/** The preset a run is: the one its link names, otherwise the one its settings equal. */
+function presetOfRun(config: ModeConfig): CustomPreset | undefined {
+    const id = config.preset ?? presetIdOf(customOfMode(config))
+    return CUSTOM_PRESETS.find((p) => p.id === id)
+}
+
+/** True when a link named a preset whose settings are no longer the ones the run plays with. Such a run counts towards no goal. */
+export function hasChangedSettings(config: ModeConfig): boolean {
+    const preset = presetOfRun(config)
+    return preset !== undefined && presetIdOf(customOfMode(config)) !== preset.id
+}
+
+/** True when a link made in another version named a preset. With equal settings it still counts towards goals, but may not play as it did. */
+export function isFromOtherVersion(config: ModeConfig): boolean {
+    return presetOfRun(config) !== undefined && config.version !== undefined && config.version !== __APP_VERSION__
+}
+
+/** A run shows an asterisk, and a note in its dialog, when it may not play as the link was made. */
+export function isOutdated(config: ModeConfig): boolean {
+    return hasChangedSettings(config) || isFromOtherVersion(config)
+}
+
+/** The tracked challenge goal a run belongs to, or null for a run that matches none or whose preset has other settings now. */
 export function goalOfMode(config: ModeConfig): ChallengeGoal | null {
-    const custom = customOfMode(config)
-    const challengeId = presetIdOf(custom)
-    return challengeId ? { challengeId, goal: custom.goalLevel } : null
+    const preset = presetOfRun(config)
+    if (!preset || hasChangedSettings(config)) return null
+    return { challengeId: preset.id, goal: config.goalIndex }
 }
 
 export interface RunLook extends Look {
@@ -99,12 +121,13 @@ export interface RunLook extends Look {
 
 /**
  * How a run shows itself in the game header, in the style of its card: a preset by its own name, icon and colour, even
- * when it was started from a link; otherwise the mode's.
+ * when it was started from a link; otherwise the mode's. An outdated preset keeps its look and gets an asterisk.
  */
 export function runLook(config: ModeConfig): RunLook {
-    const preset = CUSTOM_PRESETS.find((p) => p.id === goalOfMode(config)?.challengeId)
+    const preset = presetOfRun(config)
     if (!preset) return { name: 'Custom', ...CUSTOM_LOOK }
-    return { name: preset.name, ...(PRESET_LOOKS[preset.id] ?? UNKNOWN_LOOK) }
+    const name = isOutdated(config) ? `${preset.name}*` : preset.name
+    return { name, ...(PRESET_LOOKS[preset.id] ?? UNKNOWN_LOOK) }
 }
 
 export const runName = (config: ModeConfig): string => runLook(config).name

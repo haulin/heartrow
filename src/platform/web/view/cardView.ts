@@ -39,6 +39,12 @@ const ROW_TITLES = {
     recruit: 'Recruit: buy it with gold. It goes to your discard, and its gains and effects happen when you play it from your hand.',
 }
 
+/** What the right-edge slot of the river shows: a heavy ring when an enemy there would cost hearts, a light one for a recruit. */
+export function edgeMark(card: Card | undefined): 'rim' | 'enemy' | undefined {
+    if (!card) return undefined
+    return card.kind === 'enemy' ? 'enemy' : 'rim'
+}
+
 export function buildCardView(card: Card, zone: CardZone, index: number, state: GameState): CardView {
     const gains: GainView[] = []
     if (card.gold) gains.push({ currency: 'gold', text: `+${card.gold} ●` })
@@ -84,7 +90,7 @@ export function buildCardView(card: Card, zone: CardZone, index: number, state: 
         retain,
         affordable,
         played,
-        edge: isEdge ? (card.kind === 'enemy' ? 'enemy' : 'rim') : null,
+        edge: (isEdge && edgeMark(card)) || null,
         pendingExile: state.pendingExile && canExile,
         exileBlocked: state.pendingExile && !canExile,
         art: cardArt(card),
