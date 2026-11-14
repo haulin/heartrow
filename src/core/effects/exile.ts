@@ -1,18 +1,25 @@
-import { RETAIN_OFTEN } from '../generator/budget'
+import { RETAIN_OFTEN, TIER_TERMS } from '../generator/budget'
+import { hasExileTarget } from '../state'
+import { rollAmountTier, tierPrice } from './tiers'
 import type { EffectDef } from './types'
+import { rangeOf, slot } from './wording'
+
+const TERMS = TIER_TERMS.exile
 
 export const exile: EffectDef = {
     id: 'exile',
-    price: 1,
+    price: tierPrice(TERMS, TERMS.tiers[0]),
     family: 'cards',
-    describe: () => 'Exile a card or river recruit',
+    describe: (card) =>
+        card && (card.fxParams?.amount ?? 1) === 1
+            ? 'Exile a card or river recruit'
+            : `Exile ${slot(card, (c) => c.fxParams?.amount ?? 1, rangeOf(TERMS.tiers))} cards or river recruits`,
     enemies: true,
-    lean: ['tide'],
+    lean: ['ember'],
+    mildLean: ['moss', 'tide'],
     retain: RETAIN_OFTEN,
-    extraFor: ['moss', 'ember'],
-    apply({ state }) {
-        const handTarget = state.hand.length > 0
-        const riverTarget = state.row.some((card, index) => index < state.row.length - 1 && card.kind === 'recruit')
-        if (handTarget || riverTarget) state.pendingExile = true
+    roll: rollAmountTier(TERMS),
+    apply({ state, card }) {
+        if (hasExileTarget(state)) state.pendingExile = card.fxParams?.amount ?? 1
     },
 }

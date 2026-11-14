@@ -131,6 +131,24 @@ describe('profiles', () => {
         expect(flipWeight).toBeGreaterThan(plainWeight)
     })
 
+    it('values a Flip by its rolled tier and buys hearts-paying effects late', () => {
+        const initial = newGame(standardMode(0), 1).state
+        const recruit = { ...initial.row[0]!, type: 'ember' as const, kind: 'recruit' as const, cost: 2, gold: 0, power: 0, hearts: 0 }
+        const flip = (tier: number, currency: 'power' | 'hearts') => ({
+            ...recruit,
+            fx: ['flip'] as Card['fx'],
+            fxParams: { currency, amount: tier },
+        })
+        const weightAt = (turn: number, card: Card) =>
+            phaseBuy().weight({ ...initial, turn, row: [card, ...initial.row.slice(1)] }, { type: 'take', rowIndex: 0 }, [])
+        const midRun = 10
+        const lateRun = 20
+
+        expect(weightAt(midRun, flip(3, 'power'))).toBeGreaterThan(weightAt(midRun, flip(1, 'power')))
+        expect(weightAt(lateRun, flip(2, 'power'))).toBe(0)
+        expect(weightAt(lateRun, flip(2, 'hearts'))).toBeGreaterThan(0)
+    })
+
     it('takes more flush risk when several flushes remain', () => {
         const early = newGame(standardMode(0), 1).state
         expect(hasReasonableResources({ ...early, gold: 3, power: 0, flushes: 1 })).toBe(false)

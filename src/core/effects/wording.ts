@@ -19,6 +19,7 @@ export function rangeOf(values: readonly number[]): string {
 
 /** The resources a rolled value can name, and the recruit types a card can have, as the generator list shows them. */
 export const MAIN_RESOURCES = '●/⚔'
+export const ALL_RESOURCES = `${MAIN_RESOURCES}/♥`
 export const RECRUIT_TYPES = 'Moss/Ember/Tide'
 
 /**

@@ -25,7 +25,9 @@ import {
     HM,
     LEAN_SHARE,
     OTHER_RESOURCE_CHANCE,
+    PLAIN_RETAIN_CHANCE,
     RECRUIT_BUDGET_BASE,
+    RETAIN_PRICE,
     RECRUIT_BUDGET_PER_COST,
     RECRUIT_MIN_COST,
     REFERENCE_DECK_SIZE,
@@ -46,7 +48,7 @@ function effectPool(limits: Limits, type: CardType, enemy: boolean, budget: numb
     const lean = enemy ? [] : pool.filter((id) => EFFECT_BY_ID[id].lean.includes(type as Colour))
     const copies = Math.max(1, Math.round((LEAN_SHARE * (pool.length - lean.length)) / ((1 - LEAN_SHARE) * Math.max(1, lean.length))))
     for (let i = 1; i < copies; i++) pool.push(...lean)
-    if (!enemy) for (const e of EFFECTS) if (e.extraFor?.includes(type as Colour) && pool.includes(e.id)) pool.push(e.id)
+    if (!enemy) for (const e of EFFECTS) if (e.mildLean?.includes(type as Colour) && pool.includes(e.id)) pool.push(e.id)
     return pool
 }
 
@@ -86,7 +88,8 @@ export function makeCard(state: GameState, turn: number, attempt = 0): Card {
         fx: [],
         main: 'gold',
     }
-    let budget = enemy ? cost * HM : cost * RECRUIT_BUDGET_PER_COST + RECRUIT_BUDGET_BASE
+    const recruitBase = enemy ? 0 : RECRUIT_BUDGET_BASE[type as Colour]
+    let budget = enemy ? cost * HM : cost * RECRUIT_BUDGET_PER_COST + recruitBase
     const budget0 = budget
     // The draws below are the same whatever the limits are; the limits only redirect what a draw gives.
     const wanted: Currency = type === 'ember' || (type === 'tide' && chance(rng, TIDE_POWER_CHANCE)) ? 'power' : 'gold'
@@ -109,10 +112,19 @@ export function makeCard(state: GameState, turn: number, attempt = 0): Card {
             card.fx.push(id)
             budget -= effect.roll ? effect.roll(rng, card, budget, { currencies: limits.currencies, hearts: limits.hearts }) : effect.price
             const { retain } = effect
-            if (!enemy && retain && budget >= retain.price && chance(rng, retain.chance)) {
+            // The draw is taken even when the limits switch Retain off, so they only redirect the result.
+            const wantsRetain = !enemy && retain && budget >= retain.price && chance(rng, retain.chance)
+            if (wantsRetain && limits.retain) {
                 card.retain = true
                 budget -= retain.price
             }
+        }
+    }
+    if (!enemy && !card.fx.length) {
+        const wantsRetain = chance(rng, PLAIN_RETAIN_CHANCE)
+        if (wantsRetain && limits.retain && budget >= RETAIN_PRICE) {
+            card.retain = true
+            budget -= RETAIN_PRICE
         }
     }
 
@@ -134,9 +146,7 @@ export function makeCard(state: GameState, turn: number, attempt = 0): Card {
     }
 
     const spent = budget0 - budget
-    const fitted = enemy
-        ? Math.ceil(spent / HM - COST_EPSILON)
-        : Math.ceil((spent - RECRUIT_BUDGET_BASE) / RECRUIT_BUDGET_PER_COST - COST_EPSILON)
+    const fitted = enemy ? Math.ceil(spent / HM - COST_EPSILON) : Math.ceil((spent - recruitBase) / RECRUIT_BUDGET_PER_COST - COST_EPSILON)
     card.cost = Math.max(enemy ? ENEMY_MIN_COST : RECRUIT_MIN_COST, Math.min(cost, fitted))
     if (card.fxParams?.costPerCards) card.cost += Math.floor(REFERENCE_DECK_SIZE / card.fxParams.costPerCards)
     if (enemy && !card.hearts) card.hearts = 1

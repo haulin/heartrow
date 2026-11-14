@@ -1,7 +1,7 @@
 import { EFFECTS } from './effects'
 import { unmetNeeds } from './generator/limits'
 import { standardMode } from './modes'
-import type { EffectId, GeneratorCardType, GeneratorConfig, GeneratorResource, ModeConfig } from './types'
+import type { EffectId, GeneratorCardType, GeneratorConfig, GeneratorResource, Keyword, ModeConfig } from './types'
 
 /** A custom generator: a Standard goal, the Basic cards you start with, and what the generator may use. Plain data, so any platform can store or share it. */
 export interface CustomGenerator {
@@ -9,6 +9,7 @@ export interface CustomGenerator {
     types: GeneratorCardType[]
     resources: GeneratorResource[]
     effects: EffectId[]
+    keywords: Keyword[]
     starterGold: number
     starterPower: number
 }
@@ -17,6 +18,7 @@ export const CUSTOM_ID = 'custom'
 export const CUSTOM_TYPES: readonly GeneratorCardType[] = ['moss', 'ember', 'tide', 'foe']
 export const CUSTOM_RESOURCES: readonly GeneratorResource[] = ['gold', 'power', 'hearts']
 export const CUSTOM_EFFECTS: readonly EffectId[] = EFFECTS.map((e) => e.id)
+export const CUSTOM_KEYWORDS: readonly Keyword[] = ['retain']
 
 export const STARTER = standardMode(0).starter
 
@@ -25,6 +27,7 @@ export const DEFAULT_CUSTOM: CustomGenerator = {
     types: [...CUSTOM_TYPES],
     resources: [...CUSTOM_RESOURCES],
     effects: [...CUSTOM_EFFECTS],
+    keywords: [...CUSTOM_KEYWORDS],
     starterGold: STARTER.basicGold,
     starterPower: STARTER.basicPower,
 }
@@ -48,8 +51,8 @@ export const CUSTOM_PRESETS: readonly CustomPreset[] = [
             ...DEFAULT_CUSTOM,
             types: ['moss'],
             resources: ['gold', 'hearts'],
-            effects: ['draw', 'flip', 'exile', 'basics', 'bond', 'kin', 'reapG'],
-            starterGold: STARTER.basicGold + STARTER.basicPower,
+            effects: ['draw', 'flip', 'exile', 'basics', 'bond', 'kin', 'reapG', 'flush'],
+            starterGold: 7,
             starterPower: 0,
         },
     },
@@ -75,12 +78,14 @@ export const CUSTOM_PRESETS: readonly CustomPreset[] = [
                 'reapP',
                 'reload',
                 'push',
+                'shift',
+                'flush',
             ],
             starterGold: 7,
             starterPower: 3,
         },
     },
-    { id: 'simple', name: 'Simple only', generator: { ...DEFAULT_CUSTOM, effects: [] } },
+    { id: 'simple', name: 'Simple only', generator: { ...DEFAULT_CUSTOM, effects: [], starterGold: 5, starterPower: 3 } },
     {
         id: 'attack',
         name: 'Attack only',
@@ -88,7 +93,7 @@ export const CUSTOM_PRESETS: readonly CustomPreset[] = [
             ...DEFAULT_CUSTOM,
             types: ['foe'],
             resources: ['power', 'hearts'],
-            effects: ['flip', 'foes', 'bulk', 'weak', 'push', 'shift'],
+            effects: ['flip', 'foes', 'bulk', 'weak', 'push', 'shift', 'flush'],
             starterGold: 0,
             starterPower: 5,
         },
@@ -100,7 +105,7 @@ export const CUSTOM_PRESETS: readonly CustomPreset[] = [
             ...DEFAULT_CUSTOM,
             types: ['moss', 'tide'],
             resources: ['gold', 'hearts'],
-            effects: ['draw', 'flip', 'exile', 'cheap', 'vault', 'bond', 'kin', 'army', 'cycle', 'redraw', 'reapG', 'echo'],
+            effects: ['draw', 'flip', 'exile', 'cheap', 'vault', 'bond', 'kin', 'army', 'cycle', 'redraw', 'reapG', 'echo', 'flush'],
             starterGold: STARTER.basicGold + STARTER.basicPower,
             starterPower: 0,
         },
@@ -112,7 +117,7 @@ export const CUSTOM_PRESETS: readonly CustomPreset[] = [
             ...DEFAULT_CUSTOM,
             types: ['tide'],
             resources: ['gold', 'hearts'],
-            effects: ['draw', 'exile', 'cheap', 'vault', 'bond', 'kin', 'cycle', 'redraw', 'echo'],
+            effects: ['draw', 'exile', 'cheap', 'vault', 'bond', 'kin', 'cycle', 'redraw', 'echo', 'flush'],
             starterGold: STARTER.basicGold + STARTER.basicPower,
             starterPower: 0,
         },
@@ -136,6 +141,7 @@ export function customMode(def: CustomGenerator): ModeConfig {
             allowedTypes: [...def.types],
             allowedResources: [...def.resources],
             allowedEffects: [...def.effects],
+            allowedKeywords: [...def.keywords],
         },
     }
 }
@@ -145,6 +151,7 @@ export function generatorOf(def: CustomGenerator): GeneratorConfig {
         allowedTypes: def.types,
         allowedResources: def.resources,
         allowedEffects: def.effects,
+        allowedKeywords: def.keywords,
     }
 }
 
@@ -167,6 +174,7 @@ export function customSummary(def: CustomGenerator): string {
         types.length === CUSTOM_TYPES.length ? 'all types' : types.join(', ') || 'no card types',
         def.resources.length === CUSTOM_RESOURCES.length ? 'all resources' : def.resources.join(', '),
         effects === CUSTOM_EFFECTS.length ? 'all effects' : effects === 0 ? 'no effects' : `${effects} of ${CUSTOM_EFFECTS.length} effects`,
+        ...(def.keywords.length === CUSTOM_KEYWORDS.length ? [] : ['no Retain']),
         // The starter is only worth a mention when it is not the usual one.
         ...(def.starterGold === STARTER.basicGold && def.starterPower === STARTER.basicPower
             ? []
@@ -187,6 +195,7 @@ export function customFromMode(config: ModeConfig): CustomGenerator | null {
         types: [...config.generator.allowedTypes],
         resources: [...config.generator.allowedResources],
         effects: [...config.generator.allowedEffects],
+        keywords: [...(config.generator.allowedKeywords ?? CUSTOM_KEYWORDS)],
         starterGold: config.starter.basicGold,
         starterPower: config.starter.basicPower,
     }

@@ -67,7 +67,7 @@ export function movesSummary(moves: readonly Move[]): string {
     return `${facts.total} moves, ${facts.perTurn} per turn; the most in one turn: ${facts.busiest} (T${facts.busiestTurn}).`
 }
 
-const HEART_SOURCE_NAMES: Partial<Record<HeartSource, string>> = { plain: 'plain gains', defeat: 'enemies' }
+const HEART_SOURCE_NAMES: Partial<Record<HeartSource, string>> = { plain: 'Plain gains', defeat: 'Enemies' }
 
 const heartSourceName = (source: HeartSource): string => HEART_SOURCE_NAMES[source] ?? source[0]!.toUpperCase() + source.slice(1)
 

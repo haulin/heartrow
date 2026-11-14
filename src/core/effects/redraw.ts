@@ -4,7 +4,7 @@ import type { EffectDef } from './types'
 
 export const redraw: EffectDef = {
     id: 'redraw',
-    price: 1.25,
+    price: 1.5,
     family: 'cards',
     describe: () => 'Redraw all unplayed cards, even Retain ones',
     enemies: true,

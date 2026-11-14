@@ -10,9 +10,8 @@ function playAll(state: GameState, ...indexes: number[]): GameState {
 }
 
 describe('effect registry', () => {
-    it('has one entry per effect id, with draw priced per card', () => {
-        expect(new Set(EFFECTS.map((e) => e.id)).size).toBe(24)
-        expect(EFFECT_BY_ID.draw.perDrawCard).toBe(true)
+    it('has one entry per effect id', () => {
+        expect(new Set(EFFECTS.map((e) => e.id)).size).toBe(25)
         expect(EFFECTS.filter((e) => !e.enemies).map((e) => e.id)).toEqual(['all3', 'bond', 'kin', 'army', 'echo'])
     })
 
@@ -29,8 +28,14 @@ describe('effect registry', () => {
     it('writes the sentence of an effect once, for a card and for the generator list', () => {
         const hoard = mk({ fx: ['hoard'], fxParams: { amount: 2, perCards: 5, currency: 'power' } })
         expect(EFFECT_BY_ID.hoard.describe(hoard)).toBe('+2 ⚔ per 5 cards in your deck')
-        expect(EFFECT_BY_ID.hoard.describe()).toBe('+[1-2] [●/⚔] per [4-6] cards in your deck')
-        expect(EFFECT_BY_ID.flip.describe()).toBe('+2 or +4 [●/⚔]')
+        expect(EFFECT_BY_ID.hoard.describe()).toBe('+[1-2] [●/⚔/♥] per [4-6] cards in your deck')
+        expect(EFFECT_BY_ID.vault.describe()).toBe('+[1-2] ♥ per [3-5] cards in exile')
+        expect(EFFECT_BY_ID.vault.describe(mk({ fx: ['vault'], fxParams: { amount: 2, perCards: 4 } }))).toBe('+2 ♥ per 4 cards in exile')
+        expect(EFFECT_BY_ID.pile.describe(mk({ fx: ['pile'], fxParams: { amount: 2, perCards: 5, currency: 'gold' } }))).toBe(
+            '+2 ● per 5 cards in your discard',
+        )
+        expect(EFFECT_BY_ID.basics.describe()).toBe('+[1-2] [●/⚔/♥] per [3-5] basic cards in your deck')
+        expect(EFFECT_BY_ID.flip.describe()).toBe('+[1-3] or +[3-7] [●/⚔/♥]')
         expect(EFFECT_BY_ID.kin.describe()).toBe('+1 [●/⚔/♥] per other [Moss/Ember/Tide] card played this turn')
         expect(EFFECT_BY_ID.kin.describe(mk({ type: 'ember', main: 'power', fx: ['kin'] }))).toBe(
             '+1 ⚔ per other Ember card played this turn',
@@ -46,7 +51,7 @@ describe('effect registry', () => {
             exile: [],
             cheap: ['gold'],
             foes: ['foe', 'power'],
-            all3: ['moss', 'ember', 'tide', 'hearts'],
+            all3: ['moss', 'ember', 'tide'],
             vault: ['exile', 'hearts'],
             basics: [],
             pile: [],
@@ -65,6 +70,7 @@ describe('effect registry', () => {
             push: ['foe'],
             shift: [],
             echo: [],
+            flush: [],
         })
         expect(Object.fromEntries(EFFECTS.map((e) => [e.id, e.needsAny ?? []]))).toMatchObject({
             flip: ['gold', 'power'],
@@ -87,6 +93,18 @@ describe('type effects', () => {
         const t = blank()
         t.hand = [basicCard(), basicCard(), mk({ type: 'moss' }), mk({ type: 'tide', fx: ['all3'] })]
         expect(playAll(t, 0, 1, 2, 3).hearts).toBe(0)
+    })
+
+    it('all3 pays the resource and amount it rolled', () => {
+        const s = blank()
+        s.hand = [
+            mk({ type: 'moss' }),
+            mk({ type: 'ember', main: 'power' }),
+            mk({ type: 'tide', fx: ['all3'], fxParams: { currency: 'power', amount: 3 } }),
+        ]
+        const after = playAll(s, 0, 1, 2)
+        expect(after.hearts).toBe(0)
+        expect(after.power).toBeGreaterThanOrEqual(3)
     })
 
     it('bond pays only when its type was already played', () => {
@@ -121,14 +139,37 @@ describe('type effects', () => {
 })
 
 describe('draw and cycle', () => {
-    it('cycle draws before it discards, so the discarded cards cannot return', () => {
+    it('cycle draws before it discards, so the discarded cards do not return while other cards are left', () => {
+        const s = blank()
+        const unplayed = mk()
+        const fresh = mk()
+        s.hand = [mk({ fx: ['cycle'] }), unplayed]
+        s.deck = [fresh]
+        const { state, events } = applyMove(s, { type: 'play', handIndex: 0 })
+        expect(state.hand.map((c) => c.id)).toEqual([s.hand[0]!.id, fresh.id])
+        expect(state.discard.map((c) => c.id)).toEqual([unplayed.id])
+        expect(events.find((e) => e.type === 'cycled')).toMatchObject({ count: 1, redraw: false })
+    })
+
+    it('cycle draws what is left of the shortfall from the cards it just discarded', () => {
+        const s = blank()
+        const [a, b, c] = [mk(), mk(), mk()]
+        const stored = mk()
+        s.hand = [mk({ fx: ['redraw'] }), a, b, c]
+        s.discard = [stored]
+        const { state } = applyMove(s, { type: 'play', handIndex: 0 })
+        const handIds = state.hand.map((card) => card.id)
+        expect(handIds).toHaveLength(4)
+        expect(handIds).toContain(stored.id)
+        expect(state.deck.length + state.discard.length).toBe(1)
+    })
+
+    it('cycle with nothing to draw from gets the same cards back', () => {
         const s = blank()
         const unplayed = mk()
         s.hand = [mk({ fx: ['cycle'] }), unplayed]
-        const { state, events } = applyMove(s, { type: 'play', handIndex: 0 })
-        expect(state.hand.map((c) => c.id)).toEqual([s.hand[0]!.id])
-        expect(state.discard.map((c) => c.id)).toEqual([unplayed.id])
-        expect(events.find((e) => e.type === 'cycled')).toMatchObject({ count: 1, redraw: false })
+        const { state } = applyMove(s, { type: 'play', handIndex: 0 })
+        expect(state.hand.map((c) => c.id)).toEqual([s.hand[0]!.id, unplayed.id])
     })
 
     it('cycle keeps Retain and played cards, redraw discards unplayed Retain too', () => {
@@ -171,7 +212,7 @@ describe('exile', () => {
         s.hand = [mk({ fx: ['exile'] }), a]
         s.row = [enemy(), enemy(), enemy(), enemy(), enemy()]
         const pending = applyMove(s, { type: 'play', handIndex: 0 }).state
-        expect(pending.pendingExile).toBe(true)
+        expect(pending.pendingExile).toBe(1)
         expect(legalMoves(pending)).toEqual<Move[]>([
             { type: 'exile', handIndex: 0 },
             { type: 'exile', handIndex: 1 },
@@ -188,8 +229,28 @@ describe('exile', () => {
         const done = applyMove(pending, { type: 'exile', handIndex: 1 }).state
         expect(done.exile.map((c) => c.id)).toEqual([a.id])
         expect(done.stats.exiled).toBe(1)
-        expect(done.pendingExile).toBe(false)
-        expect(applyMove(pending, { type: 'skipExile' }).state.pendingExile).toBe(false)
+        expect(done.pendingExile).toBe(0)
+        expect(applyMove(pending, { type: 'skipExile' }).state.pendingExile).toBe(0)
+    })
+
+    it('asks for as many exiles as the card rolled, and skipping ends them all', () => {
+        const s = blank()
+        s.hand = [mk({ fx: ['exile'], fxParams: { amount: 2 } }), mk(), mk()]
+        const first = applyMove(s, { type: 'play', handIndex: 0 }).state
+        expect(first.pendingExile).toBe(2)
+        const second = applyMove(first, { type: 'exile', handIndex: 1 }).state
+        expect(second.pendingExile).toBe(1)
+        expect(applyMove(second, { type: 'exile', handIndex: 1 }).state.pendingExile).toBe(0)
+        expect(applyMove(first, { type: 'skipExile' }).state.pendingExile).toBe(0)
+    })
+
+    it('stops asking once nothing is left to exile', () => {
+        const s = blank()
+        s.hand = [mk({ fx: ['exile'], fxParams: { amount: 2 } })]
+        s.row = [enemy(), enemy(), enemy(), enemy(), enemy()]
+        const first = applyMove(s, { type: 'play', handIndex: 0 }).state
+        expect(first.pendingExile).toBe(2)
+        expect(applyMove(first, { type: 'exile', handIndex: 0 }).state.pendingExile).toBe(0)
     })
 
     it('lists a river recruit as an additional exile target', () => {
@@ -197,7 +258,7 @@ describe('exile', () => {
         s.hand = [mk({ fx: ['exile'] })]
         s.row = [mk(), enemy(), enemy(), enemy(), enemy()]
         const pending = applyMove(s, { type: 'play', handIndex: 0 }).state
-        expect(pending.pendingExile).toBe(true)
+        expect(pending.pendingExile).toBe(1)
         expect(legalMoves(pending)).toEqual<Move[]>([
             { type: 'exile', handIndex: 0 },
             { type: 'exile', rowIndex: 0 },
@@ -210,9 +271,9 @@ describe('exile', () => {
         s.power = 5
         s.row = [enemy({ fx: ['exile'] }), ...s.row.slice(1)]
         const result = applyMove(s, { type: 'take', rowIndex: 0 }).state
-        expect(result.pendingExile).toBe(result.row.slice(0, -1).some((card) => card.kind === 'recruit'))
+        expect(result.pendingExile).toBe(result.row.slice(0, -1).some((card) => card.kind === 'recruit') ? 1 : 0)
         s.hand = [mk()]
-        expect(applyMove(s, { type: 'take', rowIndex: 0 }).state.pendingExile).toBe(true)
+        expect(applyMove(s, { type: 'take', rowIndex: 0 }).state.pendingExile).toBe(1)
     })
 })
 
@@ -262,10 +323,29 @@ describe('resources', () => {
         const s = blank()
         s.hand = [mk({ fx: ['flip'] })]
         const { state, events } = applyMove(s, { type: 'play', handIndex: 0 })
-        expect([2, 4]).toContain(state.gold)
-        expect(events.find((e) => e.type === 'flipped')).toMatchObject({ currency: 'gold', amount: state.gold })
+        expect([2, 5]).toContain(state.gold)
+        expect(events.find((e) => e.type === 'flipped')).toMatchObject({ currency: 'gold', amount: state.gold, low: 2 })
         expect(state.streams.gen).toEqual(s.streams.gen)
         expect(state.streams.flip).not.toEqual(s.streams.flip)
+    })
+
+    it('flips pay their tier or twice the tier plus one', () => {
+        for (const [tier, low, high] of [
+            [1, 1, 3],
+            [2, 2, 5],
+            [3, 3, 7],
+        ] as const) {
+            const s = blank()
+            s.hand = Array.from({ length: 24 }, () => mk({ fx: ['flip'], fxParams: { amount: tier } }))
+            const paid = new Set<number>()
+            let state = s
+            for (let handIndex = 0; handIndex < 24; handIndex++) {
+                const before = state.gold
+                state = applyMove(state, { type: 'play', handIndex }).state
+                paid.add(state.gold - before)
+            }
+            expect([...paid].sort((a, b) => a - b)).toEqual([low, high])
+        }
     })
 
     it('vault, basics and pile read the right piles', () => {
@@ -281,6 +361,20 @@ describe('resources', () => {
         s.discard = [basicCard(), basicCard(), mk(), mk(), mk(), mk()]
         const done = playAll(s, 1, 2, 3)
         expect([done.hearts, done.gold, done.power]).toEqual([1, 1, 2])
+    })
+
+    it('vault, basics and pile multiply by their rolled amount and step', () => {
+        const s = blank()
+        s.exile = [mk(), mk(), mk(), mk(), mk(), mk(), mk(), mk(), mk(), mk()]
+        s.deck = [basicCard(), basicCard(), basicCard(), basicCard(), basicCard(), basicCard()]
+        s.discard = [mk(), mk(), mk(), mk(), mk(), mk(), mk(), mk()]
+        s.hand = [
+            mk({ fx: ['vault'], fxParams: { amount: 2, perCards: 5 } }),
+            mk({ fx: ['basics'], fxParams: { currency: 'gold', amount: 2, perCards: 3 } }),
+            mk({ fx: ['pile'], fxParams: { currency: 'power', amount: 2, perCards: 4 } }),
+        ]
+        const done = playAll(s, 0, 1, 2)
+        expect([done.hearts, done.gold, done.power]).toEqual([4, 4, 4])
     })
 
     it('supports parameterized output currencies', () => {
@@ -337,7 +431,7 @@ describe('enemies', () => {
         s.power = 1
         s.row = [enemy({ cost: 1, fx: ['flip'], fxParams: { currency: 'gold' } }), ...s.row.slice(1)]
         const { state, events } = applyMove(s, { type: 'take', rowIndex: 0 })
-        expect([2, 4]).toContain(state.gold)
+        expect([2, 5]).toContain(state.gold)
         expect(events.find((event) => event.type === 'defeated')).toMatchObject({ gains: { gold: state.gold, power: 0, hearts: 1 } })
     })
 
@@ -501,9 +595,26 @@ describe('echo', () => {
         const s = blank()
         s.hand = [mk({ fx: ['exile'] }), mk({ fx: ['echo'] }), mk()]
         const afterExile = applyMove(playAll(s, 0), { type: 'skipExile' }).state
-        expect(applyMove(afterExile, { type: 'play', handIndex: 1 }).state.pendingExile).toBe(true)
+        expect(applyMove(afterExile, { type: 'play', handIndex: 1 }).state.pendingExile).toBe(1)
         const bond = blank()
         bond.hand = [mk({ type: 'moss', fx: ['bond'], fxParams: { bondCount: 2 } }), mk({ type: 'moss', fx: ['echo'] })]
         expect(playAll(bond, 0, 1).gold).toBe(2)
+    })
+})
+
+describe('flush', () => {
+    it('gives a flush, which the player can then spend', () => {
+        const s = blank()
+        s.hand = [mk({ fx: ['flush'] })]
+        const before = s.flushes
+        const { state, events } = applyMove(s, { type: 'play', handIndex: 0 })
+        expect(state.flushes).toBe(before + 1)
+        expect(eventTypes(events)).toContain('flushEarned')
+    })
+
+    it('is given twice by Echo', () => {
+        const s = blank()
+        s.hand = [mk({ fx: ['flush'] }), mk({ fx: ['echo'] })]
+        expect(playAll(s, 0, 1).flushes).toBe(s.flushes + 2)
     })
 })

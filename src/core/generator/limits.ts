@@ -15,6 +15,8 @@ export interface Limits {
     hearts: boolean
     /** Effects the generator may roll: allowed by the setting and with every need met. */
     effects: EffectId[]
+    /** Whether a card may roll Retain, on an effect or on a plain recruit. */
+    retain: boolean
 }
 
 function has<T>(list: readonly T[] | undefined, item: T): boolean {
@@ -50,5 +52,6 @@ export function generatorLimits(generator: GeneratorConfig | undefined): Limits 
         currencies: currencies.length > 0 ? currencies : ['gold'],
         hearts: has(resources, 'hearts'),
         effects: EFFECTS.filter((e) => has(generator?.allowedEffects, e.id) && unmetNeeds(generator, e.id).length === 0).map((e) => e.id),
+        retain: has(generator?.allowedKeywords, 'retain'),
     }
 }

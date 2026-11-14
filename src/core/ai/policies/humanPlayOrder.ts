@@ -1,5 +1,6 @@
 import type { Card, GameState } from '../../types'
 import type { Policy } from '../types'
+import { shiftIsWorthwhile } from './retainAware'
 import { handCard } from './util'
 
 const CYCLE_EFFECTS = ['cycle', 'redraw']
@@ -14,6 +15,7 @@ export function humanPlayOrder(): Policy {
             const card = handCard(state, move)
             if (move.type !== 'play' || !card) return 1
             if (card.fx.some((fx) => CYCLE_EFFECTS.includes(fx))) return cycleIsWorthwhile(state, card) ? 8 : 0
+            if (card.fx.includes('shift')) return shiftIsWorthwhile(state, card) ? 1 : 0
             if (card.fx.some((fx) => USEFUL_EFFECTS.includes(fx))) return 4
             if (card.fx.some((fx) => CONDITIONAL_EFFECTS.includes(fx))) return 1
             return card.fx.length === 0 ? 4 : 2

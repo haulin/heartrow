@@ -1,9 +1,13 @@
 import { cardCost } from '../../state'
-import type { Card, GameState } from '../../types'
+import type { Card, EffectId, GameState } from '../../types'
 import type { Policy } from '../types'
-import { handCard, HEART_FX, rowCard, scoreWeight, turnsLeft } from './util'
+import { handCard, HEART_FX, paysHearts, rowCard, scoreWeight, turnsLeft } from './util'
 
-const isHeart = (card: Card) => card.hearts > 0 || card.fx.some((fx) => HEART_FX[fx])
+const DEFAULT_HEART_FX_VALUE = 8
+
+const heartFxValue = (card: Card, fx: EffectId) => (paysHearts(card, fx) ? (HEART_FX[fx] ?? DEFAULT_HEART_FX_VALUE) : 0)
+
+const isHeart = (card: Card) => card.hearts > 0 || card.fx.some((fx) => paysHearts(card, fx))
 
 function playTier(card: Card): number {
     if (isHeart(card)) return 8
@@ -16,7 +20,7 @@ function playTier(card: Card): number {
 function buyScore(state: GameState, card: Card): number {
     if (card.kind === 'enemy') return 0
     if (card.power && !card.gold && !card.hearts && !card.fx.length) return 0
-    const heartFx = card.fx.reduce((v, fx) => v + (HEART_FX[fx] ?? 0), 0)
+    const heartFx = card.fx.reduce((v, fx) => v + heartFxValue(card, fx), 0)
     const exile = card.fx.includes('exile') ? 18 : 0
     const draw = card.fx.includes('draw') ? 8 : 0
     const cycle = card.fx.some((fx) => fx === 'cycle' || fx === 'redraw') ? 14 : 0

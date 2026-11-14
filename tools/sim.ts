@@ -29,9 +29,15 @@ import { deckSummary } from '../src/platform/web/text'
 
 const { version: APP_VERSION } = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8')) as { version: string }
 
+/** Reads a saved run. Lines that start with `//` are comments, so a `.jsonc` record can say which generator replays it. */
+function readRecord<T>(path: string): T {
+    const lines = readFileSync(path, 'utf8').split('\n')
+    return JSON.parse(lines.filter((line) => !line.trimStart().startsWith('//')).join('\n')) as T
+}
+
 /** Replays a "Copy run" record (a saved run: address plus moves) and prints where it ends up. */
 function replay(path: string): void {
-    const run = JSON.parse(readFileSync(path, 'utf8')) as { version: string; query: string; moves: Move[] }
+    const run = readRecord<{ version: string; query: string; moves: Move[] }>(path)
     const { config, seed } = parseStartParams(run.query)
     let state = newGame(config, seed).state
     let rejected = 0
@@ -82,11 +88,11 @@ function moveLabel(state: GameState, move: Move): string {
 
 /** Explains the policy factors and selected move at one step of a saved bot replay. */
 function explain(path: string, rawMove: string | undefined): void {
-    const record = JSON.parse(readFileSync(path, 'utf8')) as {
+    const record = readRecord<{
         query: string
         moves: Move[]
         bot?: { profile?: string; selection?: string; botSeed?: number; phase?: ProfileOptions['phase'] | null }
-    }
+    }>(path)
     if (!record.bot?.profile || record.bot.botSeed === undefined) throw new Error('Replay does not contain bot metadata')
     const moveNumber = Math.max(1, Math.round(Number(rawMove ?? 1)))
     if (moveNumber > record.moves.length) throw new Error(`Move ${moveNumber} is outside the replay (${record.moves.length} moves)`)

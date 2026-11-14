@@ -53,8 +53,8 @@ describe('App home screen', () => {
         press(host, 'About')
         const about = host.querySelector('dialog')!
         expect(about.textContent).toContain('roguelike deckbuilder')
-        expect(about.textContent).toContain('11,872 distinct recruits')
-        expect(about.textContent).toContain('561 distinct enemies')
+        expect(about.textContent).toContain('25,309 distinct recruits')
+        expect(about.textContent).toContain('1,564 distinct enemies')
         expect(about.textContent).not.toContain('100,000')
         expect(about.querySelectorAll('.ico')).toHaveLength(3)
         expect(about.querySelector('.ico.g')).not.toBeNull()
@@ -204,7 +204,7 @@ describe('App challenge screen', () => {
         expect(store.getState().config.id).toBe('custom')
         expect(store.getState().config.name).toBe('Custom generator')
         expect(store.getState().maxTurns).toBe(42)
-        expect(store.getState().config.starter).toEqual({ basicGold: 10, basicPower: 0 })
+        expect(store.getState().config.starter).toEqual({ basicGold: 7, basicPower: 0 })
     })
 
     it('returns to the card and goal it was left on after the editor', () => {
@@ -379,7 +379,7 @@ describe('App', () => {
         void act(() => host.querySelector<HTMLButtonElement>('[data-zone="hand"] button.card')!.click())
         const edge = host.querySelector<HTMLButtonElement>('[data-zone="row"] .slot:last-child button.card')!
         void act(() => edge.click())
-        expect(store.getState().pendingExile).toBe(true)
+        expect(store.getState().pendingExile).toBe(1)
         expect(store.getState().stats.exiled).toBe(0)
         expect(edge.getAttribute('data-rejected')).toBe('')
     })

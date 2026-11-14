@@ -62,7 +62,7 @@ describe('card view model', () => {
     })
 
     it('marks recruit river exile targets and blocks enemies and the edge card', () => {
-        const s = { ...state, pendingExile: true, row: [card(), card({ kind: 'enemy', type: 'foe' }), card()] }
+        const s = { ...state, pendingExile: 1, row: [card(), card({ kind: 'enemy', type: 'foe' }), card()] }
         const target = buildCardView(s.row[0]!, 'row', 0, s)
         const enemy = buildCardView(s.row[1]!, 'row', 1, s)
         const edge = buildCardView(s.row[2]!, 'row', 2, s)
@@ -121,10 +121,10 @@ describe('undo', () => {
 
     it('undoes an exile effect step by step', () => {
         const played = play(withHand([fx('exile'), card({ id: 2 })]))
-        expect(played.state.pendingExile).toBe(true)
+        expect(played.state.pendingExile).toBe(1)
         const exiled = stepSession(played, { type: 'exile', handIndex: 1 }).session
         expect(exiled.state.exile).toHaveLength(1)
-        expect(undoSession(exiled).state.pendingExile).toBe(true)
+        expect(undoSession(exiled).state.pendingExile).toBe(1)
         const skipped = stepSession(played, { type: 'skipExile' }).session
         expect(undoSession(undoSession(skipped)).state.hand[0]!.played).toBeFalsy()
     })
@@ -243,7 +243,7 @@ describe('store and session', () => {
     it('names the sources of hearts, most first', () => {
         const state = startSession(standardMode(0), 1).state
         state.stats.heartsFrom = { plain: 6, vault: 9, reapG: 3, defeat: 4 }
-        expect(heartsSummary(state)).toBe('Hearts from: Vault 9, plain gains 6, enemies 4, ReapG 3.')
+        expect(heartsSummary(state)).toBe('Hearts from: Vault 9, Plain gains 6, Enemies 4, ReapG 3.')
         expect(heartsSummary(startSession(standardMode(0), 1).state)).toBe('')
     })
 

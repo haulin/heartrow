@@ -10,6 +10,8 @@ import {
     ENEMY_MIN_COST,
     RECRUIT_MIN_COST,
 } from '../../generator/budget'
+import { EFFECT_BY_ID } from '../../effects'
+import { DEFAULT_FLIP_TIER, flipHigh, flipLow } from '../../effects/flip'
 import type { Card, EffectId, GameState, Move } from '../../types'
 import type { Policy } from '../types'
 
@@ -45,10 +47,22 @@ export function rowCard(state: GameState, move: Move): Card | undefined {
 
 export type GainResource = 'gold' | 'power'
 
-/** A card's plain gain of one resource, counting Flip's +3 when it pays that resource. */
+/** A card's plain gain of one resource, counting the average of its Flip when it pays that resource. */
 export function expectedGain(card: Card, resource: GainResource): number {
-    const flipGain = card.fxParams?.currency === resource && card.fx.includes('flip') ? 3 : 0
+    const flipGain = card.fx.includes('flip') && card.fxParams?.currency === resource ? expectedFlip(card) : 0
     return resource === 'gold' ? card.gold + flipGain : card.power + flipGain
+}
+
+/** The mean of the two Flip outcomes, which are equally likely. */
+function expectedFlip(card: Card): number {
+    const tier = card.fxParams?.amount ?? DEFAULT_FLIP_TIER
+    return (flipLow(tier) + flipHigh(tier)) / 2
+}
+
+/** True when the effect pays hearts on this card: always for the heart effects, and on the cards whose rolled payout is hearts. */
+export function paysHearts(card: Card, fx: EffectId): boolean {
+    const pays = EFFECT_BY_ID[fx].pays
+    return pays === 'hearts' || (pays === 'rolled' && card.fxParams?.currency === 'hearts')
 }
 
 export function turnsLeft(state: GameState): number {

@@ -44,6 +44,7 @@ export type EffectId =
     | 'push'
     | 'shift'
     | 'echo'
+    | 'flush'
 
 export interface Card {
     id: number
@@ -108,7 +109,8 @@ export interface GameState {
     defeatedThisTurn: number
     /** River cards made this turn. Every few of them make the next one as hard as a card of a later turn. */
     generatedThisTurn: number
-    pendingExile: boolean
+    /** How many exiles the player still owes after an Exile card; 0 when none is pending. */
+    pendingExile: number
     deck: Card[]
     hand: Card[]
     discard: Card[]
@@ -155,9 +157,10 @@ export type GameEvent =
     | { type: 'played'; card: Card; gains: Gains }
     | { type: 'drew'; cardIds: number[]; requested: number; cause: DrawCause }
     | { type: 'reshuffled' }
-    | { type: 'flipped'; currency: GeneratorResource; amount: number }
+    | { type: 'flipped'; currency: GeneratorResource; amount: number; low: number }
     | { type: 'swapped'; gold: number; power: number }
     | { type: 'pushed'; card: Card }
+    | { type: 'flushEarned' }
     | { type: 'echoed'; card: Card | null }
     | { type: 'cycled'; count: number; redraw: boolean }
     | { type: 'exiled'; card: Card }
@@ -210,8 +213,13 @@ export interface StarterSpec {
     basicPower: number
 }
 
+/** A rule word a card can carry, as opposed to an effect with its own text. Retain is the only one. */
+export type Keyword = 'retain'
+
 export interface GeneratorConfig {
     allowedTypes: GeneratorCardType[]
+    /** The keywords a card may roll. Missing means all of them, an empty list means none. */
+    allowedKeywords?: Keyword[]
     /** What cards and effects may give. Gold is treated as allowed when nothing else is, because recruits cost gold. */
     allowedResources: GeneratorResource[]
     allowedEffects: EffectId[]

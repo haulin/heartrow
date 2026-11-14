@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'preact/hooks'
 import {
     CUSTOM_EFFECTS,
+    CUSTOM_KEYWORDS,
     CUSTOM_PRESETS,
     CUSTOM_RESOURCES,
     CUSTOM_TYPES,
@@ -14,7 +15,7 @@ import {
     generatorOf,
     unmetNeeds,
 } from '../../core'
-import type { CustomGenerator, EffectId, GeneratorCardType, GeneratorResource } from '../../core'
+import type { CustomGenerator, EffectId, GeneratorCardType, GeneratorResource, Keyword } from '../../core'
 import { presetIdOf } from './challenges'
 import { Glyph } from './Glyph'
 import { MAX_STARTER, effectName } from './custom'
@@ -22,6 +23,7 @@ import { goalLine } from './text'
 
 const TYPE_NAMES: Record<GeneratorCardType, string> = { moss: 'Moss', ember: 'Ember', tide: 'Tide', foe: 'Enemies' }
 const RESOURCE_NAMES: Record<GeneratorResource, string> = { gold: 'Gold ●', power: 'Power ⚔', hearts: 'Hearts ♥' }
+const KEYWORD_NAMES: Record<Keyword, string> = { retain: 'Retain' }
 const NEED_NAMES: Record<string, string> = { ...TYPE_NAMES, ...RESOURCE_NAMES, exile: 'the Exile effect' }
 
 const toggle = <T,>(list: readonly T[], all: readonly T[], item: T): T[] => {
@@ -212,6 +214,22 @@ export function GeneratorScreen({
                         </div>
                     ))}
                 </div>
+            </fieldset>
+
+            <fieldset class="picks">
+                <legend>Keywords</legend>
+                {CUSTOM_KEYWORDS.map((keyword) => (
+                    <label key={keyword} class="pick" title="A card can keep itself in your hand for the next turn.">
+                        <input
+                            type="checkbox"
+                            name="keyword"
+                            value={keyword}
+                            checked={def.keywords.includes(keyword)}
+                            onChange={() => change({ keywords: toggle<Keyword>(def.keywords, CUSTOM_KEYWORDS, keyword) })}
+                        />
+                        {KEYWORD_NAMES[keyword]}
+                    </label>
+                ))}
             </fieldset>
 
             <p class="rules">

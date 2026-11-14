@@ -15,9 +15,13 @@ export function basicCard(over: Partial<Card> = {}): Card {
     return mk({ type: 'plain', kind: 'basic', cost: 0, gold: 1, ...over })
 }
 
-/** A started game with an empty hand, deck and discard that the test can fill. */
+/**
+ * A started game with an empty hand, deck and discard that the test can fill. The river has recruits only, so no test depends on which
+ * enemy a seed happens to put at the Gate (an escape at the end of the turn would cost hearts).
+ */
 export function blank(mode: ModeConfig = standardMode(0), seed = 1): GameState {
     const state = newGame(mode, seed).state
+    state.row = state.row.map((card) => (card.kind === 'enemy' ? mk({ cost: card.cost, gold: 1 }) : card))
     state.deck = []
     state.hand = []
     state.discard = []

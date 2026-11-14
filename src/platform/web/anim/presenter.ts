@@ -6,7 +6,10 @@ import type { Effect, GainStat } from '.'
 
 const SWAP_STATS: readonly GainStat[] = ['gold', 'power']
 
-/** How many frames may wait behind the one being shown before the oldest are shown without animation. */
+/**
+ * How many replay frames may wait behind the one being shown before the oldest are shown without animation. Only replay frames skip:
+ * a held key can queue them faster than they can be shown, while played moves (Play simple and Play rest queue a whole hand) always animate.
+ */
 const BACKLOG_LIMIT = 3
 
 /** What the presenter needs from the store. */
@@ -181,7 +184,7 @@ export function createPresenter(source: FrameSource, env: PresenterEnv): Present
             if (!frame) return
             const speed = resolveSpeed(env.speed(), env.reducedMotion())
             const root = env.root()
-            if (source.pendingFrames() > BACKLOG_LIMIT) {
+            if (frame.fromReplay && source.pendingFrames() > BACKLOG_LIMIT) {
                 // Moves arrive faster than they can be shown (a held key, a long replay): the oldest ones show without animation.
                 // The next frame still waits for the view to draw this one, as for an animated frame.
                 drawing = root !== null

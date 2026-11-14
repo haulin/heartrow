@@ -1,29 +1,47 @@
-import { RETAIN_SOMETIMES } from '../generator/budget'
+import { RESOURCE_PRICE, RETAIN_SOMETIMES, TIER_TERMS } from '../generator/budget'
 import { chance } from '../rng'
+import type { GeneratorResource } from '../types'
+import { rollPayoutCurrency } from './payout'
+import { rollTier, scaleTerms, tierPrice } from './tiers'
 import type { EffectDef } from './types'
-import { resourceSlot } from './wording'
+import { ALL_RESOURCES, resourceSlot, slot } from './wording'
 
-export const FLIP_LOW = 2
-export const FLIP_HIGH = 4
+const TERMS = TIER_TERMS.flip
+/** The tier of a Flip card that rolled none. */
+export const DEFAULT_FLIP_TIER = 2
+
+/** A Flip of tier `t` pays `t` or `2t + 1`: 1 or 3, 2 or 5, 3 or 7. */
+export const flipLow = (tier: number): number => tier
+export const flipHigh = (tier: number): number => 2 * tier + 1
+
+const termsFor = (resource: GeneratorResource) => scaleTerms(TERMS, RESOURCE_PRICE[resource])
 
 export const flip: EffectDef = {
     id: 'flip',
-    price: 2.5,
+    price: tierPrice(TERMS, TERMS.tiers[0]),
     family: 'resource',
-    describe: (card) => `+${FLIP_LOW} or +${FLIP_HIGH} ${resourceSlot(card, 'gold')}`,
+    describe: (card) => {
+        const tier = (c: NonNullable<typeof card>) => c.fxParams?.amount ?? DEFAULT_FLIP_TIER
+        const amounts = `${slot(card, (c) => flipLow(tier(c)), '1-3')} or +${slot(card, (c) => flipHigh(tier(c)), '3-7')}`
+        return `+${amounts} ${resourceSlot(card, card?.main ?? 'gold', ALL_RESOURCES)}`
+    },
     enemies: true,
     needsAny: ['gold', 'power'],
     lean: ['moss'],
     pays: 'rolled',
     retain: RETAIN_SOMETIMES,
-    roll(_rng, card) {
-        card.fxParams = { ...card.fxParams, currency: card.main }
-        return flip.price
+    roll(rng, card, budget, context) {
+        const resource = rollPayoutCurrency(rng, card, context, (r) => tierPrice(termsFor(r), TERMS.tiers[0]) <= budget)
+        const terms = termsFor(resource)
+        const amount = rollTier(rng, budget, terms)
+        card.fxParams = { ...card.fxParams, amount }
+        return tierPrice(terms, amount)
     },
     apply({ state, card, events, gain }) {
-        const amount = chance(state.streams.flip, 0.5) ? FLIP_LOW : FLIP_HIGH
-        const currency = card.fxParams?.currency === 'power' ? 'power' : 'gold'
+        const tier = card.fxParams?.amount ?? DEFAULT_FLIP_TIER
+        const amount = chance(state.streams.flip, 0.5) ? flipLow(tier) : flipHigh(tier)
+        const currency = card.fxParams?.currency ?? card.main
         gain(currency, amount)
-        events.push({ type: 'flipped', currency, amount })
+        events.push({ type: 'flipped', currency, amount, low: flipLow(tier) })
     },
 }

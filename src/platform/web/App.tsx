@@ -28,6 +28,7 @@ import { StandardScreen } from './StandardScreen'
 import { Rich } from './Rich'
 import { Stats } from './Stats'
 import { loopTimeFactor } from './anim'
+import { autoplayKind, playsInAutoplay } from './autoplay'
 import { previewHand } from './handPreview'
 import { browserReducedMotion, createPresenter } from './anim/presenter'
 import { parseStartParams, randomSeed, routeFor, shareQuery } from './mode'
@@ -142,7 +143,7 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
         return true
     })
     const playing = state.status === 'playing'
-    const canAuto = playing && !state.pendingExile && state.hand.some((c) => c.fx.length === 0 && !c.played)
+    const autoKind = playing && !state.pendingExile ? autoplayKind(state.hand) : undefined
 
     /** Clicks are resolved by card id against the latest state, so a card that shifts while an animation plays is never clicked by mistake. */
     const takeCard = (id: number) => {
@@ -163,12 +164,14 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
 
     // Left to right. The presenter plays the queued moves as a quick stagger.
     const autoplay = () => {
-        const count = store.getState().hand.length
-        for (let i = 0; i < count; i++) {
+        const kind = autoplayKind(store.getState().hand)
+        if (!kind) return
+        // Played cards stay in the hand, so the hand only grows while playing and index i is always the next unvisited card.
+        for (let i = 0; i < store.getState().hand.length; i++) {
             const s = store.getState()
             if (s.status !== 'playing' || s.pendingExile) return
             const c = s.hand[i]
-            if (c && c.fx.length === 0 && !c.played) dispatch({ type: 'play', handIndex: i })
+            if (c && playsInAutoplay(kind, c)) dispatch({ type: 'play', handIndex: i })
         }
     }
 
@@ -287,7 +290,9 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
     }
 
     const over = statusMessage(state, session.moves)
-    const text = over ?? (state.pendingExile ? 'Exile a card or river recruit, or skip.' : session.message)
+    const exilePrompt =
+        state.pendingExile > 1 ? `Exile ${state.pendingExile} cards or river recruits, or skip.` : 'Exile a card or river recruit, or skip.'
+    const text = over ?? (state.pendingExile ? exilePrompt : session.message)
     const label = `${spoken(text)}${over !== null ? ' Activate to open the full log.' : state.pendingExile ? ' Select a card to exile, or skip.' : ' Activate to open the full log.'}`
 
     const n = state.hand.length
@@ -507,22 +512,31 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                             Keep playing to turn {state.maxTurns}
                         </button>
                     ) : null}
-                    <button type="button" class="b" disabled={!playing || state.pendingExile} onClick={() => dispatch({ type: 'endTurn' })}>
+                    <button
+                        type="button"
+                        class="b"
+                        disabled={!playing || state.pendingExile > 0}
+                        onClick={() => dispatch({ type: 'endTurn' })}
+                    >
                         End turn
                     </button>
                     <button
                         type="button"
-                        class="b alt"
-                        disabled={!canAuto}
-                        title="Plays every card without a worded effect."
+                        class="b alt autoplay"
+                        disabled={!autoKind}
+                        title={
+                            autoKind === 'rest'
+                                ? 'Plays every card still in your hand, including cards with effects and Retain cards. Shortcut: space.'
+                                : 'Plays every card without a worded effect, except Retain cards. When none are left it plays the rest. Shortcut: space.'
+                        }
                         onClick={autoplay}
                     >
-                        Play simple (space)
+                        {autoKind === 'rest' ? 'Play rest' : 'Play simple'}
                     </button>
                     <button
                         type="button"
                         class="b alt"
-                        disabled={!playing || state.pendingExile || state.flushes < 1}
+                        disabled={!playing || state.pendingExile > 0 || state.flushes < 1}
                         title="Replaces the four left cards of the river; the card at the Gate stays."
                         onClick={() => dispatch({ type: 'flush' })}
                     >

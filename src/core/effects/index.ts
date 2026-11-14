@@ -6,6 +6,7 @@ import { bond } from './bond'
 import { bulk } from './bulk'
 import { cheap } from './cheap'
 import { flip } from './flip'
+import { flush } from './flush'
 import { cycle } from './cycle'
 import { draw } from './draw'
 import { exile } from './exile'
@@ -65,11 +66,12 @@ export const EFFECTS: readonly EffectDef[] = [
     push,
     shift,
     echo,
+    flush,
 ]
 
 export const EFFECT_BY_ID = Object.fromEntries(EFFECTS.map((effect) => [effect.id, effect])) as Record<EffectId, EffectDef>
 
-export function effectPrice(id: EffectId, drawCount = 1): number {
-    const effect = EFFECT_BY_ID[id]
-    return effect.perDrawCard ? effect.price * drawCount : effect.price
+/** The cheapest price an effect can roll at. */
+export function effectPrice(id: EffectId): number {
+    return EFFECT_BY_ID[id].price
 }

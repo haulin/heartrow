@@ -1,4 +1,4 @@
-import type { Currency } from '../types'
+import type { Colour, Currency } from '../types'
 
 /** Enemy budget per point of cost. */
 export const HM = 1.4
@@ -7,7 +7,11 @@ export const ENEMY_MIN_COST = 1
 export const RECRUIT_MIN_COST = 2
 
 export const RECRUIT_BUDGET_PER_COST = 0.85
-export const RECRUIT_BUDGET_BASE = 0.3
+/**
+ * Budget added on top of the per-cost budget, by type. A recruit's cost steps by less than a whole budget unit, so every type skips one cost
+ * on whole-number spends; different bases make each type skip a different cost and the mix has no notch. Moss pays the most gold, so it gets the least.
+ */
+export const RECRUIT_BUDGET_BASE: Record<Colour, number> = { moss: 0.1, ember: 0.3, tide: 0.5 }
 /** Guards the recruit cost recompute against float noise. */
 export const COST_EPSILON = 1e-9
 
@@ -29,23 +33,42 @@ export const HEARTS_CHANCE_AFTER_HEARTS = 0.75
 export const OTHER_RESOURCE_CHANCE = 0.15
 export const ENEMY_GAIN_SHARE = 0.4
 
-export const DRAW_PRICE_PER_CARD = 1.5
-export const DRAW_MAX = 4
-export const BOND_MAX = 3
-export const BOND_EXTRA_PRICE = [0, 0.7, 1.5] as const
 /** Deck size at which deck-size effects are priced and at which Bulk costs its rolled enemy cost. */
 export const REFERENCE_DECK_SIZE = 16
-export const HOARD_CARDS_PER_STEP = [4, 5, 6] as const
-export const HOARD_AMOUNTS = [1, 2] as const
-/** Early turns pay less than the reference deck size, so Hoard is priced below its payoff at that size. */
-export const HOARD_PRICE_FACTOR = 0.75
+/** Early turns count fewer cards than the reference count, so a "+N per M cards" effect is priced below its payoff at that count. */
+export const COUNT_GAIN_PRICE_FACTOR = 0.75
+/** What each "+N per M cards" effect may roll. The `reference` is the count it is priced at; the first step of Vault, Pile and Basics is the old fixed text. */
+export const COUNT_GAIN_TERMS = {
+    hoard: { amounts: [1, 2], perCards: [4, 5, 6], defaultPerCards: 4, reference: REFERENCE_DECK_SIZE, unitPrice: 1 },
+    basics: { amounts: [1, 2], perCards: [3, 4, 5], defaultPerCards: 4, reference: 8, unitPrice: 1 },
+    pile: { amounts: [1, 2], perCards: [3, 4, 5], defaultPerCards: 3, reference: 6, unitPrice: 1 },
+    vault: { amounts: [1, 2], perCards: [3, 4, 5], defaultPerCards: 3, reference: 5.3, unitPrice: RESOURCE_PRICE.hearts },
+} as const
+/** All3 pays its resource for playing all three types, at two thirds of the value, so 2 ♥ costs 2 as the fixed text did. Hearts roll smaller amounts. */
+export const ALL3_PRICE_FACTOR = 2 / 3
+export const ALL3_AMOUNTS = { gold: [2, 3, 4], power: [2, 3, 4], hearts: [1, 2, 3] } as const
 export const BULK_CARDS_PER_STEP = 4
-/** Weak and Cheap: a deeper discount costs more per unit, minus a base offset, so one unit stays at 1.5 and two cost 4.5. */
-export const DISCOUNT_AMOUNTS = [1, 2] as const
-export const DISCOUNT_UNIT_PRICE = 3
-export const DISCOUNT_BASE_OFFSET = 1.5
+/** Effects that roll a tier: a tier costs `unitPrice × tier − offset`. */
+export interface TierTerms {
+    tiers: readonly number[]
+    unitPrice: number
+    offset: number
+}
+/**
+ * Weak, Cheap and Exile: a deeper tier costs more per unit, minus a base offset, so one unit costs 1.5 and two cost 4.5.
+ * Bond: one card costs 0.5 and each extra one 0.7. Flip pays `tier` or `2 × tier + 1`, and costs 1.5 per tier.
+ */
+export const TIER_TERMS = {
+    discount: { tiers: [1, 2], unitPrice: 3, offset: 1.5 },
+    exile: { tiers: [1, 2], unitPrice: 3, offset: 1.5 },
+    draw: { tiers: [1, 2, 3, 4], unitPrice: 2.5, offset: 1 },
+    bond: { tiers: [1, 2, 3], unitPrice: 0.7, offset: 0.2 },
+    flip: { tiers: [1, 2, 3], unitPrice: 1.5, offset: 0 },
+} as const satisfies Record<string, TierTerms>
 /** Retain terms by how often waiting helps the effect: the more useful it is, the more often a card with that effect gets Retain. */
 export const RETAIN_PRICE = 0.5
+/** The chance that a plain recruit (no effect) rolls Retain. Not a setting, like the effect chances. */
+export const PLAIN_RETAIN_CHANCE = 0.1
 export const RETAIN_USUALLY = { price: RETAIN_PRICE, chance: 0.7 }
 export const RETAIN_OFTEN = { price: RETAIN_PRICE, chance: 0.5 }
 export const RETAIN_SOMETIMES = { price: RETAIN_PRICE, chance: 0.3 }
@@ -58,6 +81,8 @@ export const RELOAD_PRICE = 2
 export const SHIFT_MAX = 3
 export const SHIFT_PRICE_PER_CARD = 0.75
 export const PUSH_PRICE = 1.25
+/** More than Exile (1) and as much as Cycle (1.5): a flush replaces four river cards, and the card dilutes the deck as well. */
+export const FLUSH_PRICE = 1.5
 export const ECHO_PRICE = 3
 
 /**

@@ -250,6 +250,9 @@ export function planAfter(frame: Frame, root: ParentNode): Effect[] {
             case 'reaped':
                 changed.add('hearts')
                 break
+            case 'flushEarned':
+                changed.add('flushes')
+                break
             case 'turnStarted':
                 changed.add('turn')
                 if (event.flushGained) changed.add('flushes')

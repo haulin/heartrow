@@ -1,4 +1,4 @@
-import { FLIP_LOW, applyMove, cloneState } from '../../core'
+import { applyMove, cloneState } from '../../core'
 import type { Card, EffectId, GameEvent, GameState } from '../../core'
 
 type Resource = 'gold' | 'power' | 'hearts'
@@ -47,9 +47,8 @@ function addCard(preview: HandPreview, board: GameState, card: Card, handIndex: 
 
 function noteUnknowns(event: GameEvent, preview: HandPreview): void {
     if (event.type === 'flipped') {
-        const resource = event.currency === 'power' ? 'power' : 'gold'
-        preview[resource] -= event.amount - FLIP_LOW
-        preview.atLeast[resource] = true
+        preview[event.currency] -= event.amount - event.low
+        preview.atLeast[event.currency] = true
     } else if (event.type === 'drew' || event.type === 'cycled') {
         preview.atLeast.gold = preview.atLeast.power = preview.atLeast.hearts = true
     }

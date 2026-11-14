@@ -11,7 +11,7 @@ export const shift: EffectDef = {
     price: SHIFT_PRICE_PER_CARD,
     describe: (card) => `Shift the river by ${slot(card, (c) => c.fxParams?.shiftCount ?? 1, `1-${SHIFT_MAX}`)}`,
     enemies: true,
-    lean: [],
+    lean: ['ember'],
     retain: RETAIN_OFTEN,
     roll(rng, card, budget) {
         const most = Math.min(SHIFT_MAX, Math.floor(budget / SHIFT_PRICE_PER_CARD))

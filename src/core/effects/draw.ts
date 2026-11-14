@@ -1,23 +1,23 @@
-import { nextInt } from '../rng'
 import { drawCards } from '../state'
-import { DRAW_MAX, DRAW_PRICE_PER_CARD, RETAIN_RARELY } from '../generator/budget'
+import { RETAIN_RARELY, TIER_TERMS } from '../generator/budget'
+import { rollTier, tierPrice } from './tiers'
 import type { EffectDef } from './types'
-import { slot } from './wording'
+import { rangeOf, slot } from './wording'
+
+const TERMS = TIER_TERMS.draw
 
 export const draw: EffectDef = {
     id: 'draw',
-    price: DRAW_PRICE_PER_CARD,
-    perDrawCard: true,
+    price: tierPrice(TERMS, TERMS.tiers[0]),
     family: 'cards',
-    describe: (card) => `Draw ${slot(card, (c) => c.fxParams?.drawCount ?? 1, `1-${DRAW_MAX}`)}`,
+    describe: (card) => `Draw ${slot(card, (c) => c.fxParams?.drawCount ?? 1, rangeOf(TERMS.tiers))}`,
     enemies: true,
     lean: ['tide'],
     retain: RETAIN_RARELY,
     roll(rng, card, budget) {
-        const max = Math.min(DRAW_MAX, Math.floor(budget / DRAW_PRICE_PER_CARD))
-        const drawCount = 1 + nextInt(rng, max)
+        const drawCount = rollTier(rng, budget, TERMS)
         card.fxParams = { ...card.fxParams, drawCount }
-        return DRAW_PRICE_PER_CARD * drawCount
+        return tierPrice(TERMS, drawCount)
     },
     apply({ state, card, events }) {
         drawCards(state, card.fxParams?.drawCount ?? 1, events, 'effect')

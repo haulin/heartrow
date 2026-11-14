@@ -287,11 +287,11 @@ export function AboutDialog({ state, onClose }: { state?: GameState | undefined;
                 target. Its costs and enemy pressure increase after turn 24.
             </p>
             <p>
-                Every card is generated as it appears. Moss leans gold and rewards a larger deck, Ember leans power and enemies, Tide leans
-                draw, exile, and hearts.
+                Every card is generated as it appears. Moss leans gold and rewards a larger deck, Ember leans power, enemies and exile, Tide
+                leans draw, cycling and hearts.
             </p>
             <p class="rules">
-                Standard can produce 11,872 distinct recruits and 561 distinct enemies. Custom generators change the card pool and its
+                Standard can produce 25,309 distinct recruits and 1,564 distinct enemies. Custom generators change the card pool and its
                 variety.
             </p>
             {state ? <SeedLine state={state} /> : null}

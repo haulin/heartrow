@@ -986,6 +986,11 @@ dialog::backdrop {
     color: var(--accent);
     font-weight: 700;
 }
+/* The label changes between "Play simple" and "Play rest"; the width of the longer one keeps the button row from shifting. */
+button.b.autoplay {
+    min-width: 12ch;
+    text-align: center;
+}
 .b.start {
     flex: 0 0 auto;
     font-size: clamp(15px, 3cqw, 20px);

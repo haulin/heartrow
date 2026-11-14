@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vite-plus/test'
-import { FLIP_LOW, applyMove, cloneState, standardMode } from '../../src/core'
+import { applyMove, cloneState, standardMode } from '../../src/core'
+
+/** A Flip card without a rolled tier is tier 2: it pays 2 or 5. */
+const FLIP_LOW = 2
 import type { Card, GameState } from '../../src/core'
 import { previewHand } from '../../src/platform/web/handPreview'
 import { startSession } from '../../src/platform/web/session'
@@ -51,7 +54,7 @@ describe('previewHand: plain cards', () => {
 
     it('keeps working while an exile is pending, and is null once the run is over', () => {
         const exiling = stateWith([card(2, 0, 0)])
-        exiling.pendingExile = true
+        exiling.pendingExile = 1
         expect(previewHand(exiling)?.gold).toBe(2)
         const over = stateWith([card(2, 0, 0)])
         over.status = 'lost'
@@ -94,6 +97,14 @@ describe('previewHand: effects', () => {
             const state = stateWith([card(0, 0, 0, ['flip'])])
             state.streams.flip = [seed, seed * 3, seed * 7, seed * 11]
             expect(previewHand(state)).toEqual({ gold: FLIP_LOW, power: 0, hearts: 0, atLeast: { ...none, gold: true } })
+        }
+    })
+
+    it('counts a hearts Flip at its low amount in hearts, and keeps gold and power unchanged', () => {
+        for (let seed = 0; seed < 8; seed++) {
+            const state = stateWith([card(0, 0, 0, ['flip'], { fxParams: { currency: 'hearts', amount: 3 } })])
+            state.streams.flip = [seed, seed * 3, seed * 7, seed * 11]
+            expect(previewHand(state)).toEqual({ gold: 0, power: 0, hearts: 3, atLeast: { ...none, hearts: true } })
         }
     })
 

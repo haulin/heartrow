@@ -168,7 +168,7 @@ describe('flush and rejections', () => {
         const middleEnemy = enemy({ id: 103 })
         const fourth = mk({ id: 104 })
         const edge = enemy({ id: 105 })
-        s.pendingExile = true
+        s.pendingExile = 1
         s.row = [first, target, middleEnemy, fourth, edge]
         const expected = makeCard(cloneState(s), s.turn)
 

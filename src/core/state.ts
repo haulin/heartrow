@@ -22,6 +22,7 @@ export function cloneState(state: GameState): GameState {
                     allowedTypes: [...state.config.generator.allowedTypes],
                     allowedResources: [...state.config.generator.allowedResources],
                     allowedEffects: [...state.config.generator.allowedEffects],
+                    ...(state.config.generator.allowedKeywords && { allowedKeywords: [...state.config.generator.allowedKeywords] }),
                 },
             }),
         },
@@ -35,6 +36,12 @@ export function cloneState(state: GameState): GameState {
         stats: { ...state.stats, heartsFrom: { ...state.stats.heartsFrom } },
         streams: { gen: cloneRng(state.streams.gen), shuffle: cloneRng(state.streams.shuffle), flip: cloneRng(state.streams.flip) },
     }
+}
+
+/** Any hand card, or any river recruit except the one at the Gate, can be exiled. */
+export function hasExileTarget(state: GameState): boolean {
+    const riverTarget = state.row.some((card, index) => index < state.row.length - 1 && card.kind === 'recruit')
+    return state.hand.length > 0 || riverTarget
 }
 
 /** The right-edge card leaves the river. An enemy that leaves costs its hearts. */

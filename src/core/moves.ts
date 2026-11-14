@@ -1,7 +1,7 @@
 import { resolveCard } from './effects/resolve'
 import { makeCard, makeRiverCard } from './generator/make'
 import { createStreams, shuffle } from './rng'
-import { canAfford, cardCost, cloneCard, cloneState, creditHearts, drawCards, dropEdge, HAND_SIZE, ROW_SIZE } from './state'
+import { canAfford, cardCost, cloneCard, cloneState, creditHearts, drawCards, dropEdge, HAND_SIZE, hasExileTarget, ROW_SIZE } from './state'
 import type { Card, GameEvent, GameState, ModeConfig, Move, RejectReason, StepResult } from './types'
 
 const FLUSHED_SLOTS = ROW_SIZE - 1
@@ -23,6 +23,7 @@ export function newGame(config: ModeConfig, seed: number): StepResult {
                     allowedTypes: [...config.generator.allowedTypes],
                     allowedResources: [...config.generator.allowedResources],
                     allowedEffects: [...config.generator.allowedEffects],
+                    ...(config.generator.allowedKeywords && { allowedKeywords: [...config.generator.allowedKeywords] }),
                 },
             }),
         },
@@ -46,7 +47,7 @@ export function newGame(config: ModeConfig, seed: number): StepResult {
         lastUsed: null,
         defeatedThisTurn: 0,
         generatedThisTurn: 0,
-        pendingExile: false,
+        pendingExile: 0,
         deck: [],
         hand: [],
         discard: [],
@@ -151,17 +152,18 @@ export function applyMove(state: GameState, move: Move): StepResult {
             const card = 'handIndex' in move ? next.hand.splice(move.handIndex, 1)[0]! : next.row.splice(move.rowIndex, 1)[0]!
             next.exile.push(card)
             next.stats.exiled++
-            next.pendingExile = false
             events.push({ type: 'exiled', card: cloneCard(card) })
             if ('rowIndex' in move) {
                 const fresh = makeRiverCard(next, next.turn)
                 next.row.unshift(fresh)
                 events.push({ type: 'rowRefilled', card: cloneCard(fresh) })
             }
+            // A second exile is owed only while something is left to exile.
+            next.pendingExile = hasExileTarget(next) ? next.pendingExile - 1 : 0
             break
         }
         case 'skipExile':
-            next.pendingExile = false
+            next.pendingExile = 0
             events.push({ type: 'exileSkipped' })
             break
         case 'take':

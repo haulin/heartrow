@@ -12,6 +12,8 @@ export interface Frame {
     rejected: boolean
     before: Session
     after: Session
+    /** Made by stepping through a loaded replay, which a held key can queue faster than it can be shown. */
+    fromReplay?: true
 }
 
 export type Holds = Partial<Record<'gold' | 'power' | 'hearts', number>>
@@ -97,7 +99,7 @@ export class GameStore {
         if (!move) return null
         const before = this.session
         this.replayIndex++
-        const frame = this.step(move)
+        const frame = this.step(move, 'replay')
         if (frame.rejected) {
             this.replayMoves = null
             this.replayUndo = []
@@ -176,12 +178,13 @@ export class GameStore {
         }
     }
 
-    private step = (move: Move): Frame => {
+    private step = (move: Move, origin: 'play' | 'replay' = 'play'): Frame => {
         const before = this.session
         const outcome = stepSession(before, move)
         this.session = outcome.session
         if (!outcome.rejected) this.moves = [...this.moves, move]
         const frame: Frame = { move, events: outcome.events, rejected: outcome.rejected, before, after: this.session }
+        if (origin === 'replay') frame.fromReplay = true
         this.frames.push(frame)
         this.emit()
         return frame

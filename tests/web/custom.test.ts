@@ -23,6 +23,7 @@ describe('custom generator links', () => {
             types: ['moss' as const, 'foe' as const],
             resources: ['gold' as const, 'hearts' as const],
             effects: ['draw' as const, 'exile' as const],
+            keywords: [],
             starterGold: 9,
             starterPower: 1,
         }
@@ -38,6 +39,8 @@ describe('custom generator links', () => {
     it('treats missing parts as everything, and an empty effect list as none', () => {
         expect(parseCustom(new URLSearchParams('mode=custom'))).toEqual(DEFAULT_CUSTOM)
         expect(parseCustom(new URLSearchParams('fx=')).effects).toEqual([])
+        expect(parseCustom(new URLSearchParams('kw=')).keywords).toEqual([])
+        expect(parseCustom(new URLSearchParams('kw=retain,nope')).keywords).toEqual(['retain'])
     })
 
     it('still reads older links that have no resources or starter', () => {
@@ -69,6 +72,7 @@ describe('custom generator links', () => {
             types: ['tide' as const],
             resources: ['gold' as const],
             effects: [],
+            keywords: [],
             starterGold: 10,
             starterPower: 0,
         }
@@ -84,7 +88,7 @@ describe('custom generator links', () => {
             `?screen=play&seed=5&mode=standard&${customQuery({ ...DEFAULT_CUSTOM, goalLevel: 1 })}&v=${__APP_VERSION__}`,
         )
         expect(customQuery({ ...DEFAULT_CUSTOM, types: ['moss'], effects: [] })).toBe(
-            'goal=1&types=moss&res=gold,power,hearts&sg=6&sp=4&fx=',
+            'goal=1&types=moss&res=gold,power,hearts&sg=6&sp=4&fx=&kw=retain',
         )
         expect(effectName('reapG')).toBe('Reap G')
         expect(effectName('draw')).toBe('Draw')
@@ -93,11 +97,12 @@ describe('custom generator links', () => {
     it('counts only what can really be made when it describes a generator', () => {
         expect(customSummary(DEFAULT_CUSTOM)).toBe('all types; all resources; all effects')
         expect(customSummary({ ...DEFAULT_CUSTOM, effects: [] })).toBe('all types; all resources; no effects')
+        expect(customSummary({ ...DEFAULT_CUSTOM, keywords: [] })).toBe('all types; all resources; all effects; no Retain')
         expect(customSummary({ ...DEFAULT_CUSTOM, starterGold: 0, starterPower: 5 })).toBe(
             'all types; all resources; all effects; start with 0 ● and 5 ⚔ Basics',
         )
         const noTide = { ...DEFAULT_CUSTOM, types: ['moss' as const, 'ember' as const, 'foe' as const] }
-        expect(customSummary(noTide)).toBe('moss, ember, foe; all resources; 23 of 24 effects')
+        expect(customSummary(noTide)).toBe('moss, ember, foe; all resources; 24 of 25 effects')
         expect(effectiveEffects(noTide)).not.toContain('all3')
         const noHearts = { ...DEFAULT_CUSTOM, resources: ['gold' as const, 'power' as const] }
         expect(effectiveTypes(noHearts)).toEqual(['moss', 'ember', 'tide'])

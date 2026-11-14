@@ -26,9 +26,8 @@ export type EffectFamily = 'cards' | 'count' | 'streak' | 'resource' | 'price' |
 export interface EffectDef {
     id: EffectId
     family: EffectFamily
-    /** Budget price. Scaled by the draw count when `perDrawCard` is set. */
+    /** Budget price at the cheapest roll; an effect with a `roll` function returns the price of what it rolled. */
     price: number
-    perDrawCard?: true
     /**
      * The one place the effect's sentence is written. With a card it is that card's text (its rolled values); without one it is the
      * sentence for the generator list, with every value the effect can roll in brackets (see `slot` in `wording.ts`).
@@ -48,8 +47,8 @@ export interface EffectDef {
     pays?: 'gold' | 'power' | 'hearts' | 'main' | 'rolled'
     /** Colours whose effect pool favours this effect. */
     lean: readonly Colour[]
-    /** Colours that get one extra copy in the pool. */
-    extraFor?: readonly Colour[]
+    /** Colours that get one extra copy in the pool: about twice as likely as no lean, far less than a lean. */
+    mildLean?: readonly Colour[]
     /** Retain roll for recruits: budget price and chance. Every effect a recruit can roll sets it. */
     retain?: { readonly price: number; readonly chance: number }
     /** Rolls effect parameters onto the card and returns the total budget the effect consumes. */

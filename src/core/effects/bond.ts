@@ -1,30 +1,33 @@
-import { nextInt } from '../rng'
-import { BOND_EXTRA_PRICE, BOND_MAX } from '../generator/budget'
-import { RETAIN_SOMETIMES } from '../generator/budget'
+import { RESOURCE_PRICE, RETAIN_SOMETIMES, TIER_TERMS } from '../generator/budget'
+import type { GeneratorResource } from '../types'
+import { rollPayoutCurrency } from './payout'
+import { rollTier, scaleTerms, tierPrice } from './tiers'
 import type { EffectDef } from './types'
-import { MAIN_RESOURCES, slot, symbol, typeSlot } from './wording'
+import { ALL_RESOURCES, rangeOf, resourceSlot, slot, typeSlot } from './wording'
 
-const BASE_PRICE = 0.5
+const TERMS = TIER_TERMS.bond
+
+const termsFor = (resource: GeneratorResource) => scaleTerms(TERMS, RESOURCE_PRICE[resource])
 
 export const bond: EffectDef = {
     id: 'bond',
-    price: BASE_PRICE,
+    price: tierPrice(TERMS, TERMS.tiers[0]),
     family: 'streak',
     describe: (card) =>
-        `+${slot(card, (c) => c.fxParams?.bondCount ?? 1, `1-${BOND_MAX}`)} ${slot(card, (c) => symbol(c.main), MAIN_RESOURCES)} if you played ${typeSlot(card)} earlier this turn`,
+        `+${slot(card, (c) => c.fxParams?.bondCount ?? 1, rangeOf(TERMS.tiers))} ${resourceSlot(card, card?.main ?? 'gold', ALL_RESOURCES)} if you played ${typeSlot(card)} earlier this turn`,
     needsAny: ['moss', 'ember', 'tide'],
     enemies: false,
     lean: ['moss'],
-    pays: 'main',
+    pays: 'rolled',
     retain: RETAIN_SOMETIMES,
-    roll(rng, card, budget) {
-        const left = budget - BASE_PRICE
-        let n = 1 + nextInt(rng, BOND_MAX)
-        while (n > 1 && (BOND_EXTRA_PRICE[n - 1] as number) > left) n--
-        card.fxParams = { ...card.fxParams, bondCount: n }
-        return BASE_PRICE + (BOND_EXTRA_PRICE[n - 1] as number)
+    roll(rng, card, budget, context) {
+        const resource = rollPayoutCurrency(rng, card, context, (r) => tierPrice(termsFor(r), TERMS.tiers[0]) <= budget)
+        const terms = termsFor(resource)
+        const bondCount = rollTier(rng, budget, terms)
+        card.fxParams = { ...card.fxParams, bondCount }
+        return tierPrice(terms, bondCount)
     },
     apply({ card, source, hadType, gain }) {
-        if (source === 'play' && hadType) gain(card.main, card.fxParams?.bondCount ?? 1)
+        if (source === 'play' && hadType) gain(card.fxParams?.currency ?? card.main, card.fxParams?.bondCount ?? 1)
     },
 }

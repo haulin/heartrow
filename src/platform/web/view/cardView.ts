@@ -91,8 +91,8 @@ export function buildCardView(card: Card, zone: CardZone, index: number, state: 
         affordable,
         played,
         edge: (isEdge && edgeMark(card)) || null,
-        pendingExile: state.pendingExile && canExile,
-        exileBlocked: state.pendingExile && !canExile,
+        pendingExile: state.pendingExile > 0 && canExile,
+        exileBlocked: state.pendingExile > 0 && !canExile,
         art: cardArt(card),
         label,
         title: state.pendingExile

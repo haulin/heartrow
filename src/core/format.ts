@@ -64,6 +64,8 @@ export function formatEvent(event: GameEvent, ctx: FormatContext): string | null
             return `Swapped ● and ⚔: now ${event.gold} ● and ${event.power} ⚔.`
         case 'pushed':
             return 'Pushed the right-most enemy to the left end.'
+        case 'flushEarned':
+            return FLUSH_GAINED_TEXT
         case 'echoed':
             if (!event.card) return 'Echo: nothing to repeat.'
             return event.card.kind === 'enemy' ? 'Echo: repeated an enemy.' : `Echo: repeated a ${TYPE_NAMES[event.card.type]} card.`

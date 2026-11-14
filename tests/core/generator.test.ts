@@ -1,8 +1,17 @@
 import { describe, expect, it } from 'vitest'
 import { EFFECT_BY_ID, EFFECTS, LONG_MODE, makeCard, newGame, standardMode, unmetNeeds } from '../../src/core'
-import type { Card, GeneratorConfig, ModeConfig } from '../../src/core'
-import { discountPrice } from '../../src/core/effects/discount'
-import { BOND_EXTRA_PRICE, HOARD_PRICE_FACTOR, REFERENCE_DECK_SIZE } from '../../src/core/generator/budget'
+import type { Card, Colour, EffectId, GeneratorConfig, ModeConfig } from '../../src/core'
+import { scaleTerms, tierPrice } from '../../src/core/effects/tiers'
+import { countGainPrice } from '../../src/core/effects/countGain'
+import {
+    ALL3_PRICE_FACTOR,
+    COUNT_GAIN_TERMS,
+    RECRUIT_BUDGET_BASE,
+    REFERENCE_DECK_SIZE,
+    RESOURCE_PRICE,
+    RETAIN_PRICE,
+    TIER_TERMS,
+} from '../../src/core/generator/budget'
 
 const PER_TURN = 400
 
@@ -19,23 +28,45 @@ function limited(generator: Partial<GeneratorConfig>): ModeConfig {
     }
 }
 
+/** Which tier terms price an effect, and which `fxParams` field holds the rolled tier. */
+const TIERED_EFFECTS: Partial<Record<string, { terms: keyof typeof TIER_TERMS; param: 'amount' | 'bondCount' | 'drawCount' }>> = {
+    draw: { terms: 'draw', param: 'drawCount' },
+    weak: { terms: 'discount', param: 'amount' },
+    cheap: { terms: 'discount', param: 'amount' },
+    exile: { terms: 'exile', param: 'amount' },
+    flip: { terms: 'flip', param: 'amount' },
+    bond: { terms: 'bond', param: 'bondCount' },
+}
+
 function spentBudget(card: Card): number {
     let spent = card.gold + card.power + card.hearts * 1.5
     for (const id of card.fx) {
-        const effect = EFFECT_BY_ID[id]
-        const resourceMultiplier = card.fxParams?.currency === 'hearts' ? 1.5 : 1
-        spent += effect.perDrawCard ? effect.price * (card.fxParams?.drawCount ?? 1) : effect.price * resourceMultiplier
-        if (id === 'hoard') spent += hoardPrice(card) - effect.price
-        if (id === 'weak' || id === 'cheap') spent += discountPrice(card.fxParams?.amount ?? 1) - effect.price
-        if (id === 'bond') spent += BOND_EXTRA_PRICE[(card.fxParams?.bondCount ?? 1) - 1]!
-        if (id === 'shift') spent += effect.price * ((card.fxParams?.shiftCount ?? 1) - 1)
+        spent += effectSpend(card, id)
     }
-    return spent + (card.retain ? EFFECT_BY_ID[card.fx[0]!].retain!.price : 0)
+    return spent + (card.retain ? RETAIN_PRICE : 0)
 }
 
-function hoardPrice(card: Card): number {
-    const { amount = 1, perCards = 4 } = card.fxParams ?? {}
-    return Math.round(((HOARD_PRICE_FACTOR * amount * REFERENCE_DECK_SIZE) / perCards) * 10) / 10
+/** What one effect of the card costs, with a payout effect priced in the resource it rolled. */
+function effectSpend(card: Card, id: EffectId): number {
+    const effect = EFFECT_BY_ID[id]
+    const factor = RESOURCE_PRICE[card.fxParams?.currency ?? 'gold']
+    const tiered = TIERED_EFFECTS[id]
+    if (id === 'all3') return all3RolledPrice(card)
+    if (id in COUNT_GAIN_TERMS) return countGainRolledPrice(id as keyof typeof COUNT_GAIN_TERMS, card, factor)
+    if (tiered) return tierPrice(scaleTerms(TIER_TERMS[tiered.terms], factor), card.fxParams?.[tiered.param] ?? 1)
+    if (id === 'shift') return effect.price * (card.fxParams?.shiftCount ?? 1)
+    return effect.price * factor
+}
+
+function all3RolledPrice(card: Card): number {
+    const resource = card.fxParams?.currency ?? 'hearts'
+    return Math.round(ALL3_PRICE_FACTOR * (card.fxParams?.amount ?? 2) * RESOURCE_PRICE[resource] * 10) / 10
+}
+
+function countGainRolledPrice(id: keyof typeof COUNT_GAIN_TERMS, card: Card, factor: number): number {
+    const terms = COUNT_GAIN_TERMS[id]
+    const { amount = 1, perCards = terms.defaultPerCards } = card.fxParams ?? {}
+    return countGainPrice(terms, amount, perCards, factor)
 }
 
 /** Bulk prints a cost premium on top of the cost the budget was fitted to. */
@@ -53,7 +84,8 @@ function check(mode: ModeConfig, turns: number): number {
             expect(card.fx.length).toBeLessThanOrEqual(1)
             expect(card.cost).toBeGreaterThanOrEqual(enemy ? 1 : 2)
             const spent = spentBudget(card)
-            const budgetAt = (cost: number) => (enemy ? cost * 1.4 : cost * 0.85 + 0.3) + 1e-6
+            const recruitBase = enemy ? 0 : RECRUIT_BUDGET_BASE[card.type as Colour]
+            const budgetAt = (cost: number) => (enemy ? cost * 1.4 : cost * 0.85 + recruitBase) + 1e-6
             const minCost = enemy ? 1 : 2
             const cost = fittedCost(card)
             if (cost > minCost) {
@@ -68,7 +100,7 @@ function check(mode: ModeConfig, turns: number): number {
                 expect(card.type).toBe('foe')
             } else {
                 expect(card.gold + card.power + card.hearts + card.fx.length).toBeGreaterThan(0)
-                expect(spentBudget(card)).toBeLessThanOrEqual(card.cost * 0.85 + 0.3 + 1e-6)
+                expect(spentBudget(card)).toBeLessThanOrEqual(card.cost * 0.85 + recruitBase + 1e-6)
             }
             for (const id of card.fx) {
                 expect(EFFECTS.map((e) => e.id)).toContain(id)
@@ -78,7 +110,8 @@ function check(mode: ModeConfig, turns: number): number {
             }
             if (card.fxParams?.drawCount !== undefined) expect(card.fxParams.drawCount).toBeLessThanOrEqual(4)
             if (card.fxParams?.bondCount !== undefined) expect(card.fx).toEqual(['bond'])
-            if (card.fxParams?.currency !== undefined) expect(['kin', 'army', 'basics', 'pile', 'hoard', 'flip']).toContain(card.fx[0])
+            if (card.fxParams?.currency !== undefined)
+                expect(['kin', 'army', 'basics', 'pile', 'hoard', 'flip', 'bond', 'all3']).toContain(card.fx[0])
             if (card.fxParams?.costPerCards !== undefined) expect(card.fx).toEqual(['bulk'])
         }
     }
@@ -202,6 +235,30 @@ describe('makeCard', () => {
                 expect(b.gold).toBe(0)
             }
         }
+    })
+
+    it('gives about one plain recruit in ten Retain, and none when the keyword is off', () => {
+        const retainShare = (generator: Partial<GeneratorConfig>) => {
+            const state = newGame(limited(generator), 4).state
+            let plain = 0
+            let kept = 0
+            let keptOnEnemy = 0
+            for (let turn = 1; turn <= 24; turn++) {
+                for (let i = 0; i < 300; i++) {
+                    const card = makeCard(state, turn)
+                    if (card.kind === 'enemy') keptOnEnemy += card.retain ? 1 : 0
+                    else if (card.fx.length === 0) {
+                        plain++
+                        kept += card.retain ? 1 : 0
+                    }
+                }
+            }
+            expect(keptOnEnemy).toBe(0)
+            return kept / plain
+        }
+        expect(retainShare({})).toBeGreaterThan(0.07)
+        expect(retainShare({})).toBeLessThan(0.13)
+        expect(retainShare({ allowedKeywords: [] })).toBe(0)
     })
 
     it('skips effects whose needs are off', () => {

@@ -1,5 +1,5 @@
-import { EFFECTS, createRng, makeCard, nextInt, newGame, standardMode } from '../src/core'
-import type { Card, CardKind } from '../src/core'
+import { CUSTOM_PRESETS, EFFECTS, createRng, customMode, makeCard, nextInt, newGame, standardMode } from '../src/core'
+import type { Card, CardKind, ModeConfig } from '../src/core'
 
 interface VariantGroup {
     samples: number
@@ -64,8 +64,8 @@ function countKind(groups: Map<number, VariantGroup>, all: Map<string, number>, 
     return { samples, observed: all.size, estimated: estimate(all), byCost, distribution }
 }
 
-export function countCards(samples = DEFAULT_SAMPLES, seed = 1): Counts {
-    const state = newGame(standardMode(0), seed).state
+export function countCards(samples = DEFAULT_SAMPLES, seed = 1, mode: ModeConfig = standardMode(0)): Counts {
+    const state = newGame(mode, seed).state
     const sampleRng = createRng(seed, 'cardcount')
     const all = new Map<CardKind, Map<string, number>>([
         ['recruit', new Map()],
@@ -144,7 +144,21 @@ export function main(argv: string[]): void {
     const seedIndex = argv.indexOf('--seed')
     const samples = samplesIndex >= 0 ? Math.max(1, Math.round(Number(argv[samplesIndex + 1]))) : DEFAULT_SAMPLES
     const seed = seedIndex >= 0 ? Number(argv[seedIndex + 1]) >>> 0 : 1
-    const counts = countCards(samples, seed)
+    const presetId = argv[argv.indexOf('--preset') + 1]
+    const preset = argv.includes('--preset') ? CUSTOM_PRESETS.find((p) => p.id === presetId) : undefined
+    if (argv.includes('--preset') && !preset)
+        throw new Error(`Unknown preset "${presetId}". Known: ${CUSTOM_PRESETS.map((p) => p.id).join(', ')}`)
+    const counts = countCards(samples, seed, preset ? customMode(preset.generator) : undefined)
     if (argv.includes('--json')) console.log(JSON.stringify(counts, null, 2))
+    else if (argv.includes('--costs')) printCostShares(counts)
     else print(counts)
+}
+
+/** One line per kind: the share of generated cards at each cost, in percent, to spot gaps in the cost curve. */
+function printCostShares(counts: Counts): void {
+    for (const kind of ['recruit', 'enemy'] as const) {
+        const { byCost, samples } = counts[kind]
+        const shares = Object.entries(byCost).map(([cost, row]) => `${cost}:${((100 * row.samples) / samples).toFixed(1)}`)
+        console.log(`${kind} ${shares.join(' ')}`)
+    }
 }
