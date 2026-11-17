@@ -5,6 +5,7 @@ import type { EffectDef } from './types'
 
 export const echo: EffectDef = {
     id: 'echo',
+    blurb: 'Repeats the last card you played or enemy you defeated this turn: its gold, power, hearts and effects.',
     family: 'repeat',
     price: ECHO_PRICE,
     describe: () => 'Echo the last card played or enemy defeated',

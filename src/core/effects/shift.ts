@@ -7,6 +7,7 @@ import { slot } from './wording'
 
 export const shift: EffectDef = {
     id: 'shift',
+    blurb: 'Moves the river along: new cards enter on the left and as many fall off at the Gate. An enemy that falls off costs its hearts, like an escape.',
     family: 'river',
     price: SHIFT_PRICE_PER_CARD,
     describe: (card) => `Shift the river by ${slot(card, (c) => c.fxParams?.shiftCount ?? 1, `1-${SHIFT_MAX}`)}`,

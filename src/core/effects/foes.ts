@@ -3,6 +3,7 @@ import type { EffectDef } from './types'
 
 export const foes: EffectDef = {
     id: 'foes',
+    blurb: 'Pays power for every enemy in the river, so it is strongest when the river is full of them.',
     price: 2,
     family: 'resource',
     describe: () => '+1 ⚔ per enemy in the river',

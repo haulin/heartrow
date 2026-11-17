@@ -6,6 +6,7 @@ import { ALL_RESOURCES, resourceSlot, typeSlot } from './wording'
 
 export const army: EffectDef = {
     id: 'army',
+    blurb: 'Pays for every few cards of its own type in your deck, so it grows as you collect that type.',
     price: 1.5,
     family: 'count',
     describe: (card) => `+1 ${resourceSlot(card, card?.main ?? 'gold', ALL_RESOURCES)} per 4 ${typeSlot(card)} cards in your deck`,

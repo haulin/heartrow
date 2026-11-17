@@ -4,6 +4,7 @@ import type { EffectDef } from './types'
 
 export const redraw: EffectDef = {
     id: 'redraw',
+    blurb: 'Like Cycle, but it replaces every card you have not played, Retain cards too.',
     price: 1.5,
     family: 'cards',
     describe: () => 'Redraw all unplayed cards, even Retain ones',

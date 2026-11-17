@@ -3,6 +3,7 @@ import type { EffectDef } from './types'
 
 export const reapP: EffectDef = {
     id: 'reapP',
+    blurb: 'At the end of the turn, pays hearts for the power you did not spend.',
     price: 1.5,
     family: 'reap',
     describe: () => 'End of turn: +1 ♥ per 2 unspent ⚔',

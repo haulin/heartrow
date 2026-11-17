@@ -5,6 +5,7 @@ import type { EffectDef } from './types'
 /** Situational: it only helps when the right-most enemy is the one to hide, so a recruit that has it is kept more often than any other. */
 export const push: EffectDef = {
     id: 'push',
+    blurb: 'Moves the enemy nearest the Gate to the far left of the river, so it needs more turns to reach the Gate and escape.',
     family: 'river',
     price: PUSH_PRICE,
     describe: () => 'Move the right-most enemy to the left end of the river',

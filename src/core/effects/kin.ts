@@ -5,6 +5,7 @@ import { ALL_RESOURCES, resourceSlot, typeSlot } from './wording'
 
 export const kin: EffectDef = {
     id: 'kin',
+    blurb: 'Pays 1 for every other card of its own type that you played this turn.',
     price: 1.5,
     family: 'streak',
     describe: (card) => `+1 ${resourceSlot(card, card?.main ?? 'gold', ALL_RESOURCES)} per other ${typeSlot(card)} card played this turn`,

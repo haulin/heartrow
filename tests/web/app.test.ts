@@ -45,7 +45,7 @@ describe('App home screen', () => {
         const { host } = mount(4, 'off', 'home')
         expect(host.querySelector('[data-zone="row"]')).toBeNull()
         const labels = Array.from(host.querySelectorAll('nav button')).map((b) => b.textContent)
-        expect(labels).toEqual(['Standard', 'Challenges', 'Settings', 'About'])
+        expect(labels).toEqual(['Standard', 'Challenges', 'Compendium', 'Settings', 'About'])
     })
 
     it('describes the game and draws resource icons in About', () => {

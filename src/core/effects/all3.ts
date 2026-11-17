@@ -13,6 +13,7 @@ const variantPrice = (resource: GeneratorResource, amount: number): number =>
 
 export const all3: EffectDef = {
     id: 'all3',
+    blurb: 'Pays a bonus when you played a Moss, an Ember and a Tide card this turn.',
     price: variantPrice('hearts', ALL3_AMOUNTS.hearts[0]),
     family: 'streak',
     describe: (card) =>

@@ -3,12 +3,13 @@ export interface HomeProps {
     onResume: () => void
     onStandard: () => void
     onChallenges: () => void
+    onCompendium: () => void
     onSettings: () => void
     onAbout: () => void
 }
 
 /** The home screen. Standard (with Long Run) is the plain way to start; Challenges has the generator presets and Custom. */
-export function Home({ canResume, onResume, onStandard, onChallenges, onSettings, onAbout }: HomeProps) {
+export function Home({ canResume, onResume, onStandard, onChallenges, onCompendium, onSettings, onAbout }: HomeProps) {
     return (
         <main class="home">
             <h1>Heartrow</h1>
@@ -24,6 +25,9 @@ export function Home({ canResume, onResume, onStandard, onChallenges, onSettings
                 </button>
                 <button type="button" class="b alt" onClick={onChallenges}>
                     Challenges
+                </button>
+                <button type="button" class="b alt" onClick={onCompendium}>
+                    Compendium
                 </button>
                 <button type="button" class="b alt" onClick={onSettings}>
                     Settings

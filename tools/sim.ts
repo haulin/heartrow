@@ -155,9 +155,13 @@ const cardKey = (card: Card): string =>
 
 const percent = (value: number, total: number): string => `${((value / total) * 100).toFixed(1)}%`
 
-/** Runs the selected bot profiles and writes the lowest-heart game as a pasteable saved-run record. */
-function writeWorstRun(
+const isLower = (hearts: number, other: number): boolean => hearts < other
+const isHigher = (hearts: number, other: number): boolean => hearts > other
+
+/** Runs the selected bot profiles and writes the game that `isBetter` ranks first by hearts as a pasteable saved-run record. */
+function writeExtremeRun(
     output: string,
+    isBetter: (hearts: number, other: number) => boolean,
     config: Parameters<typeof playGame>[0],
     ids: ProfileId[],
     selection: SelectionMode | undefined,
@@ -166,7 +170,7 @@ function writeWorstRun(
     seeds: number,
     seed: number,
 ): void {
-    let worst:
+    let chosen:
         | {
               id: ProfileId
               baseSeed: number
@@ -183,31 +187,31 @@ function writeWorstRun(
                 const gameSeed = batchSeed(baseSeed, gameIndex)
                 const botSeed = batchSeed(baseSeed + 7919, gameIndex)
                 const result = playGame(config, gameSeed, makeProfile(id, selection, profileOptions), botSeed, playOptionsOf(config))
-                if (!worst || result.summary.hearts < worst.result.summary.hearts) {
-                    worst = { id, baseSeed, gameIndex, gameSeed, botSeed, result }
+                if (!chosen || isBetter(result.summary.hearts, chosen.result.summary.hearts)) {
+                    chosen = { id, baseSeed, gameIndex, gameSeed, botSeed, result }
                 }
             }
         }
     }
-    if (!worst) throw new Error('No games to inspect')
+    if (!chosen) throw new Error('No games to inspect')
     const record = {
         version: APP_VERSION,
-        query: shareQuery(config, worst.gameSeed),
-        moves: worst.result.moves,
+        query: shareQuery(config, chosen.gameSeed),
+        moves: chosen.result.moves,
         bot: {
-            profile: worst.id,
+            profile: chosen.id,
             selection: selection ?? 'profile-default',
-            baseSeed: worst.baseSeed,
-            gameIndex: worst.gameIndex,
-            gameSeed: worst.gameSeed,
-            botSeed: worst.botSeed,
+            baseSeed: chosen.baseSeed,
+            gameIndex: chosen.gameIndex,
+            gameSeed: chosen.gameSeed,
+            botSeed: chosen.botSeed,
             phase: profileOptions?.phase ?? null,
         },
-        summary: worst.result.summary,
+        summary: chosen.result.summary,
     }
     writeFileSync(output, JSON.stringify(record, null, 2) + '\n')
     console.log(
-        `wrote ${output}: ${worst.id}, ${worst.result.summary.hearts} hearts, seed ${worst.gameSeed}, ${worst.result.moves.length} moves`,
+        `wrote ${output}: ${chosen.id}, ${chosen.result.summary.hearts} hearts, seed ${chosen.gameSeed}, ${chosen.result.moves.length} moves`,
     )
 }
 
@@ -283,7 +287,7 @@ export function main(argv: string[]): void {
     const games = Number(args.games ?? 400)
     const seed = Number(args.seed ?? 1)
     const seeds = Math.max(1, Math.round(Number(args.seeds ?? 1)))
-    // `--goal 1|2|3|4|long` (`--mode long` is the same as `--goal long`), `--preset <id>` for a custom generator from the web presets, `--phase earlyEnd,lateStart` for lab-human, `--worst <file>` for a pasteable failure record, and `--sg/--sp` to override starter Basic counts. `--seeds` repeats the batch with consecutive base seeds.
+    // `--goal 1|2|3|4|long` (`--mode long` is the same as `--goal long`), `--preset <id>` for a custom generator from the web presets, `--phase earlyEnd,lateStart` for lab-human, `--worst <file>` for a pasteable failure record, `--best <file>` for the highest-heart one, and `--sg/--sp` to override starter Basic counts. `--seeds` repeats the batch with consecutive base seeds.
     const level = goalIndexOf(args)
     const preset = args.preset ? CUSTOM_PRESETS.find((p) => p.id === args.preset) : undefined
     if (args.preset && !preset) throw new Error(`Unknown preset "${args.preset}". Known: ${CUSTOM_PRESETS.map((p) => p.id).join(', ')}`)
@@ -309,7 +313,7 @@ export function main(argv: string[]): void {
         : undefined
     const starterBase = generator ?? DEFAULT_CUSTOM
     const starterOverride = starterGold !== undefined || starterPower !== undefined
-    const config = starterOverride
+    const optionConfig = starterOverride
         ? customMode({
               ...starterBase,
               goalLevel: level,
@@ -319,7 +323,9 @@ export function main(argv: string[]): void {
         : generator
           ? customMode({ ...generator, goalLevel: level })
           : standardMode(level)
-    const modeBase = preset ? `${preset.id}${effects ? `-fx[${effects.join(',')}]` : ''}` : `std${GOALS[level]!.key}`
+    // `--link <url or query>` plays the generator and goal of a game link, such as one copied from the browser.
+    const config = args.link ? parseStartParams(args.link.slice(args.link.indexOf('?'))).config : optionConfig
+    const modeBase = args.link ? 'link' : preset ? `${preset.id}${effects ? `-fx[${effects.join(',')}]` : ''}` : `std${GOALS[level]!.key}`
     const phaseSuffix = phaseValues ? `-phase${phaseValues[0]}-${phaseValues[1]}` : ''
     const modeId = `${starterOverride ? `${modeBase}-sg${config.starter.basicGold}-sp${config.starter.basicPower}` : modeBase}${phaseSuffix}`
     const ids = (args.policies ?? PROFILE_IDS.join(',')).split(',') as ProfileId[]
@@ -330,7 +336,13 @@ export function main(argv: string[]): void {
     const goal = config.goal
     for (const id of ids) if (!ALL_PROFILE_IDS.includes(id)) throw new Error(`Unknown policy "${id}". Known: ${ALL_PROFILE_IDS.join(', ')}`)
     if (args.worst !== undefined) {
-        writeWorstRun(args.worst === 'true' ? 'bot-worst.json' : args.worst, config, ids, selection, profileOptions, games, seeds, seed)
+        const output = args.worst === 'true' ? 'bot-worst.json' : args.worst
+        writeExtremeRun(output, isLower, config, ids, selection, profileOptions, games, seeds, seed)
+        return
+    }
+    if (args.best !== undefined) {
+        const output = args.best === 'true' ? 'bot-best.json' : args.best
+        writeExtremeRun(output, isHigher, config, ids, selection, profileOptions, games, seeds, seed)
         return
     }
     const results = new Map<ProfileId, ReturnType<typeof runBatch>[number][]>()

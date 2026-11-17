@@ -15,16 +15,13 @@ import {
     generatorOf,
     unmetNeeds,
 } from '../../core'
-import type { CustomGenerator, EffectId, GeneratorCardType, GeneratorResource, Keyword } from '../../core'
+import type { CustomGenerator, EffectId, GeneratorResource, Keyword } from '../../core'
 import { presetIdOf } from './challenges'
 import { Glyph } from './Glyph'
-import { MAX_STARTER, effectName } from './custom'
+import { MAX_STARTER, NEED_NAMES, RESOURCE_NAMES, TYPE_NAMES, effectName } from './custom'
 import { goalLine } from './text'
 
-const TYPE_NAMES: Record<GeneratorCardType, string> = { moss: 'Moss', ember: 'Ember', tide: 'Tide', foe: 'Enemies' }
-const RESOURCE_NAMES: Record<GeneratorResource, string> = { gold: 'Gold ●', power: 'Power ⚔', hearts: 'Hearts ♥' }
 const KEYWORD_NAMES: Record<Keyword, string> = { retain: 'Retain' }
-const NEED_NAMES: Record<string, string> = { ...TYPE_NAMES, ...RESOURCE_NAMES, exile: 'the Exile effect' }
 
 const toggle = <T,>(list: readonly T[], all: readonly T[], item: T): T[] => {
     const next = list.includes(item) ? list.filter((x) => x !== item) : [...list, item]

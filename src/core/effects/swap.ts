@@ -3,6 +3,7 @@ import type { EffectDef } from './types'
 
 export const swap: EffectDef = {
     id: 'swap',
+    blurb: 'Swaps the gold and the power you have this turn, so spare gold can defeat an enemy and spare power can buy a recruit.',
     price: 1.5,
     family: 'resource',
     describe: () => 'Swap ● and ⚔',

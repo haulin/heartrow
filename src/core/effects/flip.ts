@@ -18,7 +18,9 @@ const termsFor = (resource: GeneratorResource) => scaleTerms(TERMS, RESOURCE_PRI
 
 export const flip: EffectDef = {
     id: 'flip',
+    blurb: 'Pays a low or a high amount, decided by a coin toss when the card is played. Undo gives the same result again.',
     price: tierPrice(TERMS, TERMS.tiers[0]),
+    paramNames: { amount: 'Tier' },
     family: 'resource',
     describe: (card) => {
         const tier = (c: NonNullable<typeof card>) => c.fxParams?.amount ?? DEFAULT_FLIP_TIER

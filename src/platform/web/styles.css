@@ -500,6 +500,15 @@ button.b.alt {
     background: var(--panel);
     color: var(--ink);
 }
+/* Hover only where there is a pointer: on a touch screen it would stay on after a tap. The mode button keeps its own tint. */
+@media (hover: hover) {
+    button.b:hover:not(:disabled, .mode) {
+        background: color-mix(in srgb, var(--heart) 30%, var(--ink));
+    }
+    button.b.alt:hover:not(:disabled, .mode) {
+        background: color-mix(in srgb, var(--heart) 14%, var(--panel));
+    }
+}
 button.b.small {
     padding: 3px 9px;
     font-size: 12px;
@@ -1110,6 +1119,318 @@ select {
     border: 0;
     border-radius: 8px;
     padding: 6px 8px;
+}
+
+/*
+ * The compendium is a reference page, so it uses the width of a desktop window. Its boxes sit in a grid whose tracks never grow past 24rem,
+ * so a label and its value stay close together instead of ending up at opposite sides of a wide screen.
+ */
+main.compendium {
+    /* Between the text colour and the dim one: labels and descriptions read as secondary, not as faded. */
+    --soft: color-mix(in srgb, var(--ink) 40%, var(--dim));
+    user-select: text;
+}
+.crumbs ol {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 6px;
+    margin: 0;
+    padding: 0 0 10px;
+    list-style: none;
+    font-size: 14px;
+}
+.crumbs li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.crumbs [aria-current='page'] {
+    font-weight: 700;
+}
+.crumbs .glyph {
+    color: var(--dim);
+    font-size: 0.8em;
+}
+button.crumb {
+    font: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+    color: var(--soft);
+    cursor: pointer;
+}
+button.crumb:hover,
+button.crumb:focus-visible {
+    color: var(--ink);
+}
+button.link {
+    font: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+    color: var(--ink);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+}
+button.link:hover,
+button.link:focus-visible {
+    color: var(--heart);
+}
+.cmp-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid color-mix(in srgb, var(--dim) 45%, transparent);
+}
+.cmp-tabs button {
+    flex: 1 1 0;
+    padding: 8px 4px;
+    font: inherit;
+    font-weight: 600;
+    color: var(--dim);
+    background: none;
+    border: 0;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+}
+.cmp-tabs button.on {
+    color: var(--ink);
+    border-bottom-color: var(--heart);
+}
+.cmp-search {
+    display: flex;
+    gap: 8px;
+}
+.cmp-search input {
+    flex: 1;
+    min-width: 0;
+    font: inherit;
+    color: var(--ink);
+    background: var(--panel);
+    border: 0;
+    border-radius: 8px;
+    padding: 8px 12px;
+}
+.cmp-search input::placeholder {
+    color: var(--dim);
+    opacity: 1;
+}
+button.b.cmp-icon {
+    position: relative;
+    padding: 8px 12px;
+}
+.cmp-icon .count {
+    margin-left: 6px;
+    font-weight: 700;
+    color: var(--heart);
+}
+.cmp-filters {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--panel);
+}
+.chips {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+.chips-name {
+    min-width: 4.5em;
+    font-size: 12px;
+    color: var(--soft);
+}
+button.chip {
+    font: inherit;
+    font-size: 13px;
+    color: var(--ink);
+    background: var(--bg);
+    border: 1px solid color-mix(in srgb, var(--dim) 55%, transparent);
+    border-radius: 999px;
+    padding: 3px 11px;
+    cursor: pointer;
+}
+button.chip[aria-pressed='true'] {
+    border-color: var(--heart);
+    background: color-mix(in srgb, var(--heart) 18%, var(--bg));
+}
+.compendium .note {
+    margin: 6px 0 0;
+    font-size: 13px;
+    color: var(--dim);
+}
+.compendium .note.label {
+    color: var(--soft);
+}
+.cmp-list {
+    display: grid;
+    /* auto-fill counts tracks by their largest size, so a fixed maximum would leave one column in a 760px page. The page width is the cap. */
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+    gap: 8px 10px;
+    margin-top: 10px;
+}
+/* Boxes of different heights flow down the columns, so no box leaves a gap under its neighbour. */
+.cmp-grid {
+    columns: 18rem;
+    column-gap: 10px;
+}
+.cmp-grid > .cmp-box {
+    break-inside: avoid;
+    margin-bottom: 10px;
+}
+/* The breadcrumbs, the tabs and the search stay in view while the page scrolls. */
+.cmp-head {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    margin: -12px -12px 10px;
+    padding: 12px 12px 8px;
+    background: var(--bg);
+}
+.cmp-head .cmp-tabs {
+    margin-bottom: 10px;
+}
+.cmp-head .cmp-filters {
+    max-height: 45vh;
+    margin-bottom: 10px;
+    overflow-y: auto;
+}
+button.cmp-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    align-items: flex-start;
+    padding: 8px 12px;
+    font: inherit;
+    text-align: left;
+    color: var(--ink);
+    background: var(--panel);
+    border: 0;
+    border-radius: 10px;
+    cursor: pointer;
+}
+button.cmp-row:hover {
+    background: color-mix(in srgb, var(--heart) 12%, var(--panel));
+}
+.cmp-row-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    align-self: stretch;
+}
+.cmp-row-name {
+    font-weight: 700;
+}
+.cmp-row-text {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    font-size: 13px;
+    color: var(--soft);
+}
+.cmp-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 12px;
+}
+.cmp-title h2 {
+    margin: 0;
+    font-size: 26px;
+    color: var(--ink);
+}
+.compendium .pill {
+    padding: 1px 10px;
+    font-size: 12px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--dim) 22%, var(--bg));
+    color: var(--dim);
+}
+.compendium .blurb {
+    max-width: 60ch;
+    margin: 8px 0 4px;
+    font-size: 16px;
+}
+.compendium .sentence {
+    margin: 0 0 14px;
+    font-weight: 700;
+    /* The same grey as the sentence on the effect's button in the list. */
+    color: var(--soft);
+}
+.compendium .rules {
+    max-width: 70ch;
+    margin: 0 0 14px;
+}
+.cmp-box {
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: var(--panel);
+}
+.cmp-box h3 {
+    margin: 0 0 6px;
+    font-size: 15px;
+}
+.cmp-box.moss h3 {
+    color: var(--moss);
+}
+.cmp-box.ember h3 {
+    color: var(--ember);
+}
+.cmp-box.tide h3 {
+    color: var(--tide);
+}
+.cmp-box .facts {
+    grid-template-columns: 1fr;
+    min-width: 0;
+    gap: 0;
+}
+.cmp-box .fact {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 14px;
+    padding: 4px 0;
+    border-radius: 0;
+    background: none;
+    border-bottom: 1px solid color-mix(in srgb, var(--dim) 25%, transparent);
+}
+.cmp-box .fact:last-child {
+    border-bottom: 0;
+}
+.cmp-box .fact dt {
+    font-size: 14px;
+    color: var(--soft);
+}
+.cmp-box .fact dd {
+    font-size: 15px;
+    font-weight: 600;
+    text-align: right;
+}
+.cmp-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.cmp-table th,
+.cmp-table td {
+    padding: 4px 8px 4px 0;
+    text-align: left;
+}
+.cmp-table th {
+    font-weight: 600;
+    color: var(--soft);
+}
+.cards.example {
+    --cw: 150px;
+    justify-content: center;
 }
 
 .sr-only {

@@ -4,6 +4,7 @@ import type { EffectDef } from './types'
 /** The one way to get more flushes than the one every few turns. Enemies may carry it too, like most effects. */
 export const flush: EffectDef = {
     id: 'flush',
+    blurb: 'Gives you one extra flush, which replaces the four left cards of the river. The card in the Gate stays.',
     family: 'river',
     price: FLUSH_PRICE,
     describe: () => 'Gain a flush',

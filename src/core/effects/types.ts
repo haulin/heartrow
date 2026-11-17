@@ -1,5 +1,5 @@
 import type { Rng } from '../rng'
-import type { Card, Colour, Currency, EffectId, EffectNeed, GameEvent, GameState } from '../types'
+import type { Card, Colour, Currency, EffectId, EffectNeed, EffectParams, GameEvent, GameState } from '../types'
 
 export interface EffectContext {
     state: GameState
@@ -33,6 +33,10 @@ export interface EffectDef {
      * sentence for the generator list, with every value the effect can roll in brackets (see `slot` in `wording.ts`).
      */
     describe(card?: Card): string
+    /** A plain-language description for the compendium, for a player who does not know the term. It says what the effect does, not what it costs. */
+    blurb: string
+    /** What a rolled parameter is called in the compendium's price list, where the default name of the parameter would mislead (see `prices.ts`). */
+    paramNames?: Partial<Record<keyof EffectParams, string>>
     /** Acts while an enemy sits in the river, so its text has no "Defeat:" prefix. */
     passive?: true
     /** What a generator must allow for the effect to make sense. The generator skips the effect when any need is off. */

@@ -7,6 +7,7 @@ const TERMS = TIER_TERMS.discount
 
 export const weak: EffectDef = {
     id: 'weak',
+    blurb: 'Every enemy in the river needs less power to defeat for the rest of this turn.',
     price: tierPrice(TERMS, TERMS.tiers[0]),
     family: 'price',
     describe: (card) => `Enemies need −${slot(card, (c) => c.fxParams?.amount ?? 1, rangeOf(TERMS.tiers))} ⚔ this turn`,

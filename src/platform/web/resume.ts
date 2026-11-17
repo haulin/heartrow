@@ -1,7 +1,8 @@
 import { standardMode } from '../../core'
 import type { Move } from '../../core'
 import { forgetStaleImprovements } from './challenges'
-import { hasRun, isChallenges, isEditor, isStandard, parseStartParams, randomSeed, shareQuery } from './mode'
+import { addressedScreen, hasRun, parseStartParams, randomSeed, shareQuery } from './mode'
+import type { AddressedScreen } from './mode'
 import { createMemoryStorage } from './storage'
 import type { AppStorage } from './storage'
 import { GameStore } from './store'
@@ -100,7 +101,7 @@ function replayKeeper(store: GameStore, tab: AppStorage, version: string): () =>
 export interface Opened {
     store: GameStore
     /** `game` when the address starts a run, `custom` for the generator editor, `home` otherwise. */
-    screen: 'home' | 'game' | 'custom' | 'standard' | 'challenges'
+    screen: 'home' | 'game' | AddressedScreen
     /** Whether a run is in memory, so the home screen can offer Resume. */
     started: boolean
 }
@@ -121,10 +122,8 @@ export function openStore(
     tab: AppStorage = createMemoryStorage(),
 ): Opened {
     const saved = loadRun(storage, version)
-    const editor = isEditor(search)
-    const picker = isChallenges(search)
-    const standard = isStandard(search)
-    const link = hasRun(search) && !editor && !picker && !standard
+    const other = addressedScreen(search)
+    const link = hasRun(search) && other === null
     const wanted = link ? parseStartParams(search, fallbackSeed) : saved ? parseStartParams(saved.query) : null
     const store = new GameStore(wanted?.config ?? standardMode(0), wanted?.seed ?? fallbackSeed())
 
@@ -146,5 +145,5 @@ export function openStore(
         last = store.getMoves()
         storage.set(KEY, runOf(store, version))
     })
-    return { store, screen: link ? 'game' : editor ? 'custom' : picker ? 'challenges' : standard ? 'standard' : 'home', started }
+    return { store, screen: link ? 'game' : (other ?? 'home'), started }
 }

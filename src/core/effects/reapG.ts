@@ -3,6 +3,7 @@ import type { EffectDef } from './types'
 
 export const reapG: EffectDef = {
     id: 'reapG',
+    blurb: 'At the end of the turn, pays hearts for the gold you did not spend. The hearts come from saving, not from buying.',
     price: 1.5,
     family: 'reap',
     describe: () => 'End of turn: +1 ♥ per 3 unspent ●',

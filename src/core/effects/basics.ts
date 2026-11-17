@@ -9,6 +9,7 @@ const VARIANTS = countGainVariants(TERMS)
 
 export const basics: EffectDef = {
     id: 'basics',
+    blurb: 'Pays for every few Basic cards (your starter cards) that you still own, so it is best early and fades as you exile them.',
     price: VARIANTS[0]!.price,
     family: 'count',
     describe: (card) =>

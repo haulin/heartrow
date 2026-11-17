@@ -7,6 +7,7 @@ const TERMS = TIER_TERMS.discount
 
 export const cheap: EffectDef = {
     id: 'cheap',
+    blurb: 'Every recruit in the river costs less gold for the rest of this turn.',
     price: tierPrice(TERMS, TERMS.tiers[0]),
     family: 'price',
     describe: (card) => `Recruits cost −${slot(card, (c) => c.fxParams?.amount ?? 1, rangeOf(TERMS.tiers))} ● this turn`,

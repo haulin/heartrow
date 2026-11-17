@@ -17,6 +17,9 @@ import {
     viewFromSearch,
 } from './challenges'
 import type { ChallengeView } from './challenges'
+import { Compendium } from './Compendium'
+import { FRESH_COMPENDIUM, compendiumQuery, compendiumViewFromSearch } from './compendiumView'
+import type { CompendiumView } from './compendiumView'
 import { editorQuery } from './custom'
 import { AboutDialog, LoadResultsDialog, LoadRunDialog, LogDialog, PilesDialog, RunDialog, SettingsDialog, SummaryDialog } from './Dialogs'
 import type { PasteFeedback } from './Dialogs'
@@ -27,7 +30,7 @@ import { Home } from './Home'
 import { StandardScreen } from './StandardScreen'
 import { Rich } from './Rich'
 import { Stats } from './Stats'
-import { loopTimeFactor } from './anim'
+import { loopTimeFactor, resolveSpeed } from './anim'
 import { autoplayKind, playsInAutoplay } from './autoplay'
 import { previewHand } from './handPreview'
 import { browserReducedMotion, createPresenter } from './anim/presenter'
@@ -42,7 +45,7 @@ import { useHoldRepeat } from './useHoldRepeat'
 import { buildCardView, edgeMark } from './view/cardView'
 
 type DialogName = 'about' | 'load' | 'log' | 'loadResults' | 'piles' | 'run' | 'settings' | 'summary'
-type Screen = 'home' | 'game' | 'custom' | 'standard' | 'challenges'
+type Screen = 'home' | 'game' | 'custom' | 'standard' | 'challenges' | 'compendium'
 
 export interface AppProps {
     store: GameStore
@@ -76,6 +79,10 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
     const [improvements, setImprovements] = useState(() => loadImprovements(storage))
     const [challengeView, setChallengeView] = useState(() =>
         initial === 'challenges' ? viewFromSearch(window.location.search, challengeList(DEFAULT_CUSTOM)) : FRESH_VIEW,
+    )
+    // Where the player was in the compendium (tab, effect, search and filters). It outlives the screen, so coming back finds the same place.
+    const [compendiumView, setCompendiumView] = useState<CompendiumView>(() =>
+        initial === 'compendium' ? compendiumViewFromSearch(window.location.search) : FRESH_COMPENDIUM,
     )
     // The store always holds a game, but a run only counts once it was started from a link or the menu.
     const [started, setStarted] = useState(startedAtOpen)
@@ -194,7 +201,8 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
             const route = routeFor(window.location.search, run)
             setDialog(null)
             if (route.screen === 'challenges') setChallengeView(viewFromSearch(window.location.search, challenges))
-            if (route.screen === 'home' || route.screen === 'standard' || route.screen === 'challenges') return setScreen(route.screen)
+            if (route.screen === 'compendium') setCompendiumView(compendiumViewFromSearch(window.location.search))
+            if (route.screen !== 'game' && route.screen !== 'custom') return setScreen(route.screen)
             if (route.screen === 'custom') {
                 setEditor((e) => ({ def: route.def, key: e.key + 1 }))
                 return setScreen('custom')
@@ -249,6 +257,23 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
     const openChallenges = () => {
         push(challengeQuery(challenges, challengeView, results))
         setScreen('challenges')
+    }
+
+    const openCompendium = () => {
+        push(compendiumQuery(compendiumView))
+        setScreen('compendium')
+    }
+
+    /** Moving to another tab or effect is a new history entry, so Back returns to where the player was. The same place twice is not. */
+    const navigateCompendium = (view: CompendiumView) => {
+        setCompendiumView(view)
+        if (compendiumQuery(view) !== window.location.search) push(compendiumQuery(view))
+    }
+
+    /** The search and the filters change in place, and stay in the address, so Back keeps them. */
+    const adjustCompendium = (view: CompendiumView) => {
+        setCompendiumView(view)
+        globalThis.history?.replaceState(globalThis.history.state, '', compendiumQuery(view))
     }
 
     /** The address follows the card and goal, so a reload (or a tab the browser dropped) and a shared link open the same place. */
@@ -355,6 +380,7 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                     onResume={resume}
                     onStandard={openStandard}
                     onChallenges={openChallenges}
+                    onCompendium={openCompendium}
                     onSettings={() => setDialog('settings')}
                     onAbout={() => setDialog('about')}
                 />
@@ -375,6 +401,22 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                     onBack={leaveEditor}
                     view={challengeView}
                     onView={changeChallengeView}
+                />
+                {dialogs}
+            </div>
+        )
+    }
+
+    if (screen === 'compendium') {
+        return (
+            <div ref={rootRef} class="app">
+                <Compendium
+                    view={compendiumView}
+                    skin={skin}
+                    animSpeed={resolveSpeed(settings.anim, browserReducedMotion())}
+                    onNavigate={navigateCompendium}
+                    onAdjust={adjustCompendium}
+                    onHome={goHome}
                 />
                 {dialogs}
             </div>

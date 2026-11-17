@@ -11,6 +11,7 @@ const termsFor = (resource: GeneratorResource) => scaleTerms(TERMS, RESOURCE_PRI
 
 export const bond: EffectDef = {
     id: 'bond',
+    blurb: 'Pays only if you already played a card of its own type this turn, so the order you play your cards in matters.',
     price: tierPrice(TERMS, TERMS.tiers[0]),
     family: 'streak',
     describe: (card) =>

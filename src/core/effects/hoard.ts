@@ -9,6 +9,7 @@ const VARIANTS = countGainVariants(TERMS)
 
 export const hoard: EffectDef = {
     id: 'hoard',
+    blurb: 'Pays for every few cards in your deck, so it rewards a big deck.',
     price: VARIANTS[0]!.price,
     family: 'count',
     describe: (card) =>

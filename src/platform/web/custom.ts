@@ -1,8 +1,13 @@
 import { CUSTOM_EFFECTS, CUSTOM_KEYWORDS, CUSTOM_RESOURCES, CUSTOM_TYPES, GOALS, STARTER, goalIndexOfKey } from '../../core'
-import type { CustomGenerator, EffectId } from '../../core'
+import type { CustomGenerator, EffectId, GeneratorCardType, GeneratorResource } from '../../core'
 
 /** The link side of custom generators: reading and writing the address. The data and the presets live in core. */
 export const MAX_STARTER = 12
+
+/** The names the generator editor and the compendium use for what a generator can switch on or off. */
+export const TYPE_NAMES: Record<GeneratorCardType, string> = { moss: 'Moss', ember: 'Ember', tide: 'Tide', foe: 'Enemies' }
+export const RESOURCE_NAMES: Record<GeneratorResource, string> = { gold: 'Gold ●', power: 'Power ⚔', hearts: 'Hearts ♥' }
+export const NEED_NAMES: Record<string, string> = { ...TYPE_NAMES, ...RESOURCE_NAMES, exile: 'the Exile effect' }
 
 function pick<T extends string>(raw: string | null, allowed: readonly T[]): T[] | null {
     if (raw === null) return null

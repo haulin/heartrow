@@ -8,6 +8,7 @@ const VARIANTS = countGainVariants(TERMS)
 
 export const vault: EffectDef = {
     id: 'vault',
+    blurb: 'Pays hearts for the cards in your exile pile, so every card you exile makes it worth more.',
     price: VARIANTS[0]!.price,
     family: 'count',
     describe: (card) =>

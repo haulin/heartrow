@@ -18,6 +18,7 @@ export function discardUnplayed({ state, card, events }: EffectContext, redraw: 
 
 export const cycle: EffectDef = {
     id: 'cycle',
+    blurb: 'Puts the cards you have not played into the discard pile and draws as many new ones. Cards with Retain stay in your hand.',
     price: 1.5,
     family: 'cards',
     describe: () => 'Cycle unplayed cards except Retain ones',

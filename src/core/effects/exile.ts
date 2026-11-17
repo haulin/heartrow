@@ -8,6 +8,7 @@ const TERMS = TIER_TERMS.exile
 
 export const exile: EffectDef = {
     id: 'exile',
+    blurb: 'Removes a card from the game for good: a card in your hand, or a recruit in the river (never an enemy, and never the card in the Gate). A smaller deck brings your best cards round more often. You may skip it.',
     price: tierPrice(TERMS, TERMS.tiers[0]),
     family: 'cards',
     describe: (card) =>

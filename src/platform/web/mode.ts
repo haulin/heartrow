@@ -34,26 +34,27 @@ export function hasRun(search: string): boolean {
     return params.get('screen') === 'play' || params.has('mode')
 }
 
-/** `screen=custom` is the generator editor. It wins over a mode or seed, since the editor starts no run by itself. */
+/** The screens besides the home screen and the game that an address names with `screen=`. None of them starts a run by itself. */
+const ADDRESSED_SCREENS = ['custom', 'standard', 'challenges', 'compendium'] as const
+export type AddressedScreen = (typeof ADDRESSED_SCREENS)[number]
+
+/**
+ * `screen=custom` is the generator editor, `standard` the Standard picker (the levels and Long Run), `challenges` the challenge picker and
+ * `compendium` the reference. They win over a mode or seed, since they start no run.
+ */
+export function addressedScreen(search: string): AddressedScreen | null {
+    const screen = new URLSearchParams(search).get('screen')
+    return ADDRESSED_SCREENS.find((name) => name === screen) ?? null
+}
+
 export function isEditor(search: string): boolean {
-    return new URLSearchParams(search).get('screen') === 'custom'
-}
-
-/** `screen=challenges` is the challenge picker. Like the editor, it starts no run by itself. */
-export function isChallenges(search: string): boolean {
-    return new URLSearchParams(search).get('screen') === 'challenges'
-}
-
-/** `screen=standard` is the Standard picker (the levels and Long Run). It starts no run by itself either. */
-export function isStandard(search: string): boolean {
-    return new URLSearchParams(search).get('screen') === 'standard'
+    return addressedScreen(search) === 'custom'
 }
 
 export type Route =
     | { screen: 'home' }
     | { screen: 'custom'; def: CustomGenerator }
-    | { screen: 'standard' }
-    | { screen: 'challenges' }
+    | { screen: 'standard' | 'challenges' | 'compendium' }
     | { screen: 'game'; start: StartParams | null }
 
 /**
@@ -61,9 +62,9 @@ export type Route =
  * A game address that matches the run in memory resumes it (`start` is null); any other game address starts that run.
  */
 export function routeFor(search: string, runQuery: string | null, fallbackSeed: () => number = randomSeed): Route {
-    if (isEditor(search)) return { screen: 'custom', def: parseCustom(new URLSearchParams(search)) }
-    if (isStandard(search)) return { screen: 'standard' }
-    if (isChallenges(search)) return { screen: 'challenges' }
+    const screen = addressedScreen(search)
+    if (screen === 'custom') return { screen, def: parseCustom(new URLSearchParams(search)) }
+    if (screen) return { screen }
     if (!hasRun(search)) return { screen: 'home' }
     if (runQuery !== null && search === runQuery) return { screen: 'game', start: null }
     return { screen: 'game', start: parseStartParams(search, fallbackSeed) }

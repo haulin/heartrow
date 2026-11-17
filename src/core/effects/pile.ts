@@ -8,6 +8,7 @@ const VARIANTS = countGainVariants(TERMS)
 
 export const pile: EffectDef = {
     id: 'pile',
+    blurb: 'Pays for every few cards in your discard pile. It is best just before the deck runs out, when the discard pile is full.',
     price: VARIANTS[0]!.price,
     family: 'count',
     describe: (card) =>
