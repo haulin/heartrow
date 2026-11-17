@@ -9,6 +9,7 @@ import {
     activeFilterCount,
     canPayHearts,
     familyName,
+    leanColours,
     matchingEffects,
     percent,
 } from './compendiumView'
@@ -105,7 +106,7 @@ function Crumbs({ view, onNavigate, onHome }: Pick<CompendiumProps, 'view' | 'on
 
 function Tabs({ view, onNavigate }: Pick<CompendiumProps, 'view' | 'onNavigate'>) {
     return (
-        <div class="cmp-tabs" role="tablist">
+        <div class="tabs" role="tablist">
             {COMPENDIUM_TABS.map((tab) => (
                 <button
                     key={tab.id}
@@ -315,17 +316,34 @@ function EffectList({ view, onNavigate, onAdjust }: Pick<CompendiumProps, 'view'
                 ) : null}
             </p>
             <div class="cmp-list">
-                {found.map((effect) => (
-                    <button key={effect.id} type="button" class="cmp-row" onClick={() => onNavigate({ ...view, effect: effect.id })}>
-                        <span class="cmp-row-head">
-                            <span class="cmp-row-name">{effectName(effect.id)}</span>
-                            <span class="pill">{familyName(effect.family)}</span>
-                        </span>
-                        <span class="cmp-row-text">
-                            <Rich text={effect.describe()} />
-                        </span>
-                    </button>
-                ))}
+                {found.map((effect) => {
+                    const leans = leanColours(effect)
+                    return (
+                        <button key={effect.id} type="button" class="cmp-row" onClick={() => onNavigate({ ...view, effect: effect.id })}>
+                            <span class="cmp-row-head">
+                                <span class="cmp-row-name">{effectName(effect.id)}</span>
+                                <span class="pill">{familyName(effect.family)}</span>
+                            </span>
+                            <span class="cmp-row-text">
+                                <Rich text={effect.describe()} />
+                            </span>
+                            {leans.length > 0 ? (
+                                <span
+                                    class="cmp-leans"
+                                    aria-hidden="true"
+                                    title={`Favoured by ${leans.map((c) => TYPE_NAMES[c]).join(', ')}`}
+                                >
+                                    {leans.map((colour) => (
+                                        <i key={colour} class={colour} />
+                                    ))}
+                                </span>
+                            ) : null}
+                            <span class="sr-only">
+                                {leans.length > 0 ? `Favoured by ${leans.map((c) => TYPE_NAMES[c]).join(', ')}.` : 'Favours no colour.'}
+                            </span>
+                        </button>
+                    )
+                })}
             </div>
         </>
     )

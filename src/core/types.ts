@@ -72,6 +72,8 @@ export type HeartSource = 'plain' | 'defeat' | EffectId
 export interface RunStats {
     /** Hearts gained per source over the run. Escapes are not here, they are in `lostToEscapes`. */
     heartsFrom: Partial<Record<HeartSource, number>>
+    /** The hearts the player held at the end of each finished turn, after escapes and reaping. Turn 1 is the first entry. */
+    heartsAtTurnEnd: number[]
     kills: number
     recruited: number
     exiled: number

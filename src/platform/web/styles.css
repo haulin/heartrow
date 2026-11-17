@@ -325,17 +325,44 @@ button.stat {
 }
 .hand-head {
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 12px;
-    margin: 14px 0 6px;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 8px;
+    /* The hand has 6px of room above its cards, so the cards sit as far below their title as the river's do. */
+    margin: 9px 0 0;
+}
+/* The gains take the free room and sit at the right, next to the two tools. When even this does not fit, they wrap to a slim row of their own. */
+.hand-head .hand-preview {
+    margin-left: auto;
+}
+button.b.hand-tool {
+    display: inline-flex;
+    align-items: center;
+    height: 28px;
+    /* Taller than the title text: negative margins keep the buttons from stretching the row. */
+    margin: -6px 0;
+    padding: 0 9px;
+    font-size: 15px;
+    line-height: 1;
+}
+/* A fixed width, so D, T and E do not make the sort button change size. */
+button.b.hand-tool sub {
+    width: 0.8em;
+    margin: 0 0 -0.3em 1px;
+    text-align: center;
+    font-size: 9px;
+    font-weight: 800;
+    line-height: 1;
+}
+button.b.hand-tool[aria-pressed='true'] {
+    background: color-mix(in srgb, var(--heart) 22%, var(--panel));
 }
 .hand-head h2 {
     margin: 0;
 }
 .hand-preview {
     display: flex;
-    gap: 14px;
+    gap: 6px;
     font-size: 13px;
     font-weight: 600;
     color: var(--dim);
@@ -343,7 +370,7 @@ button.stat {
 }
 /* Room for two digits and a plus, so a number growing does not move its neighbours. */
 .hand-preview > span {
-    min-width: 4.4em;
+    min-width: 3.6em;
     text-align: right;
 }
 .river-head .chevrons {
@@ -420,8 +447,19 @@ button.stat {
     translate: none;
 }
 
+/* The exile prompt and its Skip button share a row, so the button row above never changes. */
+.msg-row {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    margin-top: 12px;
+}
+.msg-row .b {
+    flex: none;
+}
 .msg {
-    margin: 12px 0 0;
+    flex: 1;
+    margin: 0;
     cursor: pointer;
     background: var(--panel);
     border-radius: 10px;
@@ -464,9 +502,14 @@ button.stat {
 }
 .bar {
     display: flex;
-    gap: 8px;
+    gap: 6px;
     flex-wrap: wrap;
-    margin: 14px 0;
+    /* Margins of neighbours collapse, so this sets the whole gap above the hand title too. */
+    margin: 20px 0;
+}
+/* Tighter than other buttons, so the four buttons of a turn fit one row on a 360px phone. */
+.bar button.b {
+    padding: 9px 11px;
 }
 .err-details {
     max-height: 7.5em;
@@ -642,6 +685,97 @@ dialog h3 {
     margin: 0;
     font-size: 17px;
     font-weight: 700;
+}
+/* The summary shows its panels side by side on a wide dialog, and one at a time behind tabs on a narrow one. */
+.sum-box {
+    container-type: inline-size;
+    width: min(620px, calc(94vw - 32px));
+}
+/* Behind tabs, every panel sits in the same cell and the hidden ones keep their room, so the dialog is as tall as its tallest panel and does not jump when the tab changes. */
+.sum-body {
+    display: grid;
+}
+.sum-body .tabs {
+    grid-area: 1 / 1;
+}
+.sum-panel {
+    grid-area: 2 / 1;
+}
+.sum-panel.off {
+    visibility: hidden;
+}
+.sum-body .facts {
+    min-width: 0;
+}
+.sum-run h3 {
+    display: none;
+}
+.sum-hearts {
+    display: flex;
+    flex-direction: column;
+}
+.sum-turns {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+}
+.hearts-chart {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    margin: 0;
+}
+.hearts-chart svg {
+    display: block;
+    flex: 1;
+    width: 100%;
+    height: 0;
+    min-height: 120px;
+    overflow: visible;
+}
+.hearts-chart figcaption {
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--dim);
+}
+.chart-gain {
+    fill: var(--heart);
+}
+.chart-loss {
+    fill: var(--dim);
+}
+.chart-base {
+    stroke: color-mix(in srgb, var(--dim) 50%, transparent);
+    stroke-width: 1;
+    vector-effect: non-scaling-stroke;
+}
+.chart-total {
+    fill: none;
+    stroke: var(--gold);
+    stroke-width: 2;
+    stroke-linejoin: round;
+}
+/* On a wide dialog the chart grows to fill what the figures leave, so both columns end together. */
+@container (min-width: 560px) {
+    .sum-body {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        gap: 0 20px;
+    }
+    .sum-body .tabs {
+        display: none;
+    }
+    .sum-run h3 {
+        display: block;
+    }
+    .sum-panel.off {
+        visibility: visible;
+    }
+    .sum-run {
+        grid-area: 1 / 1;
+    }
+    .sum-hearts {
+        grid-area: 1 / 2;
+    }
 }
 .logline {
     margin: 0 0 4px;
@@ -1178,13 +1312,13 @@ button.link:hover,
 button.link:focus-visible {
     color: var(--heart);
 }
-.cmp-tabs {
+.tabs {
     display: flex;
     gap: 4px;
     margin-bottom: 12px;
     border-bottom: 1px solid color-mix(in srgb, var(--dim) 45%, transparent);
 }
-.cmp-tabs button {
+.tabs button {
     flex: 1 1 0;
     padding: 8px 4px;
     font: inherit;
@@ -1195,7 +1329,7 @@ button.link:focus-visible {
     border-bottom: 3px solid transparent;
     cursor: pointer;
 }
-.cmp-tabs button.on {
+.tabs button.on {
     color: var(--ink);
     border-bottom-color: var(--heart);
 }
@@ -1293,7 +1427,7 @@ button.chip[aria-pressed='true'] {
     padding: 12px 12px 8px;
     background: var(--bg);
 }
-.cmp-head .cmp-tabs {
+.cmp-head .tabs {
     margin-bottom: 10px;
 }
 .cmp-head .cmp-filters {
@@ -1302,10 +1436,14 @@ button.chip[aria-pressed='true'] {
     overflow-y: auto;
 }
 button.cmp-row {
+    position: relative;
     display: flex;
     flex-direction: column;
     gap: 2px;
     align-items: flex-start;
+    overflow: hidden;
+    /* A stacking context of its own, so the colour bars can sit behind the text. */
+    isolation: isolate;
     padding: 8px 12px;
     font: inherit;
     text-align: left;
@@ -1317,6 +1455,28 @@ button.cmp-row {
 }
 button.cmp-row:hover {
     background: color-mix(in srgb, var(--heart) 12%, var(--panel));
+}
+/* The colours an effect favours, as muted slanted bars at the right edge of its row. The text may run over them. */
+.cmp-leans {
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    right: 5px;
+    bottom: 0;
+    display: flex;
+}
+.cmp-leans i {
+    width: 15px;
+    transform: skewX(-18deg);
+}
+.cmp-leans .moss {
+    background: color-mix(in srgb, var(--moss) 35%, var(--panel));
+}
+.cmp-leans .ember {
+    background: color-mix(in srgb, var(--ember) 35%, var(--panel));
+}
+.cmp-leans .tide {
+    background: color-mix(in srgb, var(--tide) 35%, var(--panel));
 }
 .cmp-row-head {
     display: flex;

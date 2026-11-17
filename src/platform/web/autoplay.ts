@@ -1,8 +1,12 @@
+import { EFFECT_BY_ID } from '../../core'
 import type { Card } from '../../core'
 
-/** "Play simple" plays plain gains only. A Retain card is a decision to hold it, so it stays in the hand. */
+/**
+ * "Play simple" plays plain gains and cards whose effects need no decision (see `unconditional` on an effect).
+ * A Retain card is a decision to hold it, so it stays in the hand.
+ */
 export function isSimplePlay(card: Card): boolean {
-    return card.fx.length === 0 && !card.played && !card.retain
+    return card.fx.every((id) => EFFECT_BY_ID[id].unconditional === true) && !card.played && !card.retain
 }
 
 export type AutoplayKind = 'simple' | 'rest'

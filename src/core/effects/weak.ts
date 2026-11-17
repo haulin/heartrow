@@ -10,6 +10,7 @@ export const weak: EffectDef = {
     blurb: 'Every enemy in the river needs less power to defeat for the rest of this turn.',
     price: tierPrice(TERMS, TERMS.tiers[0]),
     family: 'price',
+    unconditional: true,
     describe: (card) => `Enemies need −${slot(card, (c) => c.fxParams?.amount ?? 1, rangeOf(TERMS.tiers))} ⚔ this turn`,
     enemies: true,
     needs: ['foe', 'power'],

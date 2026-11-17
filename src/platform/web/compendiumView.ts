@@ -88,6 +88,14 @@ export function canPayHearts(effect: EffectDef): boolean {
     return effect.pays === 'hearts' || effect.pays === 'rolled'
 }
 
+/** Red, green, blue: the order of the bars on an effect's row. */
+const BAR_ORDER: readonly Colour[] = ['ember', 'moss', 'tide']
+
+/** The colours an effect favours, a mild lean counted like a full one. */
+export function leanColours(effect: EffectDef): Colour[] {
+    return BAR_ORDER.filter((colour) => effect.lean.includes(colour) || effect.mildLean?.includes(colour))
+}
+
 export function familyName(family: EffectFamily): string {
     return EFFECT_FAMILIES.find((candidate) => candidate.id === family)!.name
 }
@@ -99,7 +107,7 @@ function searchWords(effect: EffectDef): string[] {
 }
 
 export function effectMatches(effect: EffectDef, view: CompendiumView): boolean {
-    if (view.lean.length > 0 && !view.lean.some((colour) => effect.lean.includes(colour))) return false
+    if (view.lean.length > 0 && !leanColours(effect).some((colour) => view.lean.includes(colour))) return false
     if (view.families.length > 0 && !view.families.includes(effect.family)) return false
     if (view.enemies && !effect.enemies) return false
     if (view.hearts && !canPayHearts(effect)) return false

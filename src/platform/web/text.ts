@@ -71,10 +71,46 @@ const HEART_SOURCE_NAMES: Partial<Record<HeartSource, string>> = { plain: 'Plain
 
 const heartSourceName = (source: HeartSource): string => HEART_SOURCE_NAMES[source] ?? source[0]!.toUpperCase() + source.slice(1)
 
+const HEART_SOURCE_HINTS: Partial<Record<HeartSource, string>> = {
+    plain: 'Hearts printed on the recruits you played.',
+    defeat: 'Hearts printed on the enemies you defeated.',
+}
+
+export interface HeartSourceLine {
+    name: string
+    amount: number
+    /** What the source is, in a sentence, for a tooltip. */
+    hint: string
+    /** The effect that paid the hearts, which has a page in the compendium; null for plain gains and enemies. */
+    effect: EffectId | null
+}
+
 /** Where the hearts of the run came from, most first. Effects use their id as a name (`reapG` reads "ReapG"). */
-export function heartsBreakdown(state: GameState): { name: string; amount: number }[] {
+export function heartsBreakdown(state: GameState): HeartSourceLine[] {
     const sources = Object.entries(state.stats.heartsFrom).filter(([, amount]) => (amount ?? 0) > 0) as [HeartSource, number][]
-    return sources.sort((a, b) => b[1] - a[1]).map(([source, amount]) => ({ name: heartSourceName(source), amount }))
+    return sources
+        .sort((a, b) => b[1] - a[1])
+        .map(([source, amount]) => {
+            const effect = Object.hasOwn(EFFECT_BY_ID, source) ? (source as EffectId) : null
+            const hint = effect ? EFFECT_BY_ID[effect].blurb : (HEART_SOURCE_HINTS[source] ?? '')
+            return { name: heartSourceName(source), amount, hint, effect }
+        })
+}
+
+export interface TurnHearts {
+    turn: number
+    /** The change of the hearts total in this turn; negative when escapes cost more than the turn paid. */
+    gained: number
+    total: number
+}
+
+/** The hearts of each finished turn: what it added, and what the run held at its end. */
+export function heartsPerTurn(state: GameState): TurnHearts[] {
+    return state.stats.heartsAtTurnEnd.map((total, index) => ({
+        turn: index + 1,
+        gained: total - (index === 0 ? 0 : state.stats.heartsAtTurnEnd[index - 1]!),
+        total,
+    }))
 }
 
 export function heartsSummary(state: GameState): string {

@@ -54,7 +54,17 @@ export function newGame(config: ModeConfig, seed: number): StepResult {
         exile: [],
         row: [],
         nextCardId: 1,
-        stats: { heartsFrom: {}, kills: 0, recruited: 0, exiled: 0, playedCards: 0, lostToEscapes: 0, wastedGold: 0, wastedPower: 0 },
+        stats: {
+            heartsFrom: {},
+            heartsAtTurnEnd: [],
+            kills: 0,
+            recruited: 0,
+            exiled: 0,
+            playedCards: 0,
+            lostToEscapes: 0,
+            wastedGold: 0,
+            wastedPower: 0,
+        },
         streams,
     }
     const { basicGold, basicPower } = config.starter
@@ -256,6 +266,7 @@ function endTurn(state: GameState, events: GameEvent[]): void {
         creditHearts(state, 'reapP', reapedPower)
         events.push({ type: 'reaped', hearts: reaped })
     }
+    state.stats.heartsAtTurnEnd.push(state.hearts)
     // Resources that reaping turned into hearts were used, so only the remainder is wasted.
     state.stats.wastedGold += state.reapGold > 0 ? state.gold % 3 : state.gold
     state.stats.wastedPower += state.reapPower > 0 ? state.power % 2 : state.power

@@ -95,6 +95,10 @@ div.card {
 .app[data-anim='off'] .card svg.art > g {
     animation: none;
 }
+/* Nobody is looking (the tab is hidden or the window unfocused), so the drift waits where it is. */
+html[data-away] .card svg.art > g {
+    animation-play-state: paused;
+}
 @media (prefers-reduced-motion: reduce) {
     .card svg.art > g {
         animation: none;

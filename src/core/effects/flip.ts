@@ -22,6 +22,7 @@ export const flip: EffectDef = {
     price: tierPrice(TERMS, TERMS.tiers[0]),
     paramNames: { amount: 'Tier' },
     family: 'resource',
+    unconditional: true,
     describe: (card) => {
         const tier = (c: NonNullable<typeof card>) => c.fxParams?.amount ?? DEFAULT_FLIP_TIER
         const amounts = `${slot(card, (c) => flipLow(tier(c)), '1-3')} or +${slot(card, (c) => flipHigh(tier(c)), '3-7')}`

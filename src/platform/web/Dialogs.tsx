@@ -1,7 +1,7 @@
 import type { ComponentChildren } from 'preact'
 import { useEffect, useRef, useState } from 'preact/hooks'
 import { GOALS } from '../../core'
-import type { Card, GameState, Move } from '../../core'
+import type { Card, EffectId, GameState, Move } from '../../core'
 import { goalOfMode, hasChangedSettings, isFromOtherVersion, runName } from './challenges'
 import { Glyph } from './Glyph'
 import { Rich } from './Rich'
@@ -10,7 +10,8 @@ import type { Settings } from './settings'
 import { shareQuery } from './mode'
 import { SKINS } from './skins'
 import type { CardSkin } from './skins'
-import { deckSummary, heartsBreakdown, moveFacts, outcomeLine, sortPile } from './text'
+import { HeartsChart } from './HeartsChart'
+import { deckSummary, heartsBreakdown, heartsPerTurn, moveFacts, outcomeLine, sortPile } from './text'
 import { buildCardView } from './view/cardView'
 
 /** A dialog with a title bar that holds the close button, so a long body scrolls under it. */
@@ -367,6 +368,7 @@ export function SummaryDialog({
     moves,
     records,
     onPlayOn,
+    onOpenEffect,
     onClose,
 }: {
     state: GameState
@@ -375,10 +377,18 @@ export function SummaryDialog({
     records: readonly string[]
     /** Offered after a win with turns left; null when the run cannot go on. */
     onPlayOn: (() => void) | null
+    /** Opens the compendium page of an effect that paid hearts. */
+    onOpenEffect: (effect: EffectId) => void
     onClose: () => void
 }) {
     const sources = heartsBreakdown(state)
     const largest = Math.max(1, ...sources.map((source) => source.amount))
+    const turns = heartsPerTurn(state)
+    const panels = [
+        { id: 'stats', name: 'Stats', present: true },
+        { id: 'hearts', name: 'Hearts', present: turns.length > 0 || sources.length > 0 },
+    ].filter((panel) => panel.present)
+    const [tab, setTab] = useState('stats')
     return (
         <Modal title="Run summary" onClose={onClose}>
             <p class={`outcome ${state.status}`}>
@@ -400,37 +410,78 @@ export function SummaryDialog({
                     ))}
                 </ul>
             ) : null}
-            {sources.length > 0 ? (
-                <section>
-                    <h3>Hearts from</h3>
-                    <ul class="bars">
-                        {sources.map(({ name, amount }) => (
-                            <li key={name}>
-                                <span class="bar-name">{name}</span>
-                                <span class="bar-track">
-                                    <span class="bar-fill" style={{ width: `${(amount / largest) * 100}%` }} />
-                                </span>
-                                <span class="bar-value">
-                                    <Rich text={`${amount} ♥`} />
-                                </span>
-                            </li>
+            <div class="sum-box">
+                <div class="sum-body">
+                    <div class="tabs" role="tablist">
+                        {panels.map((panel) => (
+                            <button
+                                key={panel.id}
+                                type="button"
+                                role="tab"
+                                aria-selected={panel.id === tab}
+                                class={panel.id === tab ? 'on' : ''}
+                                onClick={() => setTab(panel.id)}
+                            >
+                                <Rich text={panel.name} />
+                            </button>
                         ))}
-                    </ul>
-                </section>
-            ) : null}
-            <section>
-                <h3>Run</h3>
-                <dl class="facts">
-                    {runFacts(state, moves).map(([label, value]) => (
-                        <div key={label} class="fact">
-                            <dt>{label}</dt>
-                            <dd>
-                                <Rich text={value} />
-                            </dd>
-                        </div>
-                    ))}
-                </dl>
-            </section>
+                    </div>
+                    <section class={`sum-panel sum-run${tab === 'stats' ? '' : ' off'}`} role="tabpanel">
+                        <h3>Run</h3>
+                        <dl class="facts">
+                            {runFacts(state, moves).map(([label, value]) => (
+                                <div key={label} class="fact">
+                                    <dt>{label}</dt>
+                                    <dd>
+                                        <Rich text={value} />
+                                    </dd>
+                                </div>
+                            ))}
+                        </dl>
+                    </section>
+                    {panels.length > 1 ? (
+                        <section class={`sum-panel sum-hearts${tab === 'hearts' ? '' : ' off'}`} role="tabpanel">
+                            {turns.length > 0 ? (
+                                <div class="sum-turns">
+                                    <h3>Hearts per turn</h3>
+                                    <HeartsChart turns={turns} />
+                                </div>
+                            ) : null}
+                            {sources.length > 0 ? (
+                                <div>
+                                    <h3>Hearts from</h3>
+                                    <ul class="bars">
+                                        {sources.map(({ name, amount, hint, effect }) => (
+                                            <li key={name} title={hint}>
+                                                <span class="bar-name">
+                                                    {effect ? (
+                                                        <button
+                                                            type="button"
+                                                            class="link"
+                                                            aria-label={`${name}: ${hint} Opens its compendium page.`}
+                                                            onClick={() => onOpenEffect(effect)}
+                                                        >
+                                                            {name}
+                                                        </button>
+                                                    ) : (
+                                                        name
+                                                    )}
+                                                </span>
+                                                <span class="bar-track">
+                                                    <span class="bar-fill" style={{ width: `${(amount / largest) * 100}%` }} />
+                                                </span>
+                                                <span class="bar-value">
+                                                    <Rich text={`${amount} ♥`} />
+                                                </span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            ) : null}
+                        </section>
+                    ) : null}
+                </div>
+            </div>
         </Modal>
     )
 }

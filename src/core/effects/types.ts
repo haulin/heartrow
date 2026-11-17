@@ -37,6 +37,11 @@ export interface EffectDef {
     blurb: string
     /** What a rolled parameter is called in the compendium's price list, where the default name of the parameter would mislead (see `prices.ts`). */
     paramNames?: Partial<Record<keyof EffectParams, string>>
+    /**
+     * Needs no decision: what it pays does not depend on the order of play, the board, or a choice, so playing it early never costs anything.
+     * "Play simple" plays a card whose effects are all like this.
+     */
+    unconditional?: true
     /** Acts while an enemy sits in the river, so its text has no "Defeat:" prefix. */
     passive?: true
     /** What a generator must allow for the effect to make sense. The generator skips the effect when any need is off. */

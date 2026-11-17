@@ -62,6 +62,19 @@ describe('GameStore moves', () => {
         expect(replay.getReplayProgress()).toEqual({ done: source.getMoves().length, total: source.getMoves().length })
     })
 
+    it('lets the player take over a replay where it stands', () => {
+        const source = new GameStore(standardMode(0), 11)
+        play(source, 2)
+        const replay = new GameStore(standardMode(0), 11)
+        replay.loadReplay(standardMode(0), 11, source.getMoves())
+        replay.replayNext()
+        const stoodAt = replay.getState()
+        replay.takeOverReplay()
+        expect(replay.getReplayProgress()).toBeNull()
+        expect(replay.getState()).toEqual(stoodAt)
+        expect(replay.getMoves()).toHaveLength(1)
+    })
+
     it('can undo End turn while stepping a replay', () => {
         const source = new GameStore(standardMode(0), 11)
         source.dispatch({ type: 'endTurn' })

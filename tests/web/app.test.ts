@@ -112,6 +112,19 @@ describe('App run summary', () => {
         expect(dialog.textContent).toMatch(/Moves\d+Moves per turn[\d.]+Busiest turn\d+ \(T\d+\)/)
     })
 
+    it('has one tab per panel, shows Stats first, and switches panels by tab', () => {
+        const { host, store } = mount(4, 'off', 'game')
+        endTheRun(store)
+        const dialog = host.querySelector('dialog')!
+        const tabs = Array.from(dialog.querySelectorAll<HTMLElement>('.tabs button'))
+        expect(tabs.map((tab) => tab.textContent)).toEqual(['Stats', 'Hearts'])
+        const hidden = () => Array.from(dialog.querySelectorAll('.sum-panel.off')).map((panel) => panel.className)
+        expect(hidden().some((name) => name.includes('sum-run'))).toBe(false)
+        void act(() => tabs[1]!.click())
+        expect(hidden().some((name) => name.includes('sum-run'))).toBe(true)
+        expect(dialog.querySelector('.sum-panel.sum-hearts:not(.off) svg')).not.toBeNull()
+    })
+
     it('opens on demand from the log, also for a run in progress', () => {
         const { host } = mount(4, 'off', 'game')
         void act(() => host.querySelector<HTMLElement>('[aria-label*="full log"]')!.click())
@@ -364,13 +377,13 @@ describe('App', () => {
         expect(store.getSession().history[0]).toMatch(/^T1 · Played/)
     })
 
-    it('keeps Skip exile after Undo in the action bar', () => {
+    it('offers Skip exile next to the exile prompt, not in the action bar, and keeps it after Undo', () => {
         const { host, store } = mount()
         store.getState().hand[0]!.fx = ['exile']
         void act(() => host.querySelector<HTMLButtonElement>('[data-zone="hand"] button.card')!.click())
-        const labels = Array.from(host.querySelectorAll('.bar button')).map((button) => button.textContent)
-        expect(labels.at(-1)).toBe('Skip exile')
-        expect(labels.indexOf('Undo')).toBeLessThan(labels.indexOf('Skip exile'))
+        const barLabels = Array.from(host.querySelectorAll('.bar button')).map((button) => button.textContent)
+        expect(barLabels).not.toContain('Skip exile')
+        expect(host.querySelector('.msg-row button')?.textContent).toBe('Skip exile')
     })
 
     it('shakes a river card that cannot be exiled', () => {

@@ -21,6 +21,15 @@ describe('hearts by source', () => {
         }
     })
 
+    it('notes the hearts held at the end of every finished turn, ending on the final total', () => {
+        for (let seed = 1; seed <= 4; seed++) {
+            const { state } = playGame(standardMode(1), seed, makeProfile('mixed'))
+            const ends = state.stats.heartsAtTurnEnd
+            expect(ends).toHaveLength(state.turn)
+            expect(ends.at(-1)).toBe(state.hearts)
+        }
+    })
+
     it('names a recruit, an enemy and an effect as the source', () => {
         const s = blank()
         s.hand = [mk({ hearts: 2 }), mk({ fx: ['vault'], hearts: 0 })]

@@ -4,6 +4,7 @@ import { render } from 'preact'
 import * as core from '../../core'
 import type { Move } from '../../core'
 import { App } from './App'
+import { watchAttention } from './attention'
 import { ErrorBoundary } from './ErrorBoundary'
 import { installFatalErrorDialog } from './fatalErrors'
 import { createLocalStorage, createTabStorage } from './localStorageStore'
@@ -13,6 +14,7 @@ import { applyTheme, loadSettings } from './settings'
 import { SKIN_IDS } from './skins'
 
 installFatalErrorDialog()
+watchAttention(document, window)
 
 const storage = createLocalStorage()
 applyTheme(document.documentElement, loadSettings(storage, SKIN_IDS).theme)

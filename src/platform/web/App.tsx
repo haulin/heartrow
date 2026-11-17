@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks'
 import { DEFAULT_CUSTOM, canContinue, customMode, customOfMode } from '../../core'
-import type { CustomGenerator, ModeConfig, Move } from '../../core'
+import type { CustomGenerator, EffectId, ModeConfig, Move } from '../../core'
 import {
     FRESH_VIEW,
     challengeList,
@@ -33,6 +33,9 @@ import { Stats } from './Stats'
 import { loopTimeFactor, resolveSpeed } from './anim'
 import { autoplayKind, playsInAutoplay } from './autoplay'
 import { previewHand } from './handPreview'
+import type { HandPreview } from './handPreview'
+import { HAND_SORTS, arrangeHand, nextHandSort } from './handView'
+import type { HandSort } from './handView'
 import { browserReducedMotion, createPresenter } from './anim/presenter'
 import { parseStartParams, randomSeed, routeFor, shareQuery } from './mode'
 import { parseRunText, runOf } from './resume'
@@ -63,6 +66,8 @@ const PREVIEW_RESOURCES = [
     { key: 'hearts', symbol: '♥' },
 ] as const
 
+const NOTHING_IN_HAND: HandPreview = { gold: 0, power: 0, hearts: 0, atLeast: { gold: false, power: false, hearts: false } }
+
 function useShownSession(store: GameStore) {
     const [, setTick] = useState(0)
     useEffect(() => store.subscribe(() => setTick((n) => n + 1)), [store])
@@ -84,6 +89,9 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
     const [compendiumView, setCompendiumView] = useState<CompendiumView>(() =>
         initial === 'compendium' ? compendiumViewFromSearch(window.location.search) : FRESH_COMPENDIUM,
     )
+    // How the hand is laid out. This is only the view: the game never sees it.
+    const [handSort, setHandSort] = useState<HandSort>('draw')
+    const [hidePlayed, setHidePlayed] = useState(false)
     // The store always holds a game, but a run only counts once it was started from a link or the menu.
     const [started, setStarted] = useState(startedAtOpen)
     // The editor's settings come from the address, so it opens the same after a reload. The key makes a new visit start from fresh settings.
@@ -264,6 +272,15 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
         setScreen('compendium')
     }
 
+    /** From the run summary. Back returns to the game; the summary itself is reopened from the log. */
+    const openEffectPage = (effect: EffectId) => {
+        const view: CompendiumView = { ...FRESH_COMPENDIUM, tab: 'effects', effect }
+        setDialog(null)
+        push(compendiumQuery(view))
+        setCompendiumView(view)
+        setScreen('compendium')
+    }
+
     /** Moving to another tab or effect is a new history entry, so Back returns to where the player was. The same place twice is not. */
     const navigateCompendium = (view: CompendiumView) => {
         setCompendiumView(view)
@@ -320,10 +337,14 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
     const text = over ?? (state.pendingExile ? exilePrompt : session.message)
     const label = `${spoken(text)}${over !== null ? ' Activate to open the full log.' : state.pendingExile ? ' Select a card to exile, or skip.' : ' Activate to open the full log.'}`
 
-    const n = state.hand.length
+    const shownHand = arrangeHand(state.hand, handSort, hidePlayed)
+    const n = shownHand.length
     const overlap = n > 5 ? (n - 5) / (n - 1) : 0
+    const nextSort = HAND_SORTS.find((sort) => sort.id === nextHandSort(handSort))!
+    const currentSort = HAND_SORTS.find((sort) => sort.id === handSort)!
     const replay = store.getReplayProgress()
-    const preview = useMemo(() => previewHand(state), [state])
+    // Once the run is over nothing is left to play, but the zeros stay so the row keeps its shape.
+    const preview = useMemo(() => previewHand(state) ?? NOTHING_IN_HAND, [state])
     const close = () => setDialog(null)
     const playOn =
         canContinue(state) && !replay
@@ -355,7 +376,14 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                 />
             ) : null}
             {dialog === 'summary' ? (
-                <SummaryDialog state={state} moves={session.moves} records={recordsOfThisRun} onPlayOn={playOn} onClose={close} />
+                <SummaryDialog
+                    state={state}
+                    moves={session.moves}
+                    records={recordsOfThisRun}
+                    onPlayOn={playOn}
+                    onOpenEffect={openEffectPage}
+                    onClose={close}
+                />
             ) : null}
             {dialog === 'load' ? <LoadRunDialog onLoad={loadReplay} onClose={close} /> : null}
             {dialog === 'piles' ? <PilesDialog state={state} skin={skin} onClose={close} /> : null}
@@ -488,51 +516,6 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                     ))}
                 </div>
 
-                <div
-                    id="msg"
-                    class={`msg${state.pendingExile ? ' warn' : ''}${settings.anim === 'off' ? ' calm' : ''}`}
-                    title="Click for the full log"
-                    role="button"
-                    tabIndex={0}
-                    aria-haspopup="dialog"
-                    aria-label={label}
-                    onClick={() => setDialog('log')}
-                    onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault()
-                            setDialog('log')
-                        }
-                    }}
-                >
-                    <Rich text={text} />
-                </div>
-                <div class="sr-only" role="status" aria-live="polite" aria-atomic="true">
-                    {spoken(text)}
-                </div>
-
-                <div class="hand-head">
-                    <h2>Your hand</h2>
-                    {preview ? (
-                        <span
-                            class="hand-preview"
-                            title="What the cards in your hand add when played, in hand order. A + means at least: a Flip counts low and drawn cards are not counted."
-                        >
-                            {PREVIEW_RESOURCES.map(({ key, symbol }) => (
-                                <span key={key}>
-                                    <Rich text={`${preview[key]}${preview.atLeast[key] ? '+' : ''} ${symbol}`} />
-                                </span>
-                            ))}
-                        </span>
-                    ) : null}
-                </div>
-                <div class={`cards hand${n >= 10 ? ' large' : ''}`} data-zone="hand" style={{ '--k': overlap }}>
-                    {state.hand.map((card, i) => (
-                        <div class="slot" key={card.id}>
-                            <skin.Card view={buildCardView(card, 'hand', i, state)} onActivate={() => handCard(card.id)} />
-                        </div>
-                    ))}
-                </div>
-
                 <div class="bar">
                     {replay ? (
                         replay.done < replay.total ? (
@@ -554,36 +537,40 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                             Keep playing to turn {state.maxTurns}
                         </button>
                     ) : null}
-                    <button
-                        type="button"
-                        class="b"
-                        disabled={!playing || state.pendingExile > 0}
-                        onClick={() => dispatch({ type: 'endTurn' })}
-                    >
-                        End turn
-                    </button>
-                    <button
-                        type="button"
-                        class="b alt autoplay"
-                        disabled={!autoKind}
-                        title={
-                            autoKind === 'rest'
-                                ? 'Plays every card still in your hand, including cards with effects and Retain cards. Shortcut: space.'
-                                : 'Plays every card without a worded effect, except Retain cards. When none are left it plays the rest. Shortcut: space.'
-                        }
-                        onClick={autoplay}
-                    >
-                        {autoKind === 'rest' ? 'Play rest' : 'Play simple'}
-                    </button>
-                    <button
-                        type="button"
-                        class="b alt"
-                        disabled={!playing || state.pendingExile > 0 || state.flushes < 1}
-                        title="Replaces the four left cards of the river; the card at the Gate stays."
-                        onClick={() => dispatch({ type: 'flush' })}
-                    >
-                        Flush
-                    </button>
+                    {replay ? null : (
+                        <>
+                            <button
+                                type="button"
+                                class="b"
+                                disabled={!playing || state.pendingExile > 0}
+                                onClick={() => dispatch({ type: 'endTurn' })}
+                            >
+                                End turn
+                            </button>
+                            <button
+                                type="button"
+                                class="b alt autoplay"
+                                disabled={!autoKind}
+                                title={
+                                    autoKind === 'rest'
+                                        ? 'Plays every card still in your hand, including cards with effects and Retain cards. Shortcut: space.'
+                                        : 'Plays every card that needs no decision, such as plain gains, Draw and Flip, except Retain cards. When none are left it plays the rest. Shortcut: space.'
+                                }
+                                onClick={autoplay}
+                            >
+                                {autoKind === 'rest' ? 'Play rest' : 'Play simple'}
+                            </button>
+                            <button
+                                type="button"
+                                class="b alt"
+                                disabled={!playing || state.pendingExile > 0 || state.flushes < 1}
+                                title="Replaces the four left cards of the river; the card at the Gate stays."
+                                onClick={() => dispatch({ type: 'flush' })}
+                            >
+                                Flush
+                            </button>
+                        </>
+                    )}
                     <button
                         type="button"
                         class="b alt hold"
@@ -598,11 +585,81 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                     >
                         Undo
                     </button>
+                    {replay ? (
+                        <button type="button" class="b" title="Stop the replay here and play on yourself." onClick={store.takeOverReplay}>
+                            Take over
+                        </button>
+                    ) : null}
+                </div>
+
+                <div class="hand-head">
+                    <h2>Your hand · {state.hand.length}</h2>
+                    <span
+                        class="hand-preview"
+                        title="What the cards in your hand add when played, in hand order. A + means at least: a Flip counts low and drawn cards are not counted."
+                    >
+                        {PREVIEW_RESOURCES.map(({ key, symbol }) => (
+                            <span key={key}>
+                                <Rich text={`${preview[key]}${preview.atLeast[key] ? '+' : ''} ${symbol}`} />
+                            </span>
+                        ))}
+                    </span>
+                    <button
+                        type="button"
+                        class="b alt hand-tool"
+                        aria-label={`Hand sorted by ${currentSort.name}. Sort by ${nextSort.name}.`}
+                        title={`Sorted by ${currentSort.name}. Click to sort by ${nextSort.name}.`}
+                        onClick={() => setHandSort(nextHandSort(handSort))}
+                    >
+                        <Glyph name="sort" />
+                        <sub>{currentSort.letter}</sub>
+                    </button>
+                    <button
+                        type="button"
+                        class="b alt hand-tool"
+                        aria-pressed={hidePlayed}
+                        aria-label={hidePlayed ? 'Show played cards' : 'Hide played cards'}
+                        title={hidePlayed ? 'Played cards are hidden. Click to show them.' : 'Click to hide the cards you have played.'}
+                        onClick={() => setHidePlayed(!hidePlayed)}
+                    >
+                        <Glyph name={hidePlayed ? 'eye-off' : 'eye'} />
+                    </button>
+                </div>
+                <div class={`cards hand${n >= 10 ? ' large' : ''}`} data-zone="hand" style={{ '--k': overlap }}>
+                    {shownHand.map((card, i) => (
+                        <div class="slot" key={card.id}>
+                            <skin.Card view={buildCardView(card, 'hand', i, state)} onActivate={() => handCard(card.id)} />
+                        </div>
+                    ))}
+                </div>
+
+                <div class="msg-row">
+                    <div
+                        id="msg"
+                        class={`msg${state.pendingExile ? ' warn' : ''}${settings.anim === 'off' ? ' calm' : ''}`}
+                        title="Click for the full log"
+                        role="button"
+                        tabIndex={0}
+                        aria-haspopup="dialog"
+                        aria-label={label}
+                        onClick={() => setDialog('log')}
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault()
+                                setDialog('log')
+                            }
+                        }}
+                    >
+                        <Rich text={text} />
+                    </div>
                     {state.pendingExile ? (
                         <button type="button" class="b" onClick={() => dispatch({ type: 'skipExile' })}>
                             Skip exile
                         </button>
                     ) : null}
+                </div>
+                <div class="sr-only" role="status" aria-live="polite" aria-atomic="true">
+                    {spoken(text)}
                 </div>
             </main>
 

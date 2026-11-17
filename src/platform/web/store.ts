@@ -109,6 +109,14 @@ export class GameStore {
         return frame
     }
 
+    /** Leaves a loaded replay where it stands, so the player carries on from this position with the ordinary controls. */
+    takeOverReplay = (): void => {
+        this.replayMoves = null
+        this.replayIndex = 0
+        this.replayUndo = []
+        this.emit()
+    }
+
     /** The latest session. */
     getSession = (): Session => this.session
 

@@ -75,12 +75,12 @@ describe('Compendium screen', () => {
         const host = mountCompendium()
         expect(host.querySelector('main.compendium')).not.toBeNull()
         expect(host.querySelector('.crumbs [aria-current="page"]')?.textContent).toBe('Generator')
-        expect(host.querySelectorAll('.cmp-tabs button')).toHaveLength(3)
+        expect(host.querySelectorAll('.tabs button')).toHaveLength(3)
     })
 
     it('lists every effect, then opens one with its example card', () => {
         const host = mountCompendium()
-        void act(() => (host.querySelectorAll('.cmp-tabs button')[1] as HTMLElement).click())
+        void act(() => (host.querySelectorAll('.tabs button')[1] as HTMLElement).click())
         expect(host.querySelectorAll('.cmp-row')).toHaveLength(EFFECTS.length)
         void act(() => (host.querySelector('.cmp-row') as HTMLElement).click())
         expect(host.querySelector('.crumbs [aria-current="page"]')).not.toBeNull()

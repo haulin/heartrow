@@ -6,6 +6,7 @@ export const flush: EffectDef = {
     id: 'flush',
     blurb: 'Gives you one extra flush, which replaces the four left cards of the river. The card in the Gate stays.',
     family: 'river',
+    unconditional: true,
     price: FLUSH_PRICE,
     describe: () => 'Gain a flush',
     enemies: true,

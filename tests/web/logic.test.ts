@@ -9,7 +9,16 @@ import type { Session } from '../../src/platform/web/session'
 import { DEFAULT_SETTINGS, loadSettings, saveSettings } from '../../src/platform/web/settings'
 import { GameStore } from '../../src/platform/web/store'
 import { createJsonStorage, createMemoryStorage } from '../../src/platform/web/storage'
-import { deckSummary, heartsSummary, movesPerTurn, movesSummary, richParts, spoken, statusMessage } from '../../src/platform/web/text'
+import {
+    deckSummary,
+    heartsBreakdown,
+    heartsSummary,
+    movesPerTurn,
+    movesSummary,
+    richParts,
+    spoken,
+    statusMessage,
+} from '../../src/platform/web/text'
 import { cardArt } from '../../src/platform/web/view/art'
 import { buildCardView } from '../../src/platform/web/view/cardView'
 
@@ -245,6 +254,14 @@ describe('store and session', () => {
         state.stats.heartsFrom = { plain: 6, vault: 9, reapG: 3, defeat: 4 }
         expect(heartsSummary(state)).toBe('Hearts from: Vault 9, Plain gains 6, Enemies 4, ReapG 3.')
         expect(heartsSummary(startSession(standardMode(0), 1).state)).toBe('')
+    })
+
+    it('explains every source of hearts, and links an effect to its compendium page', () => {
+        const state = startSession(standardMode(0), 1).state
+        state.stats.heartsFrom = { plain: 6, hoard: 9, defeat: 4 }
+        const lines = heartsBreakdown(state)
+        expect(lines.map((line) => line.effect)).toEqual(['hoard', null, null])
+        for (const line of lines) expect(line.hint).not.toBe('')
     })
 
     it('summarises the deck', () => {

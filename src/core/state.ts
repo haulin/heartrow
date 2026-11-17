@@ -33,7 +33,7 @@ export function cloneState(state: GameState): GameState {
         discard: cards(state.discard),
         exile: cards(state.exile),
         row: cards(state.row),
-        stats: { ...state.stats, heartsFrom: { ...state.stats.heartsFrom } },
+        stats: { ...state.stats, heartsFrom: { ...state.stats.heartsFrom }, heartsAtTurnEnd: state.stats.heartsAtTurnEnd.slice() },
         streams: { gen: cloneRng(state.streams.gen), shuffle: cloneRng(state.streams.shuffle), flip: cloneRng(state.streams.flip) },
     }
 }

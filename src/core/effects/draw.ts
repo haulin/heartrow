@@ -11,6 +11,7 @@ export const draw: EffectDef = {
     blurb: 'Draw cards from your deck at once. When the deck runs out, the discard pile is shuffled into a new deck.',
     price: tierPrice(TERMS, TERMS.tiers[0]),
     family: 'cards',
+    unconditional: true,
     describe: (card) => `Draw ${slot(card, (c) => c.fxParams?.drawCount ?? 1, rangeOf(TERMS.tiers))}`,
     enemies: true,
     lean: ['tide'],

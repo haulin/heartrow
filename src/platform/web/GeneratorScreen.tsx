@@ -192,7 +192,7 @@ export function GeneratorScreen({
                             {EFFECTS.filter((effect) => effect.family === family.id).map((effect) => {
                                 const unmet = unmetNeeds(generator, effect.id)
                                 const off = unmet.length > 0
-                                const text = effect.describe()
+                                const text = `${effect.describe()}\n${effect.blurb}`
                                 const title = off ? `${text}\nNeeds ${unmet.map((need) => NEED_NAMES[need]).join(', ')}.` : text
                                 return (
                                     <label key={effect.id} class={`pick${off ? ' off' : ''}`} title={title}>
