@@ -112,6 +112,13 @@ describe('App run summary', () => {
         expect(dialog.textContent).toMatch(/Moves\d+Moves per turn[\d.]+Busiest turn\d+ \(T\d+\)/)
     })
 
+    it('puts a Run summary button in the action bar in place of the buttons that have nothing left to do', () => {
+        const { host, store } = mount(4, 'off', 'game')
+        expect(Array.from(host.querySelectorAll('.bar button')).map((button) => button.textContent)).toContain('End turn')
+        endTheRun(store)
+        expect(Array.from(host.querySelectorAll('.bar button')).map((button) => button.textContent)).toEqual(['Run summary'])
+    })
+
     it('has one tab per panel, shows Stats first, and switches panels by tab', () => {
         const { host, store } = mount(4, 'off', 'game')
         endTheRun(store)

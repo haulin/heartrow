@@ -39,6 +39,7 @@ export interface EffectDef {
     paramNames?: Partial<Record<keyof EffectParams, string>>
     /**
      * Needs no decision: what it pays does not depend on the order of play, the board, or a choice, so playing it early never costs anything.
+     * Hoard and Army count the deck, which a purchase in the same turn can grow; one purchase rarely reaches the next step, so they count as unconditional.
      * "Play simple" plays a card whose effects are all like this.
      */
     unconditional?: true

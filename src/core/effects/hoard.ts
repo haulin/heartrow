@@ -12,6 +12,7 @@ export const hoard: EffectDef = {
     blurb: 'Pays for every few cards in your deck, so it rewards a big deck.',
     price: VARIANTS[0]!.price,
     family: 'count',
+    unconditional: true,
     describe: (card) =>
         `+${slot(card, (c) => c.fxParams?.amount ?? 1, rangeOf(TERMS.amounts))} ${resourceSlot(card, 'gold', ALL_RESOURCES)} per ${slot(card, (c) => c.fxParams?.perCards ?? TERMS.defaultPerCards, rangeOf(TERMS.perCards))} cards in your deck`,
     enemies: true,

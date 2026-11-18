@@ -1,3 +1,7 @@
+/** The one-line pitch. The page's description and preview tags in `index.html` carry the same sentence; a test keeps them equal. */
+export const GAME_DESCRIPTION =
+    'A roguelike deckbuilder: recruit from a river of cards, defeat enemies and collect hearts before the turns run out.'
+
 export interface HomeProps {
     canResume: boolean
     onResume: () => void
@@ -13,7 +17,7 @@ export function Home({ canResume, onResume, onStandard, onChallenges, onCompendi
     return (
         <main class="home">
             <h1>Heartrow</h1>
-            <p class="rules">Recruit from the river, defeat enemies, and collect hearts before the turns run out.</p>
+            <p class="rules">{GAME_DESCRIPTION}</p>
             <nav class="col" aria-label="Main menu">
                 {canResume ? (
                     <button type="button" class="b" onClick={onResume}>

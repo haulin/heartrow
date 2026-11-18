@@ -20,8 +20,8 @@ export interface EnemyShareStep {
 /** The numbers the generator works with, for the compendium. They are the constants the generator reads, so a page built from them cannot drift. */
 export const GENERATION = {
     enemyShareSteps: GOALS[GOALS.length - 1]!.steps.map((step): EnemyShareStep => ({ fromTurn: step.fromTurn, share: step.foeChance })),
-    /** The chance that a recruit of the type carries an effect (before the pool of effects thins it; see `effectChance` in `make.ts`). */
-    effectChance: { moss: EFFECT_CHANCE, ember: EFFECT_CHANCE, tide: TIDE_EFFECT_CHANCE },
+    /** The chance that a card of the type carries an effect (before the pool of effects thins it; see `effectChance` in `make.ts`). */
+    effectChance: { moss: EFFECT_CHANCE, ember: EFFECT_CHANCE, tide: TIDE_EFFECT_CHANCE, foe: EFFECT_CHANCE },
     plainRetainChance: PLAIN_RETAIN_CHANCE,
     tidePowerChance: TIDE_POWER_CHANCE,
     recruitBudgetPerCost: RECRUIT_BUDGET_PER_COST,

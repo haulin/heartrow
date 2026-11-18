@@ -300,32 +300,13 @@ export function AboutDialog({ state, onClose }: { state?: GameState | undefined;
     )
 }
 
-export function LogDialog({
-    state,
-    history,
-    run,
-    onSummary,
-    onClose,
-}: {
-    state: GameState
-    history: string[]
-    run: () => string
-    onSummary: () => void
-    onClose: () => void
-}) {
+/** The log of the run, with the way to its summary on top. Copying the seed, the link and the run is in the run dialog (`RunDialog`). */
+export function LogDialog({ history, onSummary, onClose }: { history: string[]; onSummary: () => void; onClose: () => void }) {
     return (
         <Modal title="Log (newest first)" onClose={onClose}>
-            <SeedLine state={state} run={run} />
-            <p>
-                <button
-                    type="button"
-                    class="b alt small"
-                    onClick={onSummary}
-                    title="The figures of this run so far, or of the finished run."
-                >
-                    Run summary…
-                </button>
-            </p>
+            <button type="button" class="b dlg-primary" onClick={onSummary} title="The figures of this run so far, or of the finished run.">
+                Run summary
+            </button>
             <div class="logbox">
                 {history
                     .slice()

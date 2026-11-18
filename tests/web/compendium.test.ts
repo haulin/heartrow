@@ -86,4 +86,19 @@ describe('Compendium screen', () => {
         expect(host.querySelector('.crumbs [aria-current="page"]')).not.toBeNull()
         expect(host.querySelector('.blurb')?.textContent).not.toBe('')
     })
+
+    it('steps through the example cards with the arrows and back to the same card', () => {
+        const host = mountCompendium()
+        void act(() => (host.querySelectorAll('.tabs button')[1] as HTMLElement).click())
+        void act(() => (host.querySelector('.cmp-row') as HTMLElement).click())
+        const back = host.querySelector('button.step.back') as HTMLButtonElement
+        const next = host.querySelector('button.step:not(.back)') as HTMLButtonElement
+        const first = host.querySelector('.cards.example .slot')?.innerHTML
+        expect(back.disabled).toBe(true)
+        void act(() => next.click())
+        expect(back.disabled).toBe(false)
+        void act(() => back.click())
+        expect(back.disabled).toBe(true)
+        expect(host.querySelector('.cards.example .slot')?.innerHTML).toBe(first)
+    })
 })

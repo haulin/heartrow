@@ -132,7 +132,8 @@ function Fact({ label, children }: { label: ComponentChildren; children: Compone
     )
 }
 
-function Box({ title, accent, children }: { title: string; accent?: Colour; children: ComponentChildren }) {
+/** `accent` tints the heading and the slanted band on the right edge: a gem colour, or `foe` for enemies. */
+function Box({ title, accent, children }: { title: string; accent?: Colour | 'foe'; children: ComponentChildren }) {
     return (
         <section class={`cmp-box${accent ? ` ${accent}` : ''}`}>
             <h3>{title}</h3>
@@ -225,8 +226,7 @@ function FilterChip({ label, on, onClick }: { label: string; on: boolean; onClic
 function FilterPanel({ view, onAdjust }: Pick<CompendiumProps, 'view' | 'onAdjust'>) {
     return (
         <div class="cmp-filters">
-            <div class="chips" role="group" aria-label="Leans">
-                <span class="chips-name">Leans</span>
+            <ChipRow label="Leans">
                 {COMPENDIUM_COLOURS.map((colour) => (
                     <FilterChip
                         key={colour}
@@ -235,9 +235,8 @@ function FilterPanel({ view, onAdjust }: Pick<CompendiumProps, 'view' | 'onAdjus
                         onClick={() => onAdjust({ ...view, lean: toggleIn(view.lean, colour) })}
                     />
                 ))}
-            </div>
-            <div class="chips" role="group" aria-label="Family">
-                <span class="chips-name">Family</span>
+            </ChipRow>
+            <ChipRow label="Family">
                 {EFFECT_FAMILIES.map((family) => (
                     <FilterChip
                         key={family.id}
@@ -246,12 +245,21 @@ function FilterPanel({ view, onAdjust }: Pick<CompendiumProps, 'view' | 'onAdjus
                         onClick={() => onAdjust({ ...view, families: toggleIn(view.families, family.id) })}
                     />
                 ))}
-            </div>
-            <div class="chips" role="group" aria-label="Other">
-                <span class="chips-name">Other</span>
+            </ChipRow>
+            <ChipRow label="Other">
                 <FilterChip label="Can be on enemies" on={view.enemies} onClick={() => onAdjust({ ...view, enemies: !view.enemies })} />
                 <FilterChip label="Can pay hearts" on={view.hearts} onClick={() => onAdjust({ ...view, hearts: !view.hearts })} />
-            </div>
+            </ChipRow>
+        </div>
+    )
+}
+
+/** A label in a column of its own, with the chips flowing to the right of it, so a second row of chips never wraps under the label. */
+function ChipRow({ label, children }: { label: string; children: ComponentChildren }) {
+    return (
+        <div class="chip-row" role="group" aria-label={label}>
+            <span class="chips-name">{label}</span>
+            <div class="chips">{children}</div>
         </div>
     )
 }
@@ -384,7 +392,6 @@ function EffectDetail({
                 </Box>
                 <Box title="Example card">
                     <ExampleCard key={effect.id} effect={effect} skin={skin} animSpeed={animSpeed} />
-                    <p class="note">Tap the card for another roll.</p>
                 </Box>
                 <Box title="In the generator">
                     <dl class="facts">
@@ -473,9 +480,11 @@ function PriceList({ table }: { table: PriceTable }) {
     )
 }
 
+const FIRST_EXAMPLE = 1
+
 /** A real generated card with the effect. The state is only there for the card view; the card is shown as if in a pile. */
 function ExampleCard({ effect, skin, animSpeed }: { effect: EffectDef; skin: CardSkin; animSpeed: AnimSpeed }) {
-    const [seed, setSeed] = useState(1)
+    const [seed, setSeed] = useState(FIRST_EXAMPLE)
     const [blowingUp, setBlowingUp] = useState(false)
     const slotRef = useRef<HTMLDivElement>(null)
     const card = useMemo(() => exampleCard(effect.id, seed), [effect.id, seed])
@@ -484,22 +493,35 @@ function ExampleCard({ effect, skin, animSpeed }: { effect: EffectDef; skin: Car
     const view = { ...buildCardView(card, 'pile', 0, state), title: 'Tap for another example' }
     return (
         <div class="cards example">
+            <button
+                type="button"
+                class="step back"
+                aria-label="Previous example"
+                disabled={seed <= FIRST_EXAMPLE}
+                onClick={() => showExample(seed - 1)}
+            >
+                <Glyph name="chevron" />
+            </button>
             <div class="slot" ref={slotRef}>
-                <skin.Card view={view} onActivate={() => rollAnother(slotRef.current)} />
+                <skin.Card view={view} onActivate={() => showExample(seed + 1)} />
             </div>
+            <button type="button" class="step" aria-label="Next example" onClick={() => showExample(seed + 1)}>
+                <Glyph name="chevron" />
+            </button>
         </div>
     )
 
-    /** The card blows up like a defeated enemy, and the next one enters in its place. Without animation the card is swapped at once. */
-    function rollAnother(slot: HTMLElement | null): void {
-        if (blowingUp) return
+    /** The card blows up like a defeated enemy, and the example with that number enters in its place. Without animation the card is swapped at once. */
+    function showExample(target: number): void {
+        const slot = slotRef.current
+        if (blowingUp || target < FIRST_EXAMPLE) return
         const { wait } = slot ? runEffect({ kind: 'inflate', el: slot }, animSpeed, false) : { wait: [] }
-        if (!slot || wait.length === 0) return setSeed(seed + 1)
+        if (!slot || wait.length === 0) return setSeed(target)
         setBlowingUp(true)
         const finished = Promise.all(wait.map((animation) => animation.finished)).catch(() => undefined)
         void finished.then(() => {
             for (const animation of wait) animation.cancel()
-            setSeed(seed + 1)
+            setSeed(target)
             setBlowingUp(false)
             runEffect({ kind: 'enter', el: slot }, animSpeed, false)
         })
@@ -509,14 +531,14 @@ function ExampleCard({ effect, skin, animSpeed }: { effect: EffectDef; skin: Car
 function Types({ view, onNavigate }: Pick<CompendiumProps, 'view' | 'onNavigate'>) {
     const { effectChance, recruitBudgetBase, enemyBudgetPerCost, enemyShareSteps } = GENERATION
     const open = (effect: EffectDef) => onNavigate({ ...view, tab: 'effects', effect: effect.id })
-    const chips = (effects: EffectDef[]) => (
-        <div class="chips">
+    const chipRow = (label: string, effects: EffectDef[]) => (
+        <ChipRow label={label}>
             {effects.map((effect) => (
                 <button key={effect.id} type="button" class="chip" onClick={() => open(effect)}>
                     {effectName(effect.id)}
                 </button>
             ))}
-        </div>
+        </ChipRow>
     )
     return (
         <div class="cmp-grid">
@@ -528,20 +550,18 @@ function Types({ view, onNavigate }: Pick<CompendiumProps, 'view' | 'onNavigate'
                             <Fact label="Extra budget">{recruitBudgetBase[colour]}</Fact>
                             <Fact label="Chance of an effect">{percent(effectChance[colour])}</Fact>
                         </dl>
-                        <p class="note label">Leans</p>
-                        {chips(EFFECTS.filter((effect) => effect.lean.includes(colour)))}
-                        {mild.length > 0 ? (
-                            <>
-                                <p class="note label">Mild lean</p>
-                                {chips(mild)}
-                            </>
-                        ) : null}
+                        {chipRow(
+                            'Leans',
+                            EFFECTS.filter((effect) => effect.lean.includes(colour)),
+                        )}
+                        {mild.length > 0 ? chipRow('Mild lean', mild) : null}
                     </Box>
                 )
             })}
-            <Box title="Enemies">
+            <Box title="Enemies" accent="foe">
                 <dl class="facts">
                     <Fact label="Budget per point of cost">{enemyBudgetPerCost}</Fact>
+                    <Fact label="Chance of an effect">{percent(effectChance.foe)}</Fact>
                     <Fact label="Share of new cards">{percent(enemyShareSteps[0]!.share)}</Fact>
                 </dl>
             </Box>

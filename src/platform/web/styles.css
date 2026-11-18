@@ -52,6 +52,10 @@
 html {
     scroll-padding-top: env(safe-area-inset-top, 0px);
 }
+/* The compendium tabs differ in length, so the scrollbar comes and goes on a tab switch. Reserving its strip on both sides keeps the content still and centred. */
+html:has(.compendium) {
+    scrollbar-gutter: stable both-edges;
+}
 body {
     margin: 0;
     background: var(--bg);
@@ -813,6 +817,14 @@ dialog::backdrop {
     padding: 9px 14px;
     font-size: 14px;
 }
+/* The one thing a dialog is mainly for: full width and larger than the other buttons. */
+button.b.dlg-primary {
+    display: block;
+    width: 100%;
+    margin-bottom: 12px;
+    padding: 12px 14px;
+    font-size: 16px;
+}
 .dlg-head h2 {
     margin: 0;
     font-size: 18px;
@@ -1375,9 +1387,20 @@ button.b.cmp-icon {
     align-items: center;
     gap: 6px;
 }
+.chip-row {
+    display: grid;
+    grid-template-columns: 4.75em 1fr;
+    align-items: start;
+    gap: 6px;
+    margin-top: 8px;
+}
+.cmp-filters .chip-row {
+    margin-top: 0;
+}
 .chips-name {
-    min-width: 4.5em;
-    font-size: 12px;
+    /* Half the chip's extra height, so the label lines up with the first row of chips. */
+    padding-top: 4px;
+    font-size: 14px;
     color: var(--soft);
 }
 button.chip {
@@ -1398,9 +1421,6 @@ button.chip[aria-pressed='true'] {
     margin: 6px 0 0;
     font-size: 13px;
     color: var(--dim);
-}
-.compendium .note.label {
-    color: var(--soft);
 }
 .cmp-list {
     display: grid;
@@ -1517,7 +1537,7 @@ button.cmp-row:hover {
 }
 .compendium .blurb {
     max-width: 60ch;
-    margin: 8px 0 4px;
+    margin: 8px 0 16px;
     font-size: 16px;
 }
 .compendium .sentence {
@@ -1538,15 +1558,40 @@ button.cmp-row:hover {
 .cmp-box h3 {
     margin: 0 0 6px;
     font-size: 15px;
+    color: var(--band, inherit);
 }
-.cmp-box.moss h3 {
-    color: var(--moss);
+/* A box with an accent colour: the heading and a slanted band on the right edge, like the effect rows, behind the text. */
+.cmp-box.moss {
+    --band: var(--moss);
 }
-.cmp-box.ember h3 {
-    color: var(--ember);
+.cmp-box.ember {
+    --band: var(--ember);
 }
-.cmp-box.tide h3 {
-    color: var(--tide);
+.cmp-box.tide {
+    --band: var(--tide);
+}
+.cmp-box.foe {
+    --band: var(--foe);
+}
+.cmp-box:is(.moss, .ember, .tide, .foe) {
+    background: color-mix(in srgb, var(--band) 10%, var(--panel));
+}
+/* The band sits in the bottom right corner with a fixed height, so it looks the same in every box, whatever the box holds. */
+.cmp-box:is(.moss, .ember, .tide, .foe) {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+}
+.cmp-box:is(.moss, .ember, .tide, .foe)::after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    right: 0;
+    bottom: 0;
+    width: 15px;
+    height: 100px;
+    transform: skewX(-18deg);
+    background: color-mix(in srgb, var(--band) 35%, var(--panel));
 }
 .cmp-box .facts {
     grid-template-columns: 1fr;
@@ -1590,7 +1635,39 @@ button.cmp-row:hover {
 }
 .cards.example {
     --cw: 150px;
+    align-items: center;
     justify-content: center;
+    gap: 10px;
+}
+/* The arrows beside the example card take the room the card leaves, from 32px up to 72px, so the narrowest box still fits all three. The height follows the width. */
+button.step {
+    flex: 1 1 0;
+    min-width: 32px;
+    max-width: 72px;
+    aspect-ratio: 2 / 3;
+    padding: 0;
+    color: var(--soft);
+    background: var(--panel);
+    border: 1px solid color-mix(in srgb, var(--dim) 45%, transparent);
+    border-radius: 12px;
+    cursor: pointer;
+}
+button.step .glyph {
+    width: 62%;
+    height: auto;
+    aspect-ratio: 1;
+    vertical-align: middle;
+}
+button.step.back .glyph {
+    transform: scaleX(-1);
+}
+button.step:hover:not(:disabled),
+button.step:focus-visible {
+    color: var(--ink);
+}
+button.step:disabled {
+    opacity: 0.35;
+    cursor: default;
 }
 
 .sr-only {

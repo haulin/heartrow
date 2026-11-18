@@ -3,7 +3,10 @@ import { fileURLToPath } from 'node:url'
 import preact from '@preact/preset-vite'
 import { defineConfig } from 'vite-plus'
 
-const { version } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string }
+const { version, homepage } = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as {
+    version: string
+    homepage: string
+}
 const PACKAGE_JSON = fileURLToPath(new URL('./package.json', import.meta.url))
 const CORE_DIR = fileURLToPath(new URL('./src/core/', import.meta.url))
 
@@ -28,6 +31,11 @@ export default defineConfig({
                 server.ws.send({ type: 'full-reload' })
                 return []
             },
+        },
+        {
+            // The link preview needs absolute addresses. They come from `homepage` in package.json, the one place that names the site.
+            name: 'site-url-in-html',
+            transformIndexHtml: (html) => html.replaceAll('__SITE_URL__', homepage),
         },
         {
             name: 'restart-on-package-change',

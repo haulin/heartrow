@@ -30,7 +30,7 @@ import { Home } from './Home'
 import { StandardScreen } from './StandardScreen'
 import { Rich } from './Rich'
 import { Stats } from './Stats'
-import { loopTimeFactor, resolveSpeed } from './anim'
+import { flip, loopTimeFactor, resolveSpeed, snapshotSlots } from './anim'
 import { autoplayKind, playsInAutoplay } from './autoplay'
 import { previewHand } from './handPreview'
 import type { HandPreview } from './handPreview'
@@ -126,6 +126,18 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
     }
 
     useLayoutEffect(() => presenter.rendered())
+
+    // Where the cards were before a sort or hide, so the cards that moved slide to their new place.
+    const handBefore = useRef<Map<number, DOMRect> | null>(null)
+    useLayoutEffect(() => {
+        const before = handBefore.current
+        handBefore.current = null
+        if (before && rootRef.current) flip(rootRef.current, before, resolveSpeed(settings.anim, browserReducedMotion()), false)
+    }, [handSort, hidePlayed])
+    const rearrangeHand = (change: () => void) => {
+        if (rootRef.current) handBefore.current = snapshotSlots(rootRef.current)
+        change()
+    }
 
     // A finished run counts for its challenge goal. A replay does not, since someone else played it.
     useEffect(() => {
@@ -343,6 +355,8 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
     const nextSort = HAND_SORTS.find((sort) => sort.id === nextHandSort(handSort))!
     const currentSort = HAND_SORTS.find((sort) => sort.id === handSort)!
     const replay = store.getReplayProgress()
+    // Once a run is over, End turn, Play simple, Flush and Undo have nothing left to do, so the summary takes their place.
+    const finished = !playing && !replay
     // Once the run is over nothing is left to play, but the zeros stay so the row keeps its shape.
     const preview = useMemo(() => previewHand(state) ?? NOTHING_IN_HAND, [state])
     const close = () => setDialog(null)
@@ -357,15 +371,7 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
     const dialogs = (
         <>
             {dialog === 'about' ? <AboutDialog state={screen === 'game' ? state : undefined} onClose={close} /> : null}
-            {dialog === 'log' ? (
-                <LogDialog
-                    state={state}
-                    history={session.history}
-                    run={() => JSON.stringify(runOf(store, __APP_VERSION__))}
-                    onSummary={() => setDialog('summary')}
-                    onClose={close}
-                />
-            ) : null}
+            {dialog === 'log' ? <LogDialog history={session.history} onSummary={() => setDialog('summary')} onClose={close} /> : null}
             {dialog === 'run' ? (
                 <RunDialog
                     state={state}
@@ -537,7 +543,12 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                             Keep playing to turn {state.maxTurns}
                         </button>
                     ) : null}
-                    {replay ? null : (
+                    {finished ? (
+                        <button type="button" class={playOn ? 'b alt' : 'b'} onClick={() => setDialog('summary')}>
+                            Run summary
+                        </button>
+                    ) : null}
+                    {replay || finished ? null : (
                         <>
                             <button
                                 type="button"
@@ -571,20 +582,22 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                             </button>
                         </>
                     )}
-                    <button
-                        type="button"
-                        class="b alt hold"
-                        disabled={!store.canUndo()}
-                        title={
-                            replay
-                                ? 'Undo the last replay move. Hold to keep going.'
-                                : 'Undo your last move this turn. Random outcomes replay the same way. Hold to keep going.'
-                        }
-                        {...holdUndo.pointerProps}
-                        onClick={holdUndo.onClickOnce(store.undo)}
-                    >
-                        Undo
-                    </button>
+                    {finished ? null : (
+                        <button
+                            type="button"
+                            class="b alt hold"
+                            disabled={!store.canUndo()}
+                            title={
+                                replay
+                                    ? 'Undo the last replay move. Hold to keep going.'
+                                    : 'Undo your last move this turn. Random outcomes replay the same way. Hold to keep going.'
+                            }
+                            {...holdUndo.pointerProps}
+                            onClick={holdUndo.onClickOnce(store.undo)}
+                        >
+                            Undo
+                        </button>
+                    )}
                     {replay ? (
                         <button type="button" class="b" title="Stop the replay here and play on yourself." onClick={store.takeOverReplay}>
                             Take over
@@ -609,7 +622,7 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                         class="b alt hand-tool"
                         aria-label={`Hand sorted by ${currentSort.name}. Sort by ${nextSort.name}.`}
                         title={`Sorted by ${currentSort.name}. Click to sort by ${nextSort.name}.`}
-                        onClick={() => setHandSort(nextHandSort(handSort))}
+                        onClick={() => rearrangeHand(() => setHandSort(nextHandSort(handSort)))}
                     >
                         <Glyph name="sort" />
                         <sub>{currentSort.letter}</sub>
@@ -620,7 +633,7 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                         aria-pressed={hidePlayed}
                         aria-label={hidePlayed ? 'Show played cards' : 'Hide played cards'}
                         title={hidePlayed ? 'Played cards are hidden. Click to show them.' : 'Click to hide the cards you have played.'}
-                        onClick={() => setHidePlayed(!hidePlayed)}
+                        onClick={() => rearrangeHand(() => setHidePlayed(!hidePlayed))}
                     >
                         <Glyph name={hidePlayed ? 'eye-off' : 'eye'} />
                     </button>

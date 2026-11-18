@@ -23,6 +23,8 @@ describe('Play simple', () => {
     it('plays cards whose effects all need no decision', () => {
         expect(isSimplePlay(card({ fx: ['draw'] }))).toBe(true)
         expect(isSimplePlay(card({ fx: ['flip', 'reapG'] }))).toBe(true)
+        expect(isSimplePlay(card({ fx: ['hoard'] }))).toBe(true)
+        expect(isSimplePlay(card({ fx: ['army'] }))).toBe(true)
         expect(isSimplePlay(card({ fx: ['draw', 'vault'] }))).toBe(false)
     })
 
