@@ -14,6 +14,7 @@ export const basics: EffectDef = {
     family: 'count',
     describe: (card) =>
         `+${slot(card, (c) => c.fxParams?.amount ?? 1, rangeOf(TERMS.amounts))} ${resourceSlot(card, 'gold', ALL_RESOURCES)} per ${slot(card, (c) => c.fxParams?.perCards ?? TERMS.defaultPerCards, rangeOf(TERMS.perCards))} basic cards in your deck`,
+    unconditional: true,
     enemies: true,
     needsAny: ['gold', 'power'],
     lean: ['moss'],

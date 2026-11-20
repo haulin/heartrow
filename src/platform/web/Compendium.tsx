@@ -15,6 +15,7 @@ import {
 } from './compendiumView'
 import type { CompendiumView } from './compendiumView'
 import { NEED_NAMES, TYPE_NAMES, effectName } from './custom'
+import { effectTooltip } from './text'
 import { runEffect } from './anim'
 import { Glyph } from './Glyph'
 import { Rich } from './Rich'
@@ -153,7 +154,6 @@ function HowItWorks({ onNavigate }: { onNavigate: (tab: 'types') => void }) {
         resourcePrice,
         leanShare,
     } = GENERATION
-    const [firstStep, ...laterSteps] = enemyShareSteps
     return (
         <>
             <p class="rules">
@@ -163,9 +163,8 @@ function HowItWorks({ onNavigate }: { onNavigate: (tab: 'types') => void }) {
             <div class="cmp-grid">
                 <Box title="What a new card is">
                     <dl class="facts">
-                        <Fact label="Enemy">{percent(firstStep!.share)}</Fact>
-                        {laterSteps.map((step) => (
-                            <Fact key={step.fromTurn} label={`Enemy, Long Run from turn ${step.fromTurn}`}>
+                        {enemyShareSteps.map((step) => (
+                            <Fact key={step.fromTurn} label={`Enemy from turn ${step.fromTurn}`}>
                                 {percent(step.share)}
                             </Fact>
                         ))}
@@ -399,7 +398,7 @@ function EffectDetail({
                         <Fact label="Leans">
                             {effect.lean.length > 0 ? effect.lean.map((colour) => TYPE_NAMES[colour]).join(', ') : 'No type'}
                         </Fact>
-                        {effect.mildLean ? (
+                        {effect.mildLean?.length ? (
                             <Fact label="Mild lean">{effect.mildLean.map((colour) => TYPE_NAMES[colour]).join(', ')}</Fact>
                         ) : null}
                         <Fact label="Can be on">
@@ -433,7 +432,13 @@ function EffectDetail({
                     <Box title={`Also in ${familyName(effect.family)}`}>
                         <div class="chips">
                             {others.map((other) => (
-                                <button key={other.id} type="button" class="chip" onClick={() => onNavigate({ ...view, effect: other.id })}>
+                                <button
+                                    key={other.id}
+                                    type="button"
+                                    class="chip"
+                                    title={effectTooltip(other.id)}
+                                    onClick={() => onNavigate({ ...view, effect: other.id })}
+                                >
                                     {effectName(other.id)}
                                 </button>
                             ))}
@@ -534,7 +539,7 @@ function Types({ view, onNavigate }: Pick<CompendiumProps, 'view' | 'onNavigate'
     const chipRow = (label: string, effects: EffectDef[]) => (
         <ChipRow label={label}>
             {effects.map((effect) => (
-                <button key={effect.id} type="button" class="chip" onClick={() => open(effect)}>
+                <button key={effect.id} type="button" class="chip" title={effectTooltip(effect.id)} onClick={() => open(effect)}>
                     {effectName(effect.id)}
                 </button>
             ))}

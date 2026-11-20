@@ -198,7 +198,10 @@ export interface ModeConfig {
     preset?: string
     /** The game version a link says this run was made in. */
     version?: string
+    /** The deadline for the goal. */
     turns: number
+    /** The last turn of a won run that plays on. Equal to `turns` when there is no more to play. */
+    playOnTurns: number
     flushEvery: number
     goal: number | null
     /** Which of `GOALS` this mode plays for. */

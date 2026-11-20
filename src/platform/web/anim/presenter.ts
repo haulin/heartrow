@@ -57,8 +57,9 @@ function warnIfHandOutOfStep(frame: Frame, root: ParentNode, effects: Effect[]):
     const before = frame.before.state.hand.map((c) => c.id)
     const leaving = departingIds(frame)
     const flying = effects.filter((e) => e.kind === 'flyCard' && e.el.closest('[data-zone="hand"]')).map((e) => idOf(e.el))
-    const sameHand = page.join() === before.join()
     const byId = (a: number, b: number): number => a - b
+    // The page shows the hand in the player's sort order, so only the set of cards has to match.
+    const sameHand = [...page].sort(byId).join() === [...before].sort(byId).join()
     const sameFlight = [...leaving].sort(byId).join() === [...flying].sort(byId).join()
     if (sameHand && sameFlight) return
     console.warn('heartrow animation: hand out of step', { move: frame.move.type, page, state: before, leaving, flying })

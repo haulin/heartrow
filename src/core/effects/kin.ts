@@ -11,7 +11,7 @@ export const kin: EffectDef = {
     describe: (card) => `+1 ${resourceSlot(card, card?.main ?? 'gold', ALL_RESOURCES)} per other ${typeSlot(card)} card played this turn`,
     needsAny: ['moss', 'ember', 'tide'],
     enemies: false,
-    lean: ['moss', 'ember'],
+    lean: ['moss', 'tide'],
     pays: 'rolled',
     retain: RETAIN_SOMETIMES,
     roll(rng, card, budget, context) {

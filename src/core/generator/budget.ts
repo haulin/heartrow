@@ -44,9 +44,13 @@ export const COUNT_GAIN_TERMS = {
     pile: { amounts: [1, 2], perCards: [3, 4, 5], defaultPerCards: 3, reference: 6, unitPrice: 1 },
     vault: { amounts: [1, 2], perCards: [3, 4, 5], defaultPerCards: 3, reference: 5.3, unitPrice: RESOURCE_PRICE.hearts },
 } as const
-/** All3 pays its resource for playing all three types, at two thirds of the value, so 2 ♥ costs 2 as the fixed text did. Hearts roll smaller amounts. */
+/**
+ * All3 pays its resource for playing all three types, at two thirds of the value, so 2 ♥ costs 2 as the fixed text did.
+ * Amounts start where the price reaches the recruit cost floor (2): below it an All3 costs the same as a plain card
+ * of the same gain, which has no condition. Hearts roll smaller amounts.
+ */
 export const ALL3_PRICE_FACTOR = 2 / 3
-export const ALL3_AMOUNTS = { gold: [2, 3, 4], power: [2, 3, 4], hearts: [1, 2, 3] } as const
+export const ALL3_AMOUNTS = { gold: [3, 4, 5], power: [3, 4, 5], hearts: [2, 3, 4] } as const
 export const BULK_CARDS_PER_STEP = 4
 /** Effects that roll a tier: a tier costs `unitPrice × tier − offset`. */
 export interface TierTerms {
@@ -56,13 +60,15 @@ export interface TierTerms {
 }
 /**
  * Weak, Cheap and Exile: a deeper tier costs more per unit, minus a base offset, so one unit costs 1.5 and two cost 4.5.
- * Bond: one card costs 0.5 and each extra one 0.7. Flip pays `tier` or `2 × tier + 1`, and costs 1.5 per tier.
+ * Foes: the same shape with the first tier at 2 (the old flat price) and two per enemy at 4.5.
+ * Bond: the first tier costs 0.6 and each extra one 0.8. Flip pays `tier` or `2 × tier + 1`, and costs 1.5 per tier.
  */
 export const TIER_TERMS = {
     discount: { tiers: [1, 2], unitPrice: 3, offset: 1.5 },
     exile: { tiers: [1, 2], unitPrice: 3, offset: 1.5 },
+    foes: { tiers: [1, 2], unitPrice: 2.5, offset: 0.5 },
     draw: { tiers: [1, 2, 3, 4], unitPrice: 2.5, offset: 1 },
-    bond: { tiers: [1, 2, 3], unitPrice: 0.7, offset: 0.2 },
+    bond: { tiers: [1, 2, 3, 4, 5], unitPrice: 0.8, offset: 0.2 },
     flip: { tiers: [1, 2, 3], unitPrice: 1.5, offset: 0 },
 } as const satisfies Record<string, TierTerms>
 /** Retain terms by how often waiting helps the effect: the more useful it is, the more often a card with that effect gets Retain. */

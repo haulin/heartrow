@@ -53,13 +53,13 @@ describe('compendium data', () => {
         const withoutList = EFFECTS.filter((effect) => effect.roll && !priceTable(effect)).map((effect) => effect.id)
         expect(withoutList).toEqual(['bulk'])
         expect(priceTable(EFFECT_BY_ID.all3)!.columns).toEqual(['Amount'])
-        // All 3 rolls 2 to 4 on gold and power but 1 to 3 on hearts, so an amount can have only one of the two prices.
-        expect(priceTable(EFFECT_BY_ID.all3)!.rows.find((row) => row.values[0] === 1)?.price).toBeNull()
+        // All 3 rolls 3 to 5 on gold and power but 2 to 4 on hearts, so an amount can have only one of the two prices.
+        expect(priceTable(EFFECT_BY_ID.all3)!.rows.find((row) => row.values[0] === 2)?.price).toBeNull()
         expect(priceTable(EFFECT_BY_ID.swap)).toBeNull()
     })
 
-    it('reads the enemy share from the goals', () => {
-        expect(GENERATION.enemyShareSteps[0]).toEqual({ fromTurn: 1, share: 0.35 })
+    it('reads the enemy share from the difficulty steps', () => {
+        expect(GENERATION.enemyShareSteps[0]).toEqual({ fromTurn: 1, share: 0.2 })
         expect(GENERATION.enemyShareSteps.length).toBeGreaterThan(1)
     })
 })

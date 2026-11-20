@@ -19,7 +19,7 @@ import type { CustomGenerator, EffectId, GeneratorResource, Keyword } from '../.
 import { presetIdOf } from './challenges'
 import { Glyph } from './Glyph'
 import { MAX_STARTER, NEED_NAMES, RESOURCE_NAMES, TYPE_NAMES, effectName } from './custom'
-import { goalLine } from './text'
+import { effectTooltip, goalLine } from './text'
 
 const KEYWORD_NAMES: Record<Keyword, string> = { retain: 'Retain' }
 
@@ -192,7 +192,7 @@ export function GeneratorScreen({
                             {EFFECTS.filter((effect) => effect.family === family.id).map((effect) => {
                                 const unmet = unmetNeeds(generator, effect.id)
                                 const off = unmet.length > 0
-                                const text = `${effect.describe()}\n${effect.blurb}`
+                                const text = effectTooltip(effect.id)
                                 const title = off ? `${text}\nNeeds ${unmet.map((need) => NEED_NAMES[need]).join(', ')}.` : text
                                 return (
                                     <label key={effect.id} class={`pick${off ? ' off' : ''}`} title={title}>

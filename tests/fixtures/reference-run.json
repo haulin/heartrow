@@ -1,6 +1,6 @@
 {
-    "version": "0.3.0",
-    "query": "?screen=play&seed=6000018&mode=standard&goal=1&types=moss,ember,tide,foe&res=gold,power,hearts&sg=6&sp=4&fx=draw,flip,exile,cheap,foes,all3,vault,basics,pile,hoard,bulk,bond,kin,weak,army,cycle,redraw,swap,reapG,reapP,reload,push,shift,echo,flush&kw=retain&v=0.3.0",
+    "version": "0.4.0",
+    "query": "?screen=play&seed=4261654838&mode=standard&goal=1&types=moss,ember,tide,foe&res=gold,power,hearts&sg=6&sp=4&fx=draw,flip,exile,cheap,foes,all3,vault,basics,pile,hoard,bulk,bond,kin,weak,army,cycle,redraw,swap,reapG,reapP,reload,push,shift,echo,flush&kw=retain&v=0.4.0",
     "moves": [
         {
             "type": "play",
@@ -24,103 +24,7 @@
         },
         {
             "type": "take",
-            "rowIndex": 3
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "flush"
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "take",
-            "rowIndex": 3
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "take",
-            "rowIndex": 3
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
+            "rowIndex": 1
         },
         {
             "type": "take",
@@ -128,133 +32,6 @@
         },
         {
             "type": "flush"
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "take",
-            "rowIndex": 3
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "take",
-            "rowIndex": 2
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 5
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "flush"
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "take",
-            "rowIndex": 3
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
         },
         {
             "type": "endTurn"
@@ -285,160 +62,7 @@
         },
         {
             "type": "take",
-            "rowIndex": 4
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "take",
-            "rowIndex": 4
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "flush"
-        },
-        {
-            "type": "take",
-            "rowIndex": 1
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "take",
-            "rowIndex": 4
-        },
-        {
-            "type": "take",
-            "rowIndex": 4
-        },
-        {
-            "type": "flush"
-        },
-        {
-            "type": "take",
-            "rowIndex": 3
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 4
+            "rowIndex": 2
         },
         {
             "type": "endTurn"
@@ -470,18 +94,6 @@
         {
             "type": "take",
             "rowIndex": 0
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "take",
-            "rowIndex": 0
-        },
-        {
-            "type": "take",
-            "rowIndex": 3
         },
         {
             "type": "endTurn"
@@ -516,6 +128,29 @@
         },
         {
             "type": "flush"
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 4
         },
         {
             "type": "take",
@@ -550,7 +185,57 @@
         },
         {
             "type": "take",
+            "rowIndex": 2
+        },
+        {
+            "type": "take",
+            "rowIndex": 0
+        },
+        {
+            "type": "take",
+            "rowIndex": 0
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "take",
+            "rowIndex": 0
+        },
+        {
+            "type": "take",
+            "rowIndex": 3
+        },
+        {
+            "type": "flush"
+        },
+        {
+            "type": "take",
             "rowIndex": 1
+        },
+        {
+            "type": "take",
+            "rowIndex": 0
         },
         {
             "type": "endTurn"
@@ -604,60 +289,7 @@
         },
         {
             "type": "take",
-            "rowIndex": 1
-        },
-        {
-            "type": "flush"
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 4
-        },
-        {
-            "type": "take",
-            "rowIndex": 2
-        },
-        {
-            "type": "endTurn"
-        },
-        {
-            "type": "play",
-            "handIndex": 0
-        },
-        {
-            "type": "play",
-            "handIndex": 1
-        },
-        {
-            "type": "play",
-            "handIndex": 2
-        },
-        {
-            "type": "play",
-            "handIndex": 3
-        },
-        {
-            "type": "play",
-            "handIndex": 4
+            "rowIndex": 4
         },
         {
             "type": "take",
@@ -688,10 +320,204 @@
         },
         {
             "type": "take",
+            "rowIndex": 4
+        },
+        {
+            "type": "take",
+            "rowIndex": 1
+        },
+        {
+            "type": "flush"
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "take",
+            "rowIndex": 0
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "take",
+            "rowIndex": 2
+        },
+        {
+            "type": "take",
+            "rowIndex": 1
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "take",
+            "rowIndex": 4
+        },
+        {
+            "type": "exile",
+            "handIndex": 4
+        },
+        {
+            "type": "skipExile"
+        },
+        {
+            "type": "take",
+            "rowIndex": 4
+        },
+        {
+            "type": "flush"
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "take",
             "rowIndex": 1
         },
         {
             "type": "take",
+            "rowIndex": 1
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "take",
+            "rowIndex": 4
+        },
+        {
+            "type": "exile",
+            "handIndex": 3
+        },
+        {
+            "type": "flush"
+        },
+        {
+            "type": "take",
             "rowIndex": 3
         },
         {
@@ -722,6 +548,14 @@
             "rowIndex": 3
         },
         {
+            "type": "take",
+            "rowIndex": 3
+        },
+        {
+            "type": "take",
+            "rowIndex": 2
+        },
+        {
             "type": "endTurn"
         },
         {
@@ -743,6 +577,87 @@
         {
             "type": "play",
             "handIndex": 4
+        },
+        {
+            "type": "take",
+            "rowIndex": 0
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "take",
+            "rowIndex": 3
+        },
+        {
+            "type": "take",
+            "rowIndex": 1
+        },
+        {
+            "type": "flush"
+        },
+        {
+            "type": "take",
+            "rowIndex": 3
+        },
+        {
+            "type": "take",
+            "rowIndex": 1
+        },
+        {
+            "type": "take",
+            "rowIndex": 0
+        },
+        {
+            "type": "endTurn"
+        },
+        {
+            "type": "play",
+            "handIndex": 0
+        },
+        {
+            "type": "play",
+            "handIndex": 1
+        },
+        {
+            "type": "play",
+            "handIndex": 2
+        },
+        {
+            "type": "play",
+            "handIndex": 3
+        },
+        {
+            "type": "play",
+            "handIndex": 4
+        },
+        {
+            "type": "take",
+            "rowIndex": 3
+        },
+        {
+            "type": "take",
+            "rowIndex": 1
         },
         {
             "type": "endTurn"
@@ -751,27 +666,27 @@
     "bot": {
         "profile": "smart",
         "selection": "profile-default",
-        "baseSeed": 6,
+        "baseSeed": 6000018,
         "gameIndex": 0,
-        "gameSeed": 6000018,
-        "botSeed": 3630056479,
+        "gameSeed": 4261654838,
+        "botSeed": 3590744003,
         "phase": null
     },
     "summary": {
-        "hearts": 22,
-        "goalHit": false,
-        "kills": 22,
-        "lostToEscapes": 18,
-        "bought": 20,
-        "exiled": 0,
-        "cards": 30,
-        "plays": 121,
-        "turns": 24,
-        "wastedGold": 36,
-        "wastedPower": 33,
-        "flushesLeft": 1,
-        "heartsT24": 26,
-        "moves": 194,
+        "hearts": 48,
+        "goalHit": true,
+        "kills": 26,
+        "lostToEscapes": 0,
+        "bought": 16,
+        "exiled": 2,
+        "cards": 24,
+        "plays": 100,
+        "turns": 20,
+        "wastedGold": 20,
+        "wastedPower": 23,
+        "flushesLeft": 0,
+        "heartsT24": null,
+        "moves": 172,
         "capped": false
     }
 }

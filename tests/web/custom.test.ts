@@ -49,8 +49,8 @@ describe('custom generator links', () => {
             goalLevel: 1,
             types: ['moss', 'tide'],
             resources: [...CUSTOM_RESOURCES],
-            starterGold: 6,
-            starterPower: 4,
+            starterGold: 7,
+            starterPower: 3,
         })
     })
 
@@ -88,7 +88,7 @@ describe('custom generator links', () => {
             `?screen=play&seed=5&mode=standard&${customQuery({ ...DEFAULT_CUSTOM, goalLevel: 1 })}&v=${__APP_VERSION__}`,
         )
         expect(customQuery({ ...DEFAULT_CUSTOM, types: ['moss'], effects: [] })).toBe(
-            'goal=1&types=moss&res=gold,power,hearts&sg=6&sp=4&fx=&kw=retain',
+            'goal=1&types=moss&res=gold,power,hearts&sg=7&sp=3&fx=&kw=retain',
         )
         expect(effectName('reapG')).toBe('Reap G')
         expect(effectName('draw')).toBe('Draw')

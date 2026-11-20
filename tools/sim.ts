@@ -215,9 +215,12 @@ function writeExtremeRun(
     )
 }
 
-/** Bots never choose to play on after the goal, so the simulator does it for Long Run, where the score is the hearts at the last turn. */
+/**
+ * Bots never choose to play on after the goal, so the simulator does it for Long Run, where the score is the hearts at the last turn.
+ * `--play-on` does it for every goal, which measures the hearts of a run that goes on to the last turn.
+ */
 function playOptionsOf(config: ModeConfig): PlayOptions {
-    return { playOn: config.goalIndex === LONG_GOAL }
+    return { playOn: config.goalIndex === LONG_GOAL || process.argv.includes('--play-on') }
 }
 
 /** The goal a run plays for: `--goal 1` to `4` or `long` (`--goal 5` is the same), or `--mode long` as the old spelling. */

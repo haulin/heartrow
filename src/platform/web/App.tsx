@@ -1,10 +1,11 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'preact/hooks'
-import { DEFAULT_CUSTOM, canContinue, customMode, customOfMode } from '../../core'
+import { DEFAULT_CUSTOM, canContinue, continueTarget, customMode, customOfMode } from '../../core'
 import type { CustomGenerator, EffectId, ModeConfig, Move } from '../../core'
 import {
     FRESH_VIEW,
     challengeList,
     challengeQuery,
+    heartsAtDeadline,
     importResults,
     improvementLines,
     loadImprovements,
@@ -43,7 +44,7 @@ import { applyTheme, loadSettings, saveSettings } from './settings'
 import { SKIN_IDS, getSkin } from './skins'
 import type { GameStore } from './store'
 import type { AppStorage } from './storage'
-import { spoken, statusMessage } from './text'
+import { spoken, statusMessage, unrecordedNote } from './text'
 import { useHoldRepeat } from './useHoldRepeat'
 import { buildCardView, edgeMark } from './view/cardView'
 
@@ -151,7 +152,7 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
         const improvements = { run: shareQuery(state.config, state.seed), lines }
         saveImprovements(storage, improvements)
         setImprovements(improvements)
-    }, [state.status, state.seed])
+    }, [state.status, state.seed, heartsAtDeadline(state)])
 
     // The summary opens when a run ends in front of the player. A run that was already over when the page opened, and a replay, do not open it.
     const lastSeen = useRef({ seed: state.seed, status: state.status })
@@ -539,8 +540,8 @@ export function App({ store, storage, initial, started: startedAtOpen = initial 
                         )
                     ) : null}
                     {playOn ? (
-                        <button type="button" class="b" onClick={playOn}>
-                            Keep playing to turn {state.maxTurns}
+                        <button type="button" class="b" title={unrecordedNote(state) ?? undefined} onClick={playOn}>
+                            Keep playing to turn {continueTarget(state)}
                         </button>
                     ) : null}
                     {finished ? (

@@ -165,19 +165,26 @@ export function resultOf(results: Results, challengeId: string, goal: number): R
  * independent, so a faster win with fewer hearts keeps the old best. Returns the new results, or null when nothing changed.
  */
 export function recordFinished(storage: AppStorage, state: GameState, version: string): Results | null {
-    if (state.status === 'playing') return null
+    const deadlineHearts = heartsAtDeadline(state)
+    if (state.status === 'playing' && deadlineHearts === null) return null
     const target = goalOfMode(state.config)
     if (!target) return null
     const results = loadResults(storage)
     const old = results[keyOf(target)]
-    const won = state.status === 'won' || old?.won === true
-    const best = Math.max(state.hearts, old?.best ?? state.hearts)
+    const won = state.goalMetTurn !== null || old?.won === true
+    const scored = deadlineHearts ?? state.hearts
+    const best = Math.max(scored, old?.best ?? scored)
     const metTurn = state.goalMetTurn
     const turn = metTurn !== null ? Math.min(metTurn, old?.turn ?? metTurn) : (old?.turn ?? null)
     if (old && old.won === won && old.best === best && old.turn === turn) return null
     const next = { ...results, [keyOf(target)]: { won, best, turn, version } }
     saveResults(storage, next)
     return next
+}
+
+/** The hearts at the end of the goal's last turn, once a run has played that far; hearts scored while playing on never count. */
+export function heartsAtDeadline(state: GameState): number | null {
+    return state.stats.heartsAtTurnEnd[state.config.turns - 1] ?? null
 }
 
 /** What a finished run changed in the record of its goal, as lines for the run summary. Empty when it beat nothing or has no goal. */

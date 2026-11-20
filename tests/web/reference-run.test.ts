@@ -32,17 +32,17 @@ describe('reference run', () => {
             piles: [state.deck.length, state.hand.length, state.discard.length, state.exile.length],
         }).toMatchInlineSnapshot(`
           {
-            "flushes": 1,
+            "flushes": 0,
             "gold": 0,
-            "hearts": 22,
+            "hearts": 48,
             "piles": [
-              14,
+              6,
               0,
-              16,
-              0,
+              18,
+              2,
             ],
             "power": 0,
-            "turn": 24,
+            "turn": 20,
           }
         `)
     })
@@ -50,37 +50,31 @@ describe('reference run', () => {
     it('ends with the same deck', () => {
         expect(deckSummary(state)).toMatchInlineSnapshot(`
           {
-            "ember": 6,
-            "fxGold": 4,
+            "ember": 2,
+            "fxGold": 2,
             "fxHearts": 1,
-            "fxOther": 5,
+            "fxOther": 7,
             "fxPower": 3,
-            "gold": 23,
-            "hearts": 1,
-            "moss": 7,
-            "plain": 10,
-            "power": 20,
-            "tide": 7,
-            "total": 30,
+            "gold": 15,
+            "hearts": 2,
+            "moss": 5,
+            "plain": 8,
+            "power": 14,
+            "tide": 9,
+            "total": 24,
           }
         `)
         const line = (c: (typeof cards)[number]) =>
             `${c.type} ${c.kind} cost ${c.cost}: ${c.gold}g ${c.power}p ${c.hearts}h [${c.fx.join(',')}]`
         expect(cards.map(line).sort()).toMatchInlineSnapshot(`
           [
-            "ember recruit cost 2: 0g 0p 0h [flip]",
-            "ember recruit cost 2: 0g 0p 0h [reload]",
-            "ember recruit cost 2: 0g 2p 0h []",
-            "ember recruit cost 2: 0g 2p 0h []",
-            "ember recruit cost 3: 0g 1p 1h []",
-            "ember recruit cost 4: 0g 3p 0h []",
-            "moss recruit cost 3: 1g 0p 0h [basics]",
-            "moss recruit cost 3: 1g 0p 0h [swap]",
-            "moss recruit cost 4: 1g 0p 0h [kin]",
-            "moss recruit cost 4: 1g 1p 0h [swap]",
-            "moss recruit cost 4: 2g 0p 0h [basics]",
-            "moss recruit cost 4: 2g 0p 0h [swap]",
-            "moss recruit cost 5: 1g 3p 0h []",
+            "ember recruit cost 4: 1g 1p 0h [weak]",
+            "ember recruit cost 6: 0g 2p 0h [vault]",
+            "moss recruit cost 2: 0g 0p 0h [bond]",
+            "moss recruit cost 2: 0g 0p 0h [redraw]",
+            "moss recruit cost 3: 0g 0p 0h [hoard]",
+            "moss recruit cost 3: 2g 0p 0h []",
+            "moss recruit cost 4: 2g 0p 0h [cheap]",
             "plain basic cost 0: 0g 1p 0h []",
             "plain basic cost 0: 0g 1p 0h []",
             "plain basic cost 0: 0g 1p 0h []",
@@ -89,15 +83,15 @@ describe('reference run', () => {
             "plain basic cost 0: 1g 0p 0h []",
             "plain basic cost 0: 1g 0p 0h []",
             "plain basic cost 0: 1g 0p 0h []",
-            "plain basic cost 0: 1g 0p 0h []",
-            "plain basic cost 0: 1g 0p 0h []",
-            "tide recruit cost 3: 0g 1p 0h [all3]",
+            "tide recruit cost 2: 0g 0p 0h [pile]",
+            "tide recruit cost 2: 0g 0p 0h [weak]",
+            "tide recruit cost 3: 0g 0p 2h []",
             "tide recruit cost 3: 0g 1p 0h [cheap]",
-            "tide recruit cost 3: 3g 0p 0h []",
-            "tide recruit cost 3: 3g 0p 0h []",
-            "tide recruit cost 4: 0g 1p 0h [all3]",
-            "tide recruit cost 4: 1g 0p 0h [foes]",
-            "tide recruit cost 4: 1g 1p 0h [all3]",
+            "tide recruit cost 3: 0g 1p 0h [pile]",
+            "tide recruit cost 3: 0g 1p 0h [reload]",
+            "tide recruit cost 3: 1g 0p 0h [hoard]",
+            "tide recruit cost 7: 2g 1p 0h [echo]",
+            "tide recruit cost 7: 3g 3p 0h []",
           ]
         `)
     })

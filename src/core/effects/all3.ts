@@ -17,7 +17,7 @@ export const all3: EffectDef = {
     price: variantPrice('hearts', ALL3_AMOUNTS.hearts[0]),
     family: 'streak',
     describe: (card) =>
-        `+${slot(card, (c) => c.fxParams?.amount ?? DEFAULT_AMOUNT, '1-4')} ${resourceSlot(card, DEFAULT_RESOURCE, '●/⚔/♥')} if you played all 3 types this turn`,
+        `+${slot(card, (c) => c.fxParams?.amount ?? DEFAULT_AMOUNT, '2-5')} ${resourceSlot(card, DEFAULT_RESOURCE, '●/⚔/♥')} if you played all 3 types this turn`,
     enemies: false,
     needs: ['moss', 'ember', 'tide'],
     lean: ['tide'],

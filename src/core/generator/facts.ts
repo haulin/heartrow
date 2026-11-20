@@ -1,4 +1,4 @@
-import { GOALS } from '../modes'
+import { ENEMY_SHARE_STEPS } from '../modes'
 import {
     EFFECT_CHANCE,
     HM,
@@ -11,7 +11,7 @@ import {
     LEAN_SHARE,
 } from './budget'
 
-/** The share of new cards that are enemies from a turn on. Long Run has the most steps, and the levels use the first one. */
+/** The share of new cards that are enemies from a turn on. */
 export interface EnemyShareStep {
     fromTurn: number
     share: number
@@ -19,7 +19,7 @@ export interface EnemyShareStep {
 
 /** The numbers the generator works with, for the compendium. They are the constants the generator reads, so a page built from them cannot drift. */
 export const GENERATION = {
-    enemyShareSteps: GOALS[GOALS.length - 1]!.steps.map((step): EnemyShareStep => ({ fromTurn: step.fromTurn, share: step.foeChance })),
+    enemyShareSteps: ENEMY_SHARE_STEPS satisfies EnemyShareStep[],
     /** The chance that a card of the type carries an effect (before the pool of effects thins it; see `effectChance` in `make.ts`). */
     effectChance: { moss: EFFECT_CHANCE, ember: EFFECT_CHANCE, tide: TIDE_EFFECT_CHANCE, foe: EFFECT_CHANCE },
     plainRetainChance: PLAIN_RETAIN_CHANCE,

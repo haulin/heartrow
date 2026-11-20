@@ -8,7 +8,7 @@ Every table comes from the same command shape, one process per bot, at most seve
 
 Goals: 1 is Standard goal 48 hearts, 2 is 64, 3 is 80 and 4 is 96. Presets are measured at goal 1 unless the heading says otherwise. Mean ♥, median, P10 and P90 are the hearts at the end of the run, so they do not depend on the goal. In the preset tables "Before" columns repeat the measurement without the effects named in the text above that table.
 
-Version 0.3.0. Bots: flush and end turn count only takes the buying policies allow, `lab-human` exiles by deck average (10% drop), and `edgeFollowUp` is in `lab-human`, `mixed` and `build`. `lab-human` values Exile at 7, counts Cycle and Purge as one family when pricing effect copies, values Flush only while it holds fewer than two spare flushes, gives Shift a low value, counts every effect that pays hearts on its card (Vault, Reap, and Flip, Bond, Kin, Army, All3, Hoard, Basics or Pile when their rolled payout is hearts) as a heart card, values a Flip at the mean of its two outcomes for its rolled tier, and starts its heart phase at turn 8 instead of 16 (and its economy phase ends at 3 instead of 6) when the generator has no enemies. `retainAware` holds a Retain Weak card until an enemy is in the row, holds a Retain Shift until no enemy would fall off the Gate and 2 or more resources are left, and holds a plain Retain gain when it opens no new buy and a pricier one is about a turn of income away.
+Version 0.4.0. Every table was re-measured for 0.4.0 except the side figures in the notes under the tables (leans moved, Bond, All3 and Foes priced differently, Pile added to Tide hearts and Pacifist, and one ramp for every goal with an enemy share of 20% in turns 1 to 6 and 35% after). The Standard starter is 7 ● and 3 ⚔. Presets without enemies went up. Moss economy, Tide hearts, Pacifist and Attack only were measured on the first ramp of 15%, 25% and 35% (presets without enemies, and Attack only with nothing but enemies, do not feel the share), so they were not repeated. Bots: flush and end turn count only takes the buying policies allow, `lab-human` exiles by deck average (10% drop), and `edgeFollowUp` is in `lab-human`, `mixed` and `build`. `lab-human` values Exile at 7, counts Cycle and Purge as one family when pricing effect copies, values Flush only while it holds fewer than two spare flushes, gives Shift a low value, counts every effect that pays hearts on its card (Vault, Reap, and Flip, Bond, Kin, Army, All3, Hoard, Basics or Pile when their rolled payout is hearts) as a heart card, values a Flip at the mean of its two outcomes for its rolled tier, and starts its heart phase at turn 8 instead of 16 (and its economy phase ends at 3 instead of 6) when the generator has no enemies. `retainAware` holds a Retain Weak card until an enemy is in the row, holds a Retain Shift until no enemy would fall off the Gate and 2 or more resources are left, and holds a plain Retain gain when it opens no new buy and a pricier one is about a turn of income away.
 
 Engine in 0.3.0: Flush effect, Retain on plain recruits and the `keywords` knob, Cycle and Redraw drawing their shortfall from a reshuffle of the cards they just discarded, rolled amounts for Vault, Pile, Basics and All3, Shift in Ember, tiered prices for Draw, Flip, Bond, Exile, Weak and Cheap, a cost base per card type, and one payout currency roll for every effect that pays a resource. The Simple only preset starts with 5 ● and 3 ⚔, and Moss economy with 7 ●.
 
@@ -20,28 +20,28 @@ Only the rows worth reading were re-measured for 0.3.0: Standard Levels 1 to 3 f
 
 | Bot         | Hit | Mean ♥ | Median | P10 | P90 | Worst | Best |
 | ----------- | --- | ------ | ------ | --- | --- | ----- | ---- |
-| `lab-human` | 41% | 41.2   | 44     | 26  | 51  | −15   | 69   |
-| `mixed`     | 38% | 39.6   | 42     | 23  | 51  | −39   | 83   |
-| `build`     | 33% | 38.2   | 41     | 21  | 51  | −33   | 83   |
-| `smart`     | 16% | 32.6   | 33     | 16  | 49  | −26   | 61   |
+| `lab-human` | 36% | 40.1   | 42     | 25  | 51  | −11   | 69   |
+| `mixed`     | 35% | 38.8   | 41     | 22  | 51  | −27   | 110  |
+| `build`     | 31% | 37.8   | 40     | 21  | 51  | −28   | 79   |
+| `smart`     | 13% | 31.4   | 32     | 14  | 48  | −32   | 78   |
 
 ## Standard goal 64
 
 | Bot         | Hit | Mean ♥ | Median | P10 | P90 | Worst | Best |
 | ----------- | --- | ------ | ------ | --- | --- | ----- | ---- |
-| `lab-human` | 9%  | 43.9   | 44     | 26  | 62  | −15   | 81   |
-| `mixed`     | 9%  | 42.1   | 42     | 23  | 62  | −39   | 91   |
-| `build`     | 6%  | 40.2   | 40     | 21  | 59  | −33   | 83   |
-| `smart`     | 1%  | 33.3   | 33     | 16  | 51  | −26   | 80   |
+| `lab-human` | 7%  | 42.2   | 42     | 25  | 60  | −11   | 81   |
+| `mixed`     | 7%  | 40.9   | 41     | 22  | 60  | −27   | 110  |
+| `build`     | 6%  | 39.6   | 40     | 21  | 59  | −28   | 87   |
+| `smart`     | 1%  | 31.9   | 32     | 14  | 50  | −32   | 80   |
 
 ## Standard goal 80
 
 | Bot         | Hit | Mean ♥ | Median | P10 | P90 | Worst | Best |
 | ----------- | --- | ------ | ------ | --- | --- | ----- | ---- |
-| `lab-human` | 1%  | 44.2   | 44     | 26  | 62  | −15   | 91   |
-| `mixed`     | 1%  | 42.5   | 42     | 23  | 62  | −39   | 99   |
-| `build`     | 1%  | 40.4   | 40     | 21  | 59  | −33   | 100  |
-| `smart`     | 0%  | 33.4   | 33     | 16  | 51  | −26   | 85   |
+| `lab-human` | 1%  | 42.5   | 42     | 25  | 60  | −11   | 94   |
+| `mixed`     | 1%  | 41.2   | 41     | 22  | 60  | −27   | 110  |
+| `build`     | 1%  | 39.8   | 40     | 21  | 59  | −28   | 94   |
+| `smart`     | 0%  | 31.9   | 32     | 14  | 50  | −32   | 90   |
 
 ## Standard Long Run
 
@@ -49,10 +49,12 @@ The goal `long`: 200 ♥ in 42 turns, played on to the last turn after the goal 
 
 | Bot         | Hit | Mean ♥ | Median | P10 | P90 |
 | ----------- | --- | ------ | ------ | --- | --- |
-| `lab-human` | 1%  | 97.3   | 97     | 45  | 149 |
-| `mixed`     | 1%  | 83.9   | 82     | 32  | 137 |
-| `build`     | 0%  | 79.7   | 79     | 31  | 131 |
-| `smart`     | 0%  | 55.5   | 55     | 12  | 100 |
+| `lab-human` | 2%  | 103.8  | 102    | 54  | 155 |
+| `mixed`     | 0%  | 87.1   | 87     | 38  | 139 |
+| `build`     | 0%  | 67.6   | 67     | 21  | 117 |
+| `smart`     | 0%  | 44.6   | 44     | 1   | 88  |
+
+`build` and `smart` are from the first ramp (15%, 25%, 35%) with the old 6 ● / 4 ⚔ starter and were not re-measured. Playing on in Standard goal 48 with `--play-on` was measured only on that first ramp (`lab-human` 49.4 ♥ mean, `mixed` 44.9, medians the same as at turn 24).
 
 ## Moss economy preset
 
@@ -60,12 +62,12 @@ Custom generator `moss` from `src/core/custom.ts`, 24 turns, goal 48: `--preset 
 
 | Bot         | Hit | Mean ♥ | P10 | P90 |
 | ----------- | --- | ------ | --- | --- |
-| `lab-human` | 50% | 44.7   | 34  | 52  |
-| `smart`     | 17% | 35.2   | 22  | 49  |
-| `pacifist`  | 14% | 33.2   | 19  | 49  |
-| `mixed` \*  | 7%  | 29.2   | 16  | 45  |
+| `lab-human` | 47% | 44.6   | 34  | 52  |
+| `smart`     | 27% | 38.7   | 25  | 50  |
+| `pacifist`  | 23% | 37.1   | 23  | 50  |
+| `mixed` \*  | 13% | 33.3   | 19  | 48  |
 
-\* The same result for `build`. `lab-human` leads because its hearts phase starts at turn 8 when there are no enemies. The preset starts with 7 Basics of 1 ●. With the usual 10 Basics `lab-human` scored 21%, `smart` 5%, `pacifist` 5% and `mixed` 2%. `lab-human` with 7 Basics also scores 14% at goal 64 and 3% at goal 80.
+\* The same result for `build`. `lab-human` leads because its hearts phase starts at turn 8 when there are no enemies. The preset starts with 7 Basics of 1 ●. With the usual 10 Basics `lab-human` scored 21%, `smart` 5%, `pacifist` 5% and `mixed` 2%. `lab-human` with 7 Basics also scored 14% at goal 64 and 3% at goal 80 (0.3.0 figures, not re-measured).
 
 ## Ember combat preset
 
@@ -73,20 +75,25 @@ Custom generator `ember`, 16 effects: draw, flip, exile, foes, pile, hoard, bulk
 
 | Bot         | L1  | L2  | L3  | Mean ♥ | P10 | P90 |
 | ----------- | --- | --- | --- | ------ | --- | --- |
-| `lab-human` | 65% | 21% | 3%  | 52.3   | 35  | 70  |
-| `mixed`     | 74% | 31% | 6%  | 56.1   | 37  | 75  |
-| `smart`     | 42% | 8%  | 1%  | 44.5   | 27  | 62  |
+| `lab-human` | 48% | 11% | 1%  | 46.6   | 29  | 64  |
+| `mixed`     | 60% | 18% | 2%  | 50.3   | 32  | 69  |
+| `smart`     | 27% | 4%  | 0%  | 38.9   | 21  | 56  |
 
 ## Tide hearts and Pacifist presets
 
-Custom generators `tide` and `pacifist` (effect lists in `src/core/custom.ts`, each with Echo and Flush). Hit is at goal 48. `lab-human` has no enemies to fight here, so it starts its heart phase at turn 8; with the default phase it scored 13% (32.9 ♥) on Tide and 0% (19.7 ♥) on Pacifist.
+Custom generators `tide` and `pacifist` (effect lists in `src/core/custom.ts`, each with Echo and Flush). Hit is at goal 48. `lab-human` has no enemies to fight here, so it starts its heart phase at turn 8; with the default phase it scored 13% (32.9 ♥) on Tide and 0% (19.7 ♥) on Pacifist (0.3.0 figures). Tide hearts has Draw, Cheap, Pile, Hoard, Bond, Cycle, Redraw, Echo and Flush, and Pacifist is the hearts-from-everything list (Moss, Ember and Tide recruits, gold and hearts, 10 Basic gold cards) since 0.4.0.
 
 | Preset     | Bot         | Hit | Mean ♥ | P10 | P90 |
 | ---------- | ----------- | --- | ------ | --- | --- |
-| `tide`     | `lab-human` | 77% | 48.5   | 41  | 54  |
-| `tide`     | `smart`     | 46% | 43.5   | 32  | 51  |
-| `pacifist` | `lab-human` | 38% | 42.7   | 32  | 52  |
-| `pacifist` | `pacifist`  | 39% | 41.8   | 29  | 51  |
+| `tide`     | `lab-human` | 90% | 50.6   | 48  | 56  |
+| `tide`     | `mixed`     | 63% | 46.6   | 35  | 54  |
+| `tide`     | `smart`     | 64% | 46.6   | 37  | 53  |
+| `pacifist` | `lab-human` | 45% | 43.6   | 31  | 53  |
+| `pacifist` | `pacifist`  | 36% | 40.9   | 27  | 51  |
+| `pacifist` | `smart`     | 25% | 38.8   | 26  | 50  |
+| `pacifist` | `mixed`     | 19% | 35.7   | 21  | 49  |
+
+Tide hearts at goal 64: `lab-human` 52% (61.0 ♥). Pacifist at goal 64: `lab-human` 12% (46.6 ♥), `pacifist` 7% (43.2 ♥).
 
 The `pacifist` bot is the one built for the Pacifist preset. `lab-human` matches it there (38% against 39% is within noise).
 
@@ -96,7 +103,7 @@ Custom generator `attack` (flip, foes, bulk, weak, push, shift, flush). The rive
 
 | Bot            | Hit | Mean ♥ | Median | P10 | P90 | Worst | Best |
 | -------------- | --- | ------ | ------ | --- | --- | ----- | ---- |
-| `lab-human` \* | 27% | 44.7   | 32     | 13  | 107 | −30   | 284  |
+| `lab-human` \* | 28% | 45.4   | 33     | 13  | 108 | −26   | 334  |
 
 \* The same result for `mixed` and `build`.
 
@@ -106,7 +113,7 @@ Custom generator `simple` (no effects), with its start of 5 ● and 3 ⚔ (8 Bas
 
 | Bot         | L1  | L2  | L3  | Mean ♥ (L3 run) | Median | P10 | P90 |
 | ----------- | --- | --- | --- | --------------- | ------ | --- | --- |
-| `lab-human` | 77% | 31% | 4%  | 56.4            | 57     | 40  | 73  |
+| `lab-human` | 71% | 23% | 2%  | 53.6            | 54     | 37  | 70  |
 
 For reference, `lab-human` at 0.2.0 with the usual 10 Basics scored 55%, 9% and 0% on Levels 1 to 3 (47.9 ♥), and 92%, 59% and 17% with 5 Basics. With the 0.3.0 generator and 5 Basics (a start of 3 ● and 2 ⚔) it scored 93%, 65% and 22% (67.4 ♥). Simple has no effects, so the likely cause of that rise is the cost base per card type (cards get slightly more stats per cost), but this was not isolated. The designer's hand runs with 5 Basics beat every bot at Levels 3 and 4.
 

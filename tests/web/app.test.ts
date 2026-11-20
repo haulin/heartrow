@@ -53,8 +53,8 @@ describe('App home screen', () => {
         press(host, 'About')
         const about = host.querySelector('dialog')!
         expect(about.textContent).toContain('roguelike deckbuilder')
-        expect(about.textContent).toContain('25,309 distinct recruits')
-        expect(about.textContent).toContain('1,564 distinct enemies')
+        expect(about.textContent).toContain('26,572 distinct recruits')
+        expect(about.textContent).toContain('1,567 distinct enemies')
         expect(about.textContent).not.toContain('100,000')
         expect(about.querySelectorAll('.ico')).toHaveLength(3)
         expect(about.querySelector('.ico.g')).not.toBeNull()
@@ -116,7 +116,11 @@ describe('App run summary', () => {
         const { host, store } = mount(4, 'off', 'game')
         expect(Array.from(host.querySelectorAll('.bar button')).map((button) => button.textContent)).toContain('End turn')
         endTheRun(store)
-        expect(Array.from(host.querySelectorAll('.bar button')).map((button) => button.textContent)).toEqual(['Run summary'])
+        // A run that ends before the last turn of play can go on, so that button sits beside the summary.
+        expect(Array.from(host.querySelectorAll('.bar button')).map((button) => button.textContent)).toEqual([
+            'Keep playing to turn 42',
+            'Run summary',
+        ])
     })
 
     it('has one tab per panel, shows Stats first, and switches panels by tab', () => {
@@ -570,6 +574,32 @@ describe('animation module', () => {
             expect(store.getHolds()).toEqual({})
             expect([store.getState().gold, store.getState().power]).toEqual([1, 6])
         } finally {
+            proto.animate = saved
+        }
+    })
+
+    it('does not warn that the hand is out of step when the hand is sorted differently from the draw order', async () => {
+        const proto = HTMLElement.prototype as unknown as { animate?: unknown }
+        const saved = proto.animate
+        proto.animate = () => ({ finished: Promise.resolve(), cancel() {}, addEventListener() {} })
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+        try {
+            const { host, store } = mount(4, 'fast')
+            const hand = store.getState().hand
+            Object.assign(hand[hand.length - 1]!, { fx: ['swap'], main: 'gold' })
+            const sort = host.querySelector<HTMLButtonElement>('button.hand-tool')!
+            void act(() => sort.click())
+            void act(() => sort.click())
+            const shown = Array.from(host.querySelectorAll('[data-zone="hand"] [data-card-id]')).map((el) =>
+                Number(el.getAttribute('data-card-id')),
+            )
+            expect(shown).not.toEqual(hand.map((card) => card.id))
+            void act(() => host.querySelector<HTMLButtonElement>('[data-zone="hand"] button.card')!.click())
+            await act(() => new Promise((r) => setTimeout(r, 20)))
+            expect(store.getState().hand.some((card) => card.played)).toBe(true)
+            expect(warn).not.toHaveBeenCalled()
+        } finally {
+            warn.mockRestore()
             proto.animate = saved
         }
     })

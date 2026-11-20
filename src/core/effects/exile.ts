@@ -16,8 +16,8 @@ export const exile: EffectDef = {
             ? 'Exile a card or river recruit'
             : `Exile ${slot(card, (c) => c.fxParams?.amount ?? 1, rangeOf(TERMS.tiers))} cards or river recruits`,
     enemies: true,
-    lean: ['ember'],
-    mildLean: ['moss', 'tide'],
+    lean: ['moss', 'ember', 'tide'],
+    mildLean: [],
     retain: RETAIN_OFTEN,
     roll: rollAmountTier(TERMS),
     apply({ state, card }) {

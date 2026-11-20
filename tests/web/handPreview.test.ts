@@ -121,7 +121,10 @@ describe('previewHand: effects', () => {
 
     it('stays the same when an enemy is defeated and the hand did not change', () => {
         const hand = [card(2, 0, 0, ['flip']), card(0, 0, 0, ['swap']), card(0, 0, 0, ['echo']), card(4, 3, 0)]
-        const state = stateWith(hand, { gold: 3, power: 9 })
+        const hasPlainEnemy = (s: GameState) => s.row.some((c) => c.kind === 'enemy' && c.fx.length === 0)
+        // The first turns have few enemies, so take the first seed whose river has a plain one.
+        const seed = Array.from({ length: 50 }, (_, i) => i + 5).find((n) => hasPlainEnemy(stateWith(hand, undefined, n)))!
+        const state = stateWith(hand, { gold: 3, power: 9 }, seed)
         const rowIndex = state.row.findIndex((c) => c.kind === 'enemy' && c.fx.length === 0)
         expect(rowIndex).toBeGreaterThanOrEqual(0)
         const after = applyMove(state, { type: 'take', rowIndex })

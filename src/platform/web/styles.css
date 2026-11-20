@@ -737,6 +737,12 @@ dialog h3 {
     min-height: 120px;
     overflow: visible;
 }
+.play-on-note {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--dim);
+}
 .hearts-chart figcaption {
     margin-top: 6px;
     font-size: 12px;

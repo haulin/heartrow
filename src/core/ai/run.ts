@@ -65,7 +65,7 @@ export function playGame(
     let heartsT24: number | null = null
     const chosenMoves: Move[] = []
     while (moves < maxMoves) {
-        if (state.status === 'won' && options.playOn && canContinue(state)) {
+        if (options.playOn && canContinue(state)) {
             state = applyMove(state, CONTINUE).state
             chosenMoves.push(CONTINUE)
             continue

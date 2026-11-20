@@ -15,7 +15,7 @@ export const pile: EffectDef = {
         `+${slot(card, (c) => c.fxParams?.amount ?? 1, rangeOf(TERMS.amounts))} ${resourceSlot(card, 'power', ALL_RESOURCES)} per ${slot(card, (c) => c.fxParams?.perCards ?? TERMS.defaultPerCards, rangeOf(TERMS.perCards))} cards in your discard`,
     enemies: true,
     needsAny: ['gold', 'power'],
-    lean: ['ember'],
+    lean: ['tide'],
     pays: 'rolled',
     retain: RETAIN_OFTEN,
     roll: (rng, card, budget, context) => rollCountGain(rng, card, budget, context, TERMS),

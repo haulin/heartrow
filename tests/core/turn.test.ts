@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vitest'
-import { LONG_MODE, applyMove, cloneState, legalMoves, makeCard, makeRiverCard, standardMode } from '../../src/core'
+import {
+    LONG_MODE,
+    applyMove,
+    canContinue,
+    cloneState,
+    continueTarget,
+    legalMoves,
+    makeCard,
+    makeRiverCard,
+    standardMode,
+} from '../../src/core'
 import { CARDS_PER_EXTRA_TURN } from '../../src/core/generator/budget'
 import { basicCard, blank, enemy, eventTypes, mk } from './helpers'
 
@@ -55,35 +65,71 @@ describe('endTurn ordering', () => {
     })
 
     it('stops at the goal, and a continued run plays on and still counts the win after hearts are lost', () => {
-        const s = blank(LONG_MODE)
+        const s = blank()
         s.hearts = s.goal!
         const won = applyMove(s, { type: 'endTurn' }).state
         expect(won).toMatchObject({ status: 'won', goalMetTurn: 1, continued: false, turn: 1 })
         expect(legalMoves(won)).toEqual([])
+        expect(continueTarget(won)).toBe(won.config.turns)
         const { state: after, events } = applyMove(won, { type: 'continue' })
-        expect(after).toMatchObject({ status: 'playing', continued: true, turn: 2 })
+        expect(after).toMatchObject({ status: 'playing', continued: true, turn: 2, maxTurns: after.config.turns })
         expect(eventTypes(events)).toContain('turnStarted')
         // The goal was met at the end of the turn, so a run that plays on does not announce it as reached later.
         after.hand = [mk({ gold: 1 })]
         expect(eventTypes(applyMove(after, { type: 'play', handIndex: 0 }).events)).not.toContain('goalReached')
         after.hearts = 0
         after.turn = after.maxTurns
-        const done = applyMove(after, { type: 'endTurn' }).state
+        const atDeadline = applyMove(after, { type: 'endTurn' }).state
+        expect(atDeadline).toMatchObject({ status: 'won', goalMetTurn: 1, turn: after.config.turns })
+        expect(continueTarget(atDeadline)).toBe(after.config.playOnTurns)
+        const playedOn = applyMove(atDeadline, { type: 'continue' }).state
+        expect(playedOn).toMatchObject({ status: 'playing', maxTurns: after.config.playOnTurns })
+        playedOn.turn = playedOn.maxTurns
+        const done = applyMove(playedOn, { type: 'endTurn' }).state
         expect(done).toMatchObject({ status: 'won', goalMetTurn: 1 })
         expect(applyMove(done, { type: 'continue' }).events).toEqual([{ type: 'rejected', reason: 'cannotContinue' }])
     })
 
-    it('cannot continue a run that is playing, lost, already continued or won on the last turn', () => {
+    it('cannot continue a run that is playing, already continued or finished on the last turn of play', () => {
         const playing = blank()
         expect(applyMove(playing, { type: 'continue' }).events).toEqual([{ type: 'rejected', reason: 'cannotContinue' }])
-        const last = blank()
-        last.turn = last.maxTurns
+        const last = blank(LONG_MODE)
+        last.turn = last.config.playOnTurns
         last.hearts = last.goal!
         const wonLast = applyMove(last, { type: 'endTurn' }).state
         expect(wonLast.status).toBe('won')
         expect(applyMove(wonLast, { type: 'continue' }).state).toBe(wonLast)
-        last.hearts = 0
-        expect(applyMove(applyMove(last, { type: 'endTurn' }).state, { type: 'continue' }).state.status).toBe('lost')
+        const continued = blank()
+        continued.turn = continued.maxTurns
+        continued.hearts = continued.goal!
+        const wonThenContinued = applyMove(applyMove(continued, { type: 'endTurn' }).state, { type: 'continue' }).state
+        expect(canContinue(wonThenContinued)).toBe(false)
+    })
+
+    it('lets a run that missed its goal play on, without ever winning', () => {
+        const s = blank()
+        s.turn = s.maxTurns
+        s.hearts = s.goal! - 1
+        const lost = applyMove(s, { type: 'endTurn' }).state
+        expect(lost.status).toBe('lost')
+        const continued = applyMove(lost, { type: 'continue' }).state
+        expect(continued.status).toBe('playing')
+        continued.hearts = continued.goal! + 10
+        continued.turn = continued.maxTurns
+        const end = applyMove(continued, { type: 'endTurn' }).state
+        expect(end.goalMetTurn).toBeNull()
+        expect(end.status).toBe('lost')
+    })
+
+    it('plays on from the deadline to the last turn of play', () => {
+        const s = blank()
+        s.turn = s.maxTurns
+        s.hearts = s.goal!
+        const won = applyMove(s, { type: 'endTurn' }).state
+        expect(won.status).toBe('won')
+        const continued = applyMove(won, { type: 'continue' }).state
+        expect(continued).toMatchObject({ status: 'playing', continued: true, maxTurns: s.config.playOnTurns })
+        expect(continued.turn).toBe(s.maxTurns + 1)
     })
 
     it('refills the row with the next turn difficulty and discards, retains and draws five', () => {

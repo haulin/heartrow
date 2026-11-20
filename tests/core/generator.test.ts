@@ -34,6 +34,7 @@ const TIERED_EFFECTS: Partial<Record<string, { terms: keyof typeof TIER_TERMS; p
     weak: { terms: 'discount', param: 'amount' },
     cheap: { terms: 'discount', param: 'amount' },
     exile: { terms: 'exile', param: 'amount' },
+    foes: { terms: 'foes', param: 'amount' },
     flip: { terms: 'flip', param: 'amount' },
     bond: { terms: 'bond', param: 'bondCount' },
 }
@@ -144,7 +145,7 @@ describe('makeCard', () => {
             )
         }
         expect(maxCost(standardMode(0), 24)).toBeLessThanOrEqual(11)
-        expect(maxCost(standardMode(0), 60)).toBeLessThanOrEqual(11)
+        expect(maxCost(standardMode(0), 40)).toBeGreaterThan(11)
         expect(maxCost(LONG_MODE, 40)).toBeGreaterThan(11)
     })
 

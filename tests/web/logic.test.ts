@@ -266,7 +266,7 @@ describe('store and session', () => {
 
     it('summarises the deck', () => {
         const d = deckSummary(startSession(standardMode(0), 1).state)
-        expect(d).toMatchObject({ total: 10, gold: 6, power: 4, plain: 10 })
+        expect(d).toMatchObject({ total: 10, gold: 7, power: 3, plain: 10 })
     })
 
     it('counts an effect under the resource its card rolled', () => {

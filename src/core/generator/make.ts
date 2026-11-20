@@ -1,7 +1,8 @@
 import { EFFECT_BY_ID, EFFECTS, effectPrice } from '../effects'
+import { payoutOptions, pickPayoutResource } from '../effects/payout'
 import { stepForTurn } from '../modes'
 import { chance, nextFloat, nextInt } from '../rng'
-import type { Card, CardType, Colour, Currency, EffectId, GameState } from '../types'
+import type { Card, CardType, Colour, Currency, EffectId, GameState, GeneratorResource } from '../types'
 import { generatorLimits } from './limits'
 import type { Limits } from './limits'
 import {
@@ -95,8 +96,6 @@ export function makeCard(state: GameState, turn: number, attempt = 0): Card {
     const wanted: Currency = type === 'ember' || (type === 'tide' && chance(rng, TIDE_POWER_CHANCE)) ? 'power' : 'gold'
     const main: Currency = limits.currencies.includes(wanted) ? wanted : (limits.currencies[0] as Currency)
     card.main = main
-    const other: Currency = main === 'gold' ? 'power' : 'gold'
-
     if (enemy && chance(rng, OTHER_RESOURCE_CHANCE)) {
         const currency = limits.currencies[nextInt(rng, limits.currencies.length)] as Currency
         const amount = Math.max(1, Math.floor(cost * ENEMY_GAIN_SHARE))
@@ -131,16 +130,14 @@ export function makeCard(state: GameState, turn: number, attempt = 0): Card {
     while (budget >= 1) {
         const heartsChance = card.hearts ? HEARTS_CHANCE_AFTER_HEARTS : type === 'tide' ? HEARTS_CHANCE_FIRST_TIDE : HEARTS_CHANCE_FIRST
         const q = r()
-        let res: Currency | 'hearts' | '' = enemy
-            ? 'hearts'
-            : q < heartsChance
-              ? 'hearts'
-              : q < heartsChance + OTHER_RESOURCE_CHANCE
-                ? other
-                : main
-        if (res === 'hearts' ? !limits.hearts : res === other && !limits.currencies.includes(other)) res = main
-        if (budget < RESOURCE_PRICE[res]) res = main
-        if (enemy && res !== 'hearts') break
+        const canPay = (resource: GeneratorResource) => budget >= RESOURCE_PRICE[resource]
+        if (enemy) {
+            if (!limits.hearts || !canPay('hearts')) break
+            card.hearts++
+            budget -= RESOURCE_PRICE.hearts
+            continue
+        }
+        const res = pickPayoutResource(q, payoutOptions(heartsChance, main, limits, canPay))
         card[res]++
         budget -= RESOURCE_PRICE[res]
     }

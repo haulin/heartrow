@@ -1,6 +1,6 @@
 import type { ComponentChildren } from 'preact'
 import { useEffect, useRef, useState } from 'preact/hooks'
-import { GOALS } from '../../core'
+import { GOALS, continueTarget } from '../../core'
 import type { Card, EffectId, GameState, Move } from '../../core'
 import { goalOfMode, hasChangedSettings, isFromOtherVersion, runName } from './challenges'
 import { Glyph } from './Glyph'
@@ -11,7 +11,7 @@ import { shareQuery } from './mode'
 import { SKINS } from './skins'
 import type { CardSkin } from './skins'
 import { HeartsChart } from './HeartsChart'
-import { deckSummary, heartsBreakdown, heartsPerTurn, moveFacts, outcomeLine, sortPile } from './text'
+import { deckSummary, heartsBreakdown, heartsPerTurn, moveFacts, outcomeLine, sortPile, unrecordedNote } from './text'
 import { buildCardView } from './view/cardView'
 
 /** A dialog with a title bar that holds the close button, so a long body scrolls under it. */
@@ -284,15 +284,15 @@ export function AboutDialog({ state, onClose }: { state?: GameState | undefined;
                 <Rich text="Heartrow is a small, single-player roguelike deckbuilder. Click a hand card to play it, or a river card to buy it. Recruits cost gold ●, go to your discard and work whenever you draw them. Enemies cost power ⚔: defeating one gives its hearts ♥ and effects once, and if one gets past the Gate at the end of the river you lose that many." />
             </p>
             <p>
-                Standard levels last 24 turns. Long Run lasts 42 turns and records a high score instead of ending when you reach a heart
-                target. Its costs and enemy pressure increase after turn 24.
+                Standard levels last 24 turns, and a won run can keep playing to turn 42. Long Run lasts 42 turns and records a high score
+                instead of ending when you reach a heart target. In every run costs and enemy pressure increase after turn 24.
             </p>
             <p>
-                Every card is generated as it appears. Moss leans gold and rewards a larger deck, Ember leans power, enemies and exile, Tide
-                leans draw, cycling and hearts.
+                Every card is generated as it appears. Moss leans gold and rewards a larger deck, Ember leans power and enemies, Tide leans
+                draw, cycling and hearts, and all three lean exile.
             </p>
             <p class="rules">
-                Standard can produce 25,309 distinct recruits and 1,564 distinct enemies. Custom generators change the card pool and its
+                Standard can produce 26,572 distinct recruits and 1,567 distinct enemies. Custom generators change the card pool and its
                 variety.
             </p>
             {state ? <SeedLine state={state} /> : null}
@@ -377,9 +377,10 @@ export function SummaryDialog({
             </p>
             {onPlayOn ? (
                 <p>
-                    <button type="button" class="b" onClick={onPlayOn}>
-                        Keep playing to turn {state.maxTurns}
+                    <button type="button" class="b" title={unrecordedNote(state) ?? undefined} onClick={onPlayOn}>
+                        Keep playing to turn {continueTarget(state)}
                     </button>
+                    {unrecordedNote(state) ? <small class="play-on-note">{unrecordedNote(state)}</small> : null}
                 </p>
             ) : null}
             {records.length > 0 ? (

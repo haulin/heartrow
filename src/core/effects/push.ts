@@ -11,7 +11,7 @@ export const push: EffectDef = {
     describe: () => 'Move the right-most enemy to the left end of the river',
     enemies: true,
     needs: ['foe'],
-    lean: ['ember'],
+    lean: ['moss'],
     retain: RETAIN_USUALLY,
     apply({ state, events }) {
         let from = -1

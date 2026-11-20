@@ -86,8 +86,8 @@ describe('engine', () => {
         expect(state.row).toHaveLength(5)
         expect([state.flushes, state.turn, state.hearts, state.goal, state.mode]).toEqual([1, 1, 0, 48, 'standard'])
         const all = [...state.deck, ...state.hand]
-        expect(all.filter((c) => c.gold === 1)).toHaveLength(6)
-        expect(all.filter((c) => c.power === 1)).toHaveLength(4)
+        expect(all.filter((c) => c.gold === 1)).toHaveLength(7)
+        expect(all.filter((c) => c.power === 1)).toHaveLength(3)
         expect(events).toEqual([{ type: 'drew', cardIds: state.hand.map((c) => c.id), requested: 5, cause: 'setup' }])
     })
 })

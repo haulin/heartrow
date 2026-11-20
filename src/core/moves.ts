@@ -143,7 +143,7 @@ function validate(state: GameState, move: Move): GameEvent | null {
 }
 
 function checkGoal(state: GameState, events: GameEvent[]): void {
-    if (state.goal !== null && state.hearts >= state.goal && !state.goalReached) {
+    if (state.goal !== null && state.hearts >= state.goal && !state.goalReached && withinDeadline(state)) {
         state.goalReached = true
         events.push({ type: 'goalReached' })
     }
@@ -187,6 +187,7 @@ export function applyMove(state: GameState, move: Move): StepResult {
             break
         case 'continue':
             next.continued = true
+            next.maxTurns = continueTarget(next)
             next.status = 'playing'
             startTurn(next, events)
             break
@@ -277,7 +278,7 @@ function endTurn(state: GameState, events: GameEvent[]): void {
     state.defeatedThisTurn = 0
 
     const goal = state.goal
-    if (goal !== null && state.goalMetTurn === null && state.hearts >= goal) {
+    if (goal !== null && state.goalMetTurn === null && state.hearts >= goal && withinDeadline(state)) {
         state.goalMetTurn = state.turn
         // A goal met by reaping at the end of the turn was never "reached" mid-turn, and a run that plays on would announce it late.
         state.goalReached = true
@@ -294,9 +295,20 @@ function endTurn(state: GameState, events: GameEvent[]): void {
     startTurn(state, events)
 }
 
-/** A won run that has turns left can go on, for a score beyond the goal. Once taken, it cannot be taken again. */
+/** The goal counts only when it is met by its deadline; a run that plays on past it scores hearts but cannot win or lose any later. */
+function withinDeadline(state: GameState): boolean {
+    return state.turn <= state.config.turns
+}
+
+/** A finished run can go on in up to two stops: the goal's last turn, which still counts, then the play-on turn, which is a score only. */
 export function canContinue(state: GameState): boolean {
-    return state.status === 'won' && !state.continued && state.turn < state.maxTurns
+    const decided = state.status === 'won' || state.status === 'lost'
+    return decided && state.maxTurns < state.config.playOnTurns
+}
+
+/** The turn where a run that continues stops next. */
+export function continueTarget(state: GameState): number {
+    return state.turn < state.config.turns ? state.config.turns : state.config.playOnTurns
 }
 
 function startTurn(state: GameState, events: GameEvent[]): void {

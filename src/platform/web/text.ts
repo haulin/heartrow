@@ -1,4 +1,4 @@
-import { EFFECT_BY_ID } from '../../core'
+import { EFFECT_BY_ID, continueTarget } from '../../core'
 import type { Card, EffectId, GameState, GoalDef, HeartSource, Move } from '../../core'
 
 export const INTRO_TEXT =
@@ -67,6 +67,12 @@ export function movesSummary(moves: readonly Move[]): string {
     return `${facts.total} moves, ${facts.perTurn} per turn; the most in one turn: ${facts.busiest} (T${facts.busiestTurn}).`
 }
 
+/** The tooltip of an effect everywhere it is named: its sentence with every value it can roll, then what it does. */
+export function effectTooltip(id: EffectId): string {
+    const effect = EFFECT_BY_ID[id]
+    return `${effect.describe()}\n${effect.blurb}`
+}
+
 const HEART_SOURCE_NAMES: Partial<Record<HeartSource, string>> = { plain: 'Plain gains', defeat: 'Enemies' }
 
 const heartSourceName = (source: HeartSource): string => HEART_SOURCE_NAMES[source] ?? source[0]!.toUpperCase() + source.slice(1)
@@ -79,7 +85,7 @@ const HEART_SOURCE_HINTS: Partial<Record<HeartSource, string>> = {
 export interface HeartSourceLine {
     name: string
     amount: number
-    /** What the source is, in a sentence, for a tooltip. */
+    /** What the source is, for a tooltip: the effect's tooltip, or a sentence for plain gains and enemies. */
     hint: string
     /** The effect that paid the hearts, which has a page in the compendium; null for plain gains and enemies. */
     effect: EffectId | null
@@ -92,7 +98,7 @@ export function heartsBreakdown(state: GameState): HeartSourceLine[] {
         .sort((a, b) => b[1] - a[1])
         .map(([source, amount]) => {
             const effect = Object.hasOwn(EFFECT_BY_ID, source) ? (source as EffectId) : null
-            const hint = effect ? EFFECT_BY_ID[effect].blurb : (HEART_SOURCE_HINTS[source] ?? '')
+            const hint = effect ? effectTooltip(effect) : (HEART_SOURCE_HINTS[source] ?? '')
             return { name: heartSourceName(source), amount, hint, effect }
         })
 }
@@ -128,6 +134,11 @@ export function goalLine({ target, turns }: Pick<GoalDef, 'target' | 'turns'>): 
     return `${target} ♥ in ${turns} turns`
 }
 
+/** A warning for the stop beyond the goal's last turn, where hearts are for information only; null while the goal can still count. */
+export function unrecordedNote(state: GameState): string | null {
+    return continueTarget(state) > state.config.turns ? `Hearts after turn ${state.config.turns} are not recorded.` : null
+}
+
 /** How a finished run ended, in one sentence, or null while it is being played. */
 export function outcomeLine(state: GameState): string | null {
     switch (state.status) {
@@ -136,7 +147,9 @@ export function outcomeLine(state: GameState): string | null {
                 ? `You won with ${state.hearts} ♥ on turn ${state.turn}.`
                 : `You won on turn ${state.goalMetTurn} and finished with ${state.hearts} ♥ after ${state.turn} turns.`
         case 'lost':
-            return `Out of turns: ${state.hearts}/${state.goal} ♥.`
+            return state.continued
+                ? `The goal was missed by turn ${state.config.turns}; you finished with ${state.hearts} ♥ after ${state.turn} turns.`
+                : `Out of turns: ${state.hearts}/${state.goal} ♥.`
         case 'finished':
             return `Long Run complete: ${state.hearts} ♥ after ${state.maxTurns} turns.`
         default:

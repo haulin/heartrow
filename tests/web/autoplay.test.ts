@@ -25,6 +25,7 @@ describe('Play simple', () => {
         expect(isSimplePlay(card({ fx: ['flip', 'reapG'] }))).toBe(true)
         expect(isSimplePlay(card({ fx: ['hoard'] }))).toBe(true)
         expect(isSimplePlay(card({ fx: ['army'] }))).toBe(true)
+        expect(isSimplePlay(card({ fx: ['basics'] }))).toBe(true)
         expect(isSimplePlay(card({ fx: ['draw', 'vault'] }))).toBe(false)
     })
 
